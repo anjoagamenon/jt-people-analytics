@@ -539,7 +539,8 @@ footer.hud b { color: var(--red); }
     <div class="pmodal-section" style="margin-top:12px;">
       <div class="pmodal-sec-title"><i>✏️</i> Observação privada do gestor <span id="pmObsBadge" class="pbadge pb-blue" style="margin-left:auto;display:none;">📝 tem observação</span></div>
       <textarea id="pmObsText" rows="3" spellcheck="true" lang="pt-BR" autocorrect="on" autocapitalize="sentences" placeholder="Anote uma observação sobre este colaborador (apenas gestores veem)…" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:13px;resize:vertical;min-height:72px;"></textarea>
-      <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+      <div style="display:flex;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <button id="pmObsAI" type="button" class="pm-btn" title="Melhorar o texto com IA (sintaxe, tom, ortografia)" style="background:#0f172a;color:#fff;padding:8px 14px;border-radius:10px;font-weight:800;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;border:0;cursor:pointer;">✨ Melhorar com IA</button>
         <button id="pmObsSave" type="button" class="pm-btn wa" style="background:var(--red);color:#fff;padding:8px 16px;border-radius:10px;font-weight:800;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;border:0;cursor:pointer;">Salvar observação</button>
       </div>
       <div id="pmObsHint" style="margin-top:6px;font-size:11px;color:var(--gray);text-align:right;min-height:14px;"></div>
@@ -1231,6 +1232,23 @@ $('#personGrid').addEventListener('click', (ev) => {
   const colab = LAST.colabs.find(c => strip(c.matricula) === strip(card.getAttribute('data-mat')));
   if (colab) openPerson(colab);
 });
+document.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('#pmObsAI');
+  if (!btn) return;
+  ev.preventDefault();
+  const ta = document.getElementById('pmObsText');
+  const hint = document.getElementById('pmObsHint');
+  const value = ta ? String(ta.value || '').trim() : '';
+  if (!value) { if (hint) { hint.textContent = 'Escreva a observação primeiro.'; window.clearTimeout(window.__improveHintTimer); window.__improveHintTimer = window.setTimeout(() => { hint.textContent = ''; }, 2000); } return; }
+  btn.disabled = true;
+  btn.textContent = '⏳ Melhorando…';
+  if (hint) hint.textContent = 'Enviando para a IA…';
+  const s = document.createElement('script');
+  s.src = EXEC_URL + '?action=IMPROVE_TEXT&callback=__improveCb_&text=' + encodeURIComponent(value) + '&t=' + Date.now();
+  s.onerror = () => { btn.disabled = false; btn.textContent = '✨ Melhorar com IA'; if (hint) hint.textContent = 'Falha de rede com o backend.'; window.clearTimeout(window.__improveHintTimer); window.__improveHintTimer = window.setTimeout(() => { hint.textContent = ''; }, 3000); };
+  s.onload = () => { try { s.remove(); } catch {} };
+  document.body.appendChild(s);
+});
 document.querySelectorAll('[data-pclose]').forEach(el => el.addEventListener('click', closePerson));
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closePerson(); });
 
@@ -1242,6 +1260,23 @@ const exec = (cbName) => {
   document.body.appendChild(s);
 };
 window.__dashOnData = function (data) { try { renderAll(data || { colabs: [], attendance: [], occurrences: [], indicators: [], folgas: [], epis: [], settings: {} }); } catch (e) { console.error('render', e); } };
+// Resposta da ação IMPROVE_TEXT chega por JSONP — substitui o conteúdo da caixa de texto
+window.__improveCb_ = function (result) {
+  try {
+    const ta = document.getElementById('pmObsText');
+    const hint = document.getElementById('pmObsHint');
+    const btn = document.getElementById('pmObsAI');
+    if (!ta) return;
+    if (result && result.status === 'ok' && result.improved) {
+      ta.value = result.improved;
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      if (hint) { hint.textContent = result.source === 'offline' ? 'Melhorado offline ✓ (configure AI_API_KEY para IA)' : 'Melhorado por IA ✓'; window.clearTimeout(window.__improveHintTimer); window.__improveHintTimer = window.setTimeout(() => { hint.textContent = ''; }, 2200); }
+    } else {
+      if (hint) { hint.textContent = (result && (result.message || 'Erro ao melhorar.')) || 'Erro ao melhorar.'; window.clearTimeout(window.__improveHintTimer); window.__improveHintTimer = window.setTimeout(() => { hint.textContent = ''; }, 4000); }
+    }
+    if (btn) { btn.disabled = false; btn.textContent = '✨ Melhorar com IA'; }
+  } catch (e) { console.error('__improveCb_', e); }
+};
 const loadData = () => exec('__dashOnData');
 loadData();
 setInterval(loadData, 15000); // sincroniza a cada 15s (em tempo quase real)
