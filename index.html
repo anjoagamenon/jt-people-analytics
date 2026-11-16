@@ -538,7 +538,7 @@ footer.hud b { color: var(--red); }
 
     <div class="pmodal-section" style="margin-top:12px;">
       <div class="pmodal-sec-title"><i>✏️</i> Observação privada do gestor <span id="pmObsBadge" class="pbadge pb-blue" style="margin-left:auto;display:none;">📝 tem observação</span></div>
-      <textarea id="pmObsText" rows="3" placeholder="Anote uma observação sobre este colaborador (apenas gestores veem)…" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:13px;resize:vertical;min-height:72px;"></textarea>
+      <textarea id="pmObsText" rows="3" spellcheck="true" lang="pt-BR" autocorrect="on" autocapitalize="sentences" placeholder="Anote uma observação sobre este colaborador (apenas gestores veem)…" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:13px;resize:vertical;min-height:72px;"></textarea>
       <div style="display:flex;justify-content:flex-end;margin-top:8px;">
         <button id="pmObsSave" type="button" class="pm-btn wa" style="background:var(--red);color:#fff;padding:8px 16px;border-radius:10px;font-weight:800;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;border:0;cursor:pointer;">Salvar observação</button>
       </div>
@@ -1029,6 +1029,9 @@ const buildFichaText = (c) => {
   const sched = c.schedule || {};
   const ind = (d.indicators || []).filter(i => stripM(i.matricula) === matK).slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')))[0];
   const isVac = isOnVacation(c);
+  // Inclui observação privada do gestor na mensagem de compartilhamento (se registrada)
+  const obsFromSettings = (d.settings && d.settings.observacoes) || {};
+  const obsText = obsFromSettings[stripM(c.matricula)] ? String(obsFromSettings[stripM(c.matricula)]).trim() : '';
   // Formato completo (foto + ficha numa única mensagem): ~700 caracteres, dentro da legenda do WhatsApp
   return [
     '📋 *FICHA DO COLABORADOR* — J&T Express Marabá',
@@ -1052,6 +1055,7 @@ const buildFichaText = (c) => {
     `🗓 *Registros de ${mm}/${y}:*`,
     `  • Presentes: ${presentes}  •  Cobrindo: ${cobrindo}  •  Faltas: ${faltasMes}`,
     ind ? `  • Score ${ind.score || 0}  •  Assiduidade ${ind.assiduidade || 0}  •  Mês ${esc(ind.month || '')}` : '',
+    obsText ? `📝 *Obs. Gestor:* ${obsText}` : '',
     '',
     'Enviado pelo painel People Analytics'
   ].filter(Boolean).join('\n').replace(/\uFFFD/g, '');
