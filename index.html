@@ -987,38 +987,38 @@ const buildFichaText = (c) => {
   const presentes = pres.filter(a => /presente/i.test(String(a.status || ''))).length;
   const cobrindo  = pres.filter(a => /cobrindo/i.test(String(a.status || ''))).length;
   const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(y + '-' + mm) && stripM(o.matricula) === matK).length;
-  const weekDays = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-  const sched = c.schedule || {};
-  const mySched = weekDays.map(dd => `${dd.slice(0,3)}: ${sched[dd] || '—'}`).join(' • ');
   const ind = (d.indicators || []).filter(i => stripM(i.matricula) === matK).slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')))[0];
   const isVac = isOnVacation(c);
+  const weekDays = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  const sched = c.schedule || {};
+  const horaCurta = (() => {
+    const p = String(c.horario || '').split('/').map(s => s.trim()).filter(Boolean);
+    if (p.length === 4) return `Entrada ${p[0]} • int. ${p[1]}–${p[2]} • fim ${p[3]}`;
+    if (p.length === 2) return `Entrada ${p[0]} • fim ${p[1]}`;
+    return String(c.horario || '—');
+  })();
+  const weeklyShort = weekDays.map(dd => {
+    const v = String(sched[dd] || '—').trim().slice(0, 1).toUpperCase();
+    return `${dd.slice(0, 3)} ${v}`;
+  }).join(' • ');
+  const feriasTxt = isVac ? 'DE FÉRIAS' + (c.feriasRetorno ? ` (volta ${fmtBR(c.feriasRetorno)})` : '') : 'não';
+  const indScore = ind ? `${ind.score || 0}` : '—';
   return [
-    '📋 *FICHA DO COLABORADOR* — J&T Express Marabá',
+    '📋 *Ficha — J&T Marabá*',
     '',
-    `👤 *Nome:* ${c.name || ''}`,
-    `🆔 *Matrícula:* ${c.matricula || '—'}`,
-    `💼 *Função:* ${c.funcao || '—'}`,
-    `📅 *Turno:* ${teamLabel}`,
-    `🕐 *Horário:* ${formatHorario(c.horario)}`,
-    `🛌 *DSR:* ${c.dsr || '—'}`,
-    `📆 *Admissão:* ${fmtBR(c.admissao) || '—'}`,
-    `🎂 *Nascimento:* ${fmtBR(c.nascimento) || '—'}`,
-    `⏱ *Tempo de empresa:* ${tempoEmpresa(c.admissao)}`,
-    `📧 *E-mail:* ${c.email || '—'}`,
-    `📱 *Telefone:* ${c.telefone || '—'}`,
-    `👕 *Uniforme:* ${c.uniforme || '—'}  •  👟 *Calçado:* ${c.calcado || '—'}`,
-    `⚽ *Time:* ${c.time || '—'}`,
-    `📊 *Status:* ${c.status || 'Ativo'}  •  ⭐ *Nível:* ${c.skillLevel || '—'}`,
-    `🌴 *Férias:* ${isVac ? 'DE FÉRIAS' + (c.feriasRetorno ? ` — retorna ${fmtBR(c.feriasRetorno)}` : '') : 'Não está de férias'}`,
+    `👤 *${c.name || ''}*`,
+    `🆔 ${c.matricula || '—'} • 💼 ${c.funcao || '—'}`,
+    `📅 ${teamLabel} • 🕐 ${horaCurta}`,
+    `🛏️ DSR: ${c.dsr || '—'} • *Adm.:* ${fmtBR(c.admissao) || '—'}`,
+    `🎂 *Nasc.:* ${fmtBR(c.nascimento) || '—'} • ⏱ *Empresa:* ${tempoEmpresa(c.admissao)}`,
+    `📧 ${c.email || '—'} • 📱 ${c.telefone || '—'}`,
+    `👕 ${c.uniforme || '—'} • 👟 ${c.calcado || '—'} • ⚽ ${c.time || '—'}`,
+    `⭐ *Nível:* ${c.skillLevel || '—'} • ${c.status || 'Ativo'} • 🌴 *Férias:* ${feriasTxt}`,
     '',
-    `🗓 *Registros de ${mm}/${y}:*`,
-    `  • Presentes: ${presentes}  •  Cobrindo: ${cobrindo}  •  Faltas: ${faltasMes}`,
-    ind ? `  • Score ${ind.score || 0}  •  Assiduidade ${ind.assiduidade || 0}  •  Mês ${esc(ind.month || '')}` : '',
+    `📊 *${mm}/${y}:* Pres ${presentes} • Cob ${cobrindo} • Falt ${faltasMes} • Score ${indScore}`,
     '',
-    `🗓️ *ESCALA:* ${mySched}`,
-    '',
-    'Enviado pelo painel People Analytics'
-  ].filter(Boolean).join('\n').replace(/\uFFFD/g, '');
+    `🗓️ ${weeklyShort}`
+  ].join('\n').replace(/\uFFFD/g, '');
 };
 
 // Compartilha a ficha do colaborador junto com a foto no WhatsApp / Web Share API.
