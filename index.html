@@ -1012,6 +1012,56 @@ const buildFichaText = (c) => {
   ].filter(Boolean).join('\n');
 };
 
+// Compartilha a ficha do colaborador junto com a foto no WhatsApp / Web Share API.
+// - Foto inline (data:image/*) -> envoud File via navigator.share (browsers compatíveis)
+// - Foto remota (drive) -> tenta fetch(); se CORS falhar, envia link no texto
+// - Fallback: wa.me com toda a ficha como texto + URL da foto
+const shareFichaWithPhoto = async (c) => {
+  const text = buildFichaText(c);
+  const photoRaw = String(c?.avatar || '').trim();
+  const photoHttp = /^https?:\/\//.test(photoRaw) ? photoRaw : '';
+  let file = null;
+  try {
+    if (photoRaw.startsWith('data:image')) {
+      const parts = photoRaw.split(',');
+      const meta = parts[0] || '';
+      const b64  = parts.slice(1).join(',');
+      const mime = (meta.match(/data:(.*?);/) || [, 'image/jpeg'])[1] || 'image/jpeg';
+      const bin  = atob(b64);
+      const buf  = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+      file = new File([buf], (c.matricula || 'foto') + '.jpg', { type: mime });
+    } else if (photoHttp) {
+      try {
+        const r = await fetch(photoHttp);
+        const blob = await r.blob();
+        file = new File([blob], (c.matricula || 'foto') + '.jpg', { type: blob.type || 'image/jpeg' });
+      } catch (_) {
+        // CORS / rede: vamos cair no fallback com link direto
+      }
+    }
+    if (file && navigator.canShare && navigator.canShare({ files: [file], text })) {
+      await navigator.share({ files: [file], text, title: 'Ficha do colaborador' });
+      return;
+    }
+  } catch (err) {
+    // navigation shares abortadas são normais; sem Toast suave
+    console.warn('shareFichaWithPhoto:', err && (err.message || err));
+  }
+  // Fallback 1: tenta navigator.share só com texto (sem foto)
+  try {
+    if (navigator.share && !(navigator.canShare && navigator.canShare({ text }))) {
+      // alguns navegadores exigirem canShare({text}) — se não suporta, cai no wa.me
+      throw new Error('no-share');
+    }
+    await navigator.share({ text, title: 'Ficha do colaborador' });
+    return;
+  } catch (_) {}
+  // Fallback 2: wa.me com texto completo (+ URL da foto se for remota)
+  const extra = photoHttp ? '\n\n📎 Foto: ' + photoHttp : '';
+  window.open('https://wa.me/?text=' + encodeURIComponent(text + extra), '_blank', 'noopener,noreferrer');
+};
+
 const openPerson = (c) => {
   const d = LAST;
   const matK = strip(c.matricula);
@@ -1056,13 +1106,14 @@ const openPerson = (c) => {
   const first = String(c.name || '').split(' ')[0];
   const fichaText = buildFichaText(c);
   const encoded = encodeURIComponent(fichaText);
-  const waSend   = 'https://wa.me/?text=' + encoded;
   const mailto   = 'mailto:' + (c.email || '') + '?subject=' + encodeURIComponent('Ficha do colaborador — ' + (c.name || '')) + '&body=' + encoded;
   $('#pmActions').innerHTML = [
     '<a class="pm-btn wa" href="' + (waNume ? ('https://wa.me/' + waNume + '?text=' + encodeURIComponent('Olá, ' + first + '!')) : 'https://wa.me/') + '" target="_blank" rel="noopener"><b>💬</b><span>WhatsApp</span></a>',
-    '<a class="pm-btn share" href="' + waSend + '" target="_blank" rel="noopener" title="Abre o WhatsApp com a ficha completa"><b>📋</b><span>Enviar ficha</span></a>',
+    '<button id="pmShareBtn" type="button" class="pm-btn share" title="Envia a ficha + foto diretamente pelo WhatsApp ou outro app"><b>📋</b><span>Enviar ficha + foto</span></button>',
     '<a class="pm-btn mail" href="' + esc(mailto) + '" title="Abre o cliente de e-mail com a ficha completa"><b>✉️</b><span>E-mail</span></a>'
   ].join('');
+  const sb = document.getElementById('pmShareBtn');
+  if (sb) sb.addEventListener('click', () => { shareFichaWithPhoto(c); });
 
   // Indicadores (últimos 6 meses)
   const inds = (d.indicators || []).filter(i => strip(i.matricula) === matK)
