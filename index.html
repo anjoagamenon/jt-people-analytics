@@ -832,7 +832,7 @@ const scheduleVolSave = (d, value) => {
     const cur = weekly[wk] || {};
     const nextFc = { ...cur };
     const nm = DAY_NAMES[VOL_ACTIVE];
-    if (valueNorm > 0) nextFc[nm] = valueNorm; else delete nextFc[nm];
+    if (String(value).trim() === '') delete nextFc[nm]; else nextFc[nm] = valueNorm;
     const next = { ...(d.settings || {}), weeklyForecasts: { ...weekly, [wk]: nextFc } };
     d.settings = next;
     try {
@@ -847,9 +847,14 @@ const renderVol = (d) => {
   const dayNm = DAY_NAMES[VOL_ACTIVE];
   const saved = Number(forecast[dayNm] || 0);
   const capFallback = WEEK_CAP[VOL_ACTIVE] || 0;
-  const liveInput = Number($('#volInput') && document.activeElement === $('#volInput') ? $('#volInput').value || 0 : saved);
-  const vol = liveInput > 0 ? liveInput : (saved > 0 ? saved : capFallback);
-  if ($('#volInput') && document.activeElement !== $('#volInput')) $('#volInput').value = vol > 0 ? String(vol) : '';
+  const savedPresent = Object.prototype.hasOwnProperty.call(forecast || {}, dayNm);
+  const liveStr = ($('#volInput') && document.activeElement === $('#volInput')) ? String($('#volInput').value || '').trim() : null;
+  const vol = liveStr !== null
+    ? (liveStr === '' ? capFallback : Math.max(0, Number(liveStr) || 0))
+    : (savedPresent ? saved : capFallback);
+  if ($('#volInput') && document.activeElement !== $('#volInput')) {
+    $('#volInput').value = savedPresent ? String(saved) : (capFallback > 0 ? String(capFallback) : '');
+  }
   const r = computeVol(d, vol, VOL_ACTIVE);
   $('#volNeeded').textContent = r.needed;
   $('#volDiaristasT1').textContent = '+' + r.diarT1;
@@ -867,9 +872,10 @@ const renderVol = (d) => {
   else { bal.textContent = refDay + ': T1 +' + r.diarT1 + ' • T2 +' + r.diarT2 + ' diarista(s)'; bal.className = 'vol-balance need'; }
   $('#volWeek').innerHTML = WEEK_LABELS.map((lbl, i) => {
     const nm = DAY_NAMES[i];
+    const savedDay = Object.prototype.hasOwnProperty.call(forecast || {}, nm);
     const val = Number(forecast[nm] || 0);
     const active = i === VOL_ACTIVE;
-    const shown = val > 0 ? (val / 1000).toFixed(1) + 'k' : (WEEK_CAP[i] ? (WEEK_CAP[i] / 1000).toFixed(1) + 'k' : '—');
+    const shown = savedDay ? (val === 0 ? '✖ 0' : (val / 1000).toFixed(1) + 'k') : (WEEK_CAP[i] ? (WEEK_CAP[i] / 1000).toFixed(1) + 'k' : '—');
     return '<button type="button" class="vol-chip' + (active ? ' active' : '') + '" data-day="' + i + '">' + lbl + '<br><span style="font-size:9px;opacity:0.75">' + shown + '</span></button>';
   }).join('');
 };
