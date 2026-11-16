@@ -570,7 +570,7 @@ const GATE_PASS = 'jetexpress10';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
-const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const esc = (s) => String(s ?? '').replace(/\uFFFD/g, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const strip = (v) => String(v || '').replace(/^0+/, '') || '0';
 const pad2 = (n) => String(n).padStart(2, '0');
 const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
@@ -1000,7 +1000,7 @@ const buildFichaText = (c) => {
     `👕 *Uniforme:* ${c.uniforme || '—'}  •  👟 *Calçado:* ${c.calcado || '—'}`,
     `⚽ *Time:* ${c.time || '—'}`,
     `📊 *Status:* ${c.status || 'Ativo'}  •  ⭐ *Nível:* ${c.skillLevel || '—'}`,
-    `🏖️ *Férias:* ${isVac ? 'DE FÉRIAS' + (c.feriasRetorno ? ` — retorna ${fmtBR(c.feriasRetorno)}` : '') : 'Não está de férias'}`,
+    `🌴 *Férias:* ${isVac ? 'DE FÉRIAS' + (c.feriasRetorno ? ` — retorna ${fmtBR(c.feriasRetorno)}` : '') : 'Não está de férias'}`,
     '',
     `🗓 *Registros de ${mm}/${y}:*`,
     `  • Presentes: ${presentes}  •  Cobrindo: ${cobrindo}  •  Faltas: ${faltasMes}`,
@@ -1009,7 +1009,7 @@ const buildFichaText = (c) => {
     `🗓️ *ESCALA:* ${mySched}`,
     '',
     'Enviado pelo painel People Analytics'
-  ].filter(Boolean).join('\n');
+  ].filter(Boolean).join('\n').replace(/\uFFFD/g, '');
 };
 
 // Compartilha a ficha do colaborador junto com a foto no WhatsApp / Web Share API.
