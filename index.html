@@ -159,6 +159,9 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .person[data-turno="Turno 2"] .ptag { background: #c026d3; }
 .person[data-turno="ADM"] .ptag { background: #b45309; }
 .pfer { display: inline-block; font-size: 7px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1d4ed8; color: #fff; margin-left: 3px; letter-spacing: 1px; }
+.pobs { display: inline-block; font-size: 11px; padding: 0 2px; }
+.person.obs { box-shadow: 0 0 0 2px #E60000, 0 4px 12px rgba(230,0,0,0.12); }
+.person.obs .pname { color: #b91c1c; }
 
 /* ==== DONUT / GAUGE / RANK ==== */
 .donut-wrap { display: flex; align-items: center; gap: 14px; }
@@ -182,6 +185,10 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .list { max-height: 262px; overflow-y: auto; }
 .list-row { display: flex; align-items: center; gap: 10px; padding: 7px 6px; border-bottom: 1px solid #efeff1; }
 .list-row:last-child { border-bottom: 0; }
+.list-row-clickable { border: 0; background: #fff; width: 100%; text-align: left; font: inherit; cursor: pointer; border-radius: 12px; transition: background .18s ease; }
+.list-row-clickable:hover { background: #fff5f5; }
+.list-row-clickable[data-obs="1"] { box-shadow: inset 4px 0 0 #E60000; background: #fffafa; }
+.obs-mark { display: inline-block; font-size: 11px; padding: 0 3px; vertical-align: 1px; }
 .list-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: 0 0 40px; border: 2px solid var(--red); background: #f5f5f6; display: flex; align-items: center; justify-content: center; font-family: 'Baloo 2'; font-size: 13px; font-weight: 800; color: var(--red); }
 img.list-avatar { object-fit: cover; }
 .list-info { flex: 1; min-width: 0; }
@@ -530,6 +537,15 @@ footer.hud b { color: var(--red); }
     </div>
 
     <div class="pmodal-section" style="margin-top:12px;">
+      <div class="pmodal-sec-title"><i>✏️</i> Observação privada do gestor <span id="pmObsBadge" class="pbadge pb-blue" style="margin-left:auto;display:none;">📝 tem observação</span></div>
+      <textarea id="pmObsText" rows="3" placeholder="Anote uma observação sobre este colaborador (apenas gestores veem)…" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:13px;resize:vertical;min-height:72px;"></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+        <button id="pmObsSave" type="button" class="pm-btn wa" style="background:var(--red);color:#fff;padding:8px 16px;border-radius:10px;font-weight:800;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;border:0;cursor:pointer;">Salvar observação</button>
+      </div>
+      <div id="pmObsHint" style="margin-top:6px;font-size:11px;color:var(--gray);text-align:right;min-height:14px;"></div>
+    </div>
+
+    <div class="pmodal-section" style="margin-top:12px;">
       <div class="pmodal-sec-title"><i>▣</i> EPIs entregues</div>
       <div class="plist" id="pmEpis"></div>
     </div>
@@ -663,9 +679,11 @@ const renderWall = (d) => {
   const list = d.colabs.filter(c => FILTER === 'ALL' || (c.turno || 'Turno 1') === FILTER);
   grid.innerHTML = list.map(c => {
     const fer = isOnVacation(c);
-    return '<div class="person" data-turno="' + esc(c.turno || 'Turno 1') + '" data-mat="' + esc(c.matricula) + '" role="button" tabindex="0">'
+    const obsMap = (d.settings && d.settings.observacoes) || {};
+    const hasObs = !!(obsMap[strip(c.matricula)] && String(obsMap[strip(c.matricula)]).trim());
+    return '<div class="person' + (hasObs ? ' obs' : '') + '" data-turno="' + esc(c.turno || 'Turno 1') + '" data-mat="' + esc(c.matricula) + '" role="button" tabindex="0">'
       + avatarOf(c, 64)
-      + '<div class="pname">' + esc(c.name) + (fer ? '<span class="pfer">FÉRIAS</span>' : '') + '</div>'
+      + '<div class="pname">' + esc(c.name) + (fer ? '<span class="pfer">FÉRIAS</span>' : '') + (hasObs ? '<span class="pobs" title="Contém observações">📝</span>' : '') + '</div>'
       + '<div class="pfuncao">' + esc(c.funcao || 'COLABORADOR') + '</div>'
       + '<span class="ptag">' + esc(c.turno || 'Turno 1') + '</span>'
       + '</div>';
@@ -737,17 +755,31 @@ const avatarByMatricula = (d, mat, size) => {
   return c ? avatarOf(c, size) : '<div class="list-avatar">' + esc(String(mat || '?').slice(-2)) + '</div>';
 };
 
+const obsGet = () => (LAST && LAST.settings && LAST.settings.observacoes) || {};
+const obsHas = (c) => { const m = strip(c && c.matricula); const o = obsGet(); return !!(o && o[m] && String(o[m]).trim()); };
+const rowFaltasFlash = (el) => { try { el.animate([{ background: '#fff7ed' }, { background: '#ffffff' }], { duration: 650 }); } catch (_) {} };
+
 const renderFaltas = (d) => {
   const list = d.occurrences.filter(o => String(o.data || '').startsWith(monthNow()))
-    .slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 9);
+    .slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 12);
+  const obsMap = (d.settings && d.settings.observacoes) || {};
   $('#faltasCount').textContent = list.length + ' REGISTRO' + (list.length === 1 ? '' : 'S');
-  $('#faltasList').innerHTML = list.length ? list.map(o =>
-    '<div class="list-row">' + avatarByMatricula(d, o.matricula, 40) +
-    '<div class="list-info"><div class="list-name">' + esc(o.colabName || o.matricula) + '</div>' +
+  $('#faltasList').innerHTML = list.length ? list.map(o => {
+    const c = d.colabs.find(cc => strip(cc.matricula) === strip(o.matricula));
+    const hasObs = c && obsMap[strip(c.matricula)] && String(obsMap[strip(c.matricula)]).trim();
+    return '<button type="button" class="list-row list-row-clickable" data-mat="' + esc(o.matricula) + '" data-obs="' + (hasObs ? '1' : '0') + '">' + avatarByMatricula(d, o.matricula, 40) +
+    '<div class="list-info"><div class="list-name">' + esc(o.colabName || o.matricula) + ' ' + (hasObs ? '<span class="obs-mark" title="Contém observações">📝</span>' : '') + '</div>' +
     '<div class="list-meta">' + esc(String(o.tipo || 'Ocorrência')) + ' • ' + esc(String(o.data || '').split('-').reverse().join('/')) + (o.motivo ? ' • ' + esc(o.motivo) : '') + '</div></div>' +
-    '<span class="list-badge">' + esc(String(o.tipo || '').split(' ')[0] || 'FALTA') + '</span></div>'
-  ).join('') : '<div class="empty-note">Nenhuma falta registrada no mês. 🎉</div>';
+    '<span class="list-badge">' + esc(String(o.tipo || '').split(' ')[0] || 'FALTA') + '</span></button>';
+  }).join('') : '<div class="empty-note">Nenhuma falta registrada no mês. 🎉</div>';
 };
+$('#faltasList').addEventListener('click', (ev) => {
+  const row = ev.target.closest('.list-row-clickable');
+  if (!row) return;
+  const mat = strip(row.getAttribute('data-mat'));
+  const c = LAST.colabs.find(cc => strip(cc.matricula) === mat);
+  if (c) openPerson(c);
+});
 
 const renderBirthdays = (d) => {
   const mm = pad2(new Date().getMonth() + 1);
@@ -1153,6 +1185,37 @@ const openPerson = (c) => {
   $('#pmEpis').innerHTML = myEpis.length
     ? myEpis.map(e => '<div class="plist-row"><span>' + esc(e.item || 'EPI') + (e.ca ? ' • CA ' + esc(e.ca) : '') + '</span><span style="color:var(--gray)">' + esc(fmtBR(e.data)) + '</span></div>').join('')
     : '<div class="empty-note">Nenhuma entrega registrada.</div>';
+
+  // Observação privada do gestor (armazenada em settings.observacoes, roda em cima de SAVE_SETTINGS do backend)
+  const obs = (d.settings && d.settings.observacoes) || {};
+  const cur = obs[strip(matK)] || '';
+  const obsField = $('#pmObsText');
+  if (obsField) obsField.value = cur;
+  const obsBadge = $('#pmObsBadge');
+  if (obsBadge) { obsBadge.style.display = cur && cur.trim() ? 'inline-block' : 'none'; }
+  if (obsBadge) { obsBadge.classList.toggle('pb-blue', true); }
+  const hint = $('#pmObsHint'); if (hint) hint.textContent = cur && cur.trim() ? 'Última anotação salva.' : '';
+  const saveBtn = $('#pmObsSave');
+  if (saveBtn) {
+    saveBtn.onclick = async () => {
+      const ta = $('#pmObsText');
+      const value = String(ta.value || '').trim();
+      const nextObs = { ...(d.settings && d.settings.observacoes || {}) };
+      if (value) nextObs[strip(matK)] = value; else delete nextObs[strip(matK)];
+      const next = { ...(d.settings || {}), observacoes: nextObs };
+      if (hint) hint.textContent = 'Salvando…';
+      try {
+        await fetch(EXEC_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify({ action: 'SAVE_SETTINGS', payload: { settings: next } }) });
+        d.settings = next; // atualiza em memória para próxima render
+        const b = $('#pmObsBadge'); if (b) b.style.display = value ? 'inline-block' : 'none';
+        if (hint) hint.textContent = value ? 'Anotação salva ✓' : 'Anotação removida ✓';
+        // força re-render dos blocos que dependem de settings.observacoes
+        renderAll(d);
+      } catch (err) {
+        if (hint) hint.textContent = 'Falha ao salvar. Tente de novo.';
+      }
+    };
+  }
 
   $('#personModal').hidden = false;
 };
