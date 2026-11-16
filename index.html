@@ -960,6 +960,15 @@ const feriasInfo = (admissao) => {
 };
 const fmtBR = (iso) => { try { const p = String(iso || '').slice(0, 10).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso || ''); } catch { return String(iso || ''); } };
 
+// Divide "HH:MM/HH:MM/HH:MM/HH:MM" em entrada / intervalo / fim da jornada (o que existe na planilha)
+const formatHorario = (h) => {
+  const p = String(h || '').split('/').map(s => s.trim()).filter(Boolean);
+  if (p.length === 4) return 'Entrada ' + p[0] + '  ·  Intervalo ' + p[1] + '–' + p[2] + '  ·  Fim da jornada ' + p[3];
+  if (p.length === 3) return 'Entrada ' + p[0] + '  ·  Intervalo ' + p[1] + '–' + p[2];
+  if (p.length === 2) return 'Entrada ' + p[0] + '  ·  Fim da jornada ' + p[1];
+  return String(h || '—');
+};
+
 const waLink = (phone, text) => {
   const digits = String(phone || '').replace(/\D/g, '');
   const m = digits.startsWith('55') && digits.length === 13 ? digits : (digits.length === 11 ? '55' + digits : (digits.length === 10 ? '55' + digits : digits));
@@ -990,7 +999,7 @@ const buildFichaText = (c) => {
     `🆔 *Matrícula:* ${c.matricula || '—'}`,
     `💼 *Função:* ${c.funcao || '—'}`,
     `📅 *Turno:* ${teamLabel}`,
-    `🕐 *Horário:* ${c.horario || '—'}`,
+    `🕐 *Horário:* ${formatHorario(c.horario)}`,
     `🛌 *DSR:* ${c.dsr || '—'}`,
     `📆 *Admissão:* ${fmtBR(c.admissao) || '—'}`,
     `🎂 *Nascimento:* ${fmtBR(c.nascimento) || '—'}`,
@@ -1080,7 +1089,7 @@ const openPerson = (c) => {
   $('#pmChips').innerHTML = [
     chip('Matrícula', esc(c.matricula || '—'), true),
     chip('Função', esc(c.funcao || '—')),
-    chip('Horário', esc(c.horario || '—')),
+    chip('Horário', esc(formatHorario(c.horario))),
     chip('DSR', esc(c.dsr || '—')),
     chip('Admissão', esc(fmtBR(c.admissao) || '—')),
     chip('Tempo de empresa', esc(tempoEmpresa(c.admissao))),
