@@ -608,6 +608,80 @@ html[data-theme="dark"] .hud-gear { background: #131b31; border-color: rgba(255,
 .font-opt.active { border-color: var(--red); box-shadow: 0 0 0 2px var(--line-red), 0 0 18px rgba(255, 46, 76, 0.35); }
 .settings-foot { margin-top: 12px; text-align: center; font-size: 8.5px; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
 
+/* ============ AO VIVO: notícias / clima / dólar ============ */
+.live-strip { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.news-card { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 16px 18px 12px; border-radius: 18px; background: linear-gradient(135deg, #0F172A 0%, #1E293B 45%, #7C3AED 135%); color: #fff; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 16px 44px rgba(15, 23, 42, 0.45); cursor: pointer; overflow: hidden; min-height: 176px; outline: none; }
+.news-card::before { content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(124, 58, 237, 0.38) 0%, transparent 70%); top: -90px; right: -80px; pointer-events: none; }
+.news-card:hover { box-shadow: 0 18px 50px rgba(124, 58, 237, 0.4); transform: translateY(-2px); }
+.news-card:focus-visible { box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.6), 0 16px 44px rgba(15, 23, 42, 0.45); }
+.news-card, .news-card * { transition: transform .18s ease, box-shadow .18s ease; }
+.news-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; }
+.news-brand { display: flex; align-items: center; gap: 8px; font-size: 9px; letter-spacing: 2.2px; font-weight: 800; color: #7DD3FC; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.news-ico { font-size: 14px; }
+.news-refresh { flex: 0 0 auto; font-size: 9px; color: #CBD5E1; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.08); border-radius: 99px; padding: 3px 10px; font-weight: 700; letter-spacing: 1px; }
+.news-title { font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 800; font-size: 19px; line-height: 1.27; color: #FFFFFF; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 72px; position: relative; }
+.news-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 9.5px; color: #C7D2E7; font-weight: 600; position: relative; }
+.news-meta span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.news-cta { color: #C4B5FD; font-weight: 800; white-space: nowrap; letter-spacing: 0.4px; }
+.news-dots { display: flex; gap: 6px; margin-top: auto; position: relative; }
+.news-dot { width: 16px; height: 6px; border-radius: 99px; border: 0; background: rgba(255, 255, 255, 0.28); cursor: pointer; padding: 0; transition: all .25s; }
+.news-dot.active { width: 26px; background: #7DD3FC; box-shadow: 0 0 10px rgba(125, 211, 252, 0.8); }
+.news-dot:hover { background: rgba(255, 255, 255, 0.5); }
+.news-dot.active:hover { background: #7DD3FC; }
+
+.info-card { border-radius: 18px; padding: 14px 16px 12px; color: #fff; border: 1px solid rgba(255, 255, 255, 0.09); box-shadow: 0 16px 44px rgba(2, 6, 23, 0.4); display: flex; flex-direction: column; min-height: 176px; }
+.info-weather { background: linear-gradient(165deg, #155E86 0%, #0D3E59 55%, #071F33 100%); }
+.info-dollar { background: linear-gradient(165deg, #0E4A34 0%, #093325 55%, #051F18 100%); }
+.info-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 9px; letter-spacing: 2.2px; font-weight: 800; text-transform: uppercase; }
+.info-weather .info-label { color: #67E8F9; }
+.info-dollar .info-label { color: #6EE7B7; }
+.info-badge { color: #DDE7F3; background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.15); padding: 3px 9px; border-radius: 99px; font-size: 8.5px; letter-spacing: 1.5px; font-weight: 700; }
+.info-main { display: flex; align-items: center; gap: 14px; margin: 10px 0 6px; }
+.weather-emoji { font-size: 42px; line-height: 1; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45)); }
+.weather-temp b { font-family: 'Baloo 2', system-ui, sans-serif; font-size: 50px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+.weather-maxmin { color: #E2E8F0; font-size: 11.5px; font-weight: 600; opacity: 0.94; }
+.weather-chip { margin-top: 10px; align-self: flex-start; font-size: 9px; letter-spacing: 1.2px; font-weight: 800; padding: 6px 12px; border-radius: 99px; text-transform: uppercase; }
+.weather-chip.rain { background: #EF4444; color: #fff; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.55); animation: novPulse 2.4s ease-in-out infinite; }
+.weather-chip.heavy { background: #B91C1C; color: #fff; box-shadow: 0 4px 16px rgba(185, 28, 28, 0.55); animation: novPulse 1.6s ease-in-out infinite; }
+.weather-chip.maybe { background: #F59E0B; color: #1F2937; }
+.weather-chip.dry { background: #10B981; color: #04351f; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45); }
+.weather-chip.loading { background: rgba(255, 255, 255, 0.13); color: #E2E8F0; animation: none; }
+.weather-chip.offline { background: rgba(255, 255, 255, 0.13); color: #E2E8F0; }
+.dollar-bid { display: flex; align-items: baseline; gap: 8px; margin: 12px 0 6px; }
+.dollar-bid .cur { font-size: 17px; font-weight: 700; color: #A7F3D0; }
+.dollar-bid b { font-family: 'Baloo 2', system-ui, sans-serif; font-size: 45px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+.dollar-change { font-size: 10.5px; font-weight: 800; letter-spacing: 0.3px; }
+.dollar-change.up { color: #34D399; }
+.dollar-change.down { color: #FCA5A5; }
+.dollar-change.flat { color: #CBD5E1; }
+.dollar-foot { margin-top: auto; font-size: 8.5px; color: #A7F3D0; opacity: 0.8; letter-spacing: 0.6px; font-weight: 600; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+
+/* ============ SWITCH VLIBRAS (acessibilidade) ============ */
+.vlib-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--white); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.vlib-info { min-width: 0; }
+.vlib-info b { font-family: 'Baloo 2'; font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.vlib-info small { font-size: 9px; color: var(--gray); line-height: 1.55; font-weight: 600; display: block; margin-top: 4px; }
+.switch { flex: 0 0 auto; width: 54px; height: 30px; border-radius: 99px; border: 1.5px solid var(--line); background: #d9d9e0; cursor: pointer; position: relative; transition: background .2s, border-color .2s; padding: 0; }
+.switch .knob { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32); transition: left .2s; }
+.switch.on { background: var(--green); border-color: var(--green); box-shadow: 0 0 12px rgba(26, 158, 75, 0.45); }
+.switch.on .knob { left: 26px; }
+.switch:focus-visible { outline: 3px solid rgba(230, 0, 0, 0.35); outline-offset: 2px; }
+.vlib-state { margin-top: 8px; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 800; color: var(--gray); text-align: right; }
+.vlib-state.on { color: var(--green); }
+html[data-theme="dark"] .vlib-row { background: #131b31; border-color: rgba(255, 70, 95, 0.32); }
+html[data-theme="dark"] .vlib-info b { color: #f2f5ff; }
+html[data-theme="dark"] .vlib-info small { color: #8b99bd; }
+html[data-theme="dark"] .switch { background: #1b2440; border-color: rgba(255, 70, 95, 0.4); }
+html[data-theme="dark"] .switch.on { background: #10B981; border-color: #10B981; box-shadow: 0 0 14px rgba(52, 211, 153, 0.5); }
+html[data-theme="dark"] .vlib-state { color: #8b99bd; }
+html[data-theme="dark"] .vlib-state.on { color: #34d399; }
+
+@media (max-width: 1100px) {
+  .live-strip { grid-template-columns: 1fr; }
+  .news-title { min-height: 0; }
+  .info-card, .news-card { min-height: 0; }
+}
+
 @media (max-width: 1100px) {
   .kpis { grid-template-columns: repeat(3, 1fr); }
   .grid-main { grid-template-columns: 1fr; }
@@ -671,6 +745,34 @@ html[data-theme="dark"] .hud-gear { background: #131b31; border-color: rgba(255,
     <div class="kpi kpi-good"><div class="kpi-label">Cobertura</div><div class="kpi-value" id="kpiCobertura">0<small>%</small></div><div class="kpi-foot">Colaboradores em campo</div></div>
     <div class="kpi kpi-warn"><div class="kpi-label">Faltas no mês</div><div class="kpi-value" id="kpiFaltas">0</div><div class="kpi-foot" id="kpiFaltasFoot">Ocorrências registradas</div></div>
     <div class="kpi"><div class="kpi-label">Folgas hoje</div><div class="kpi-value" id="kpiFolgas">0</div><div class="kpi-foot">Folgas / DSR do dia</div></div>
+  </div>
+
+  <!-- ===== AO VIVO: Destaque Mundo Logística • Clima Marabá • Dólar ===== -->
+  <div class="live-strip">
+    <div class="news-card" id="newsCard" role="link" tabindex="0" aria-label="Abrir destaque do dia no Mundo Logística">
+      <div class="news-top">
+        <div class="news-brand"><span class="news-ico">📣</span> DESTAQUE DO DIA — MUNDO LOGÍSTICA</div>
+        <div class="news-refresh">↻ 1 min</div>
+      </div>
+      <div class="news-title" id="newsTitle">Carregando destaque do dia…</div>
+      <div class="news-meta"><span id="newsSource">Mundo Logística • destaque do momento</span><span class="news-cta">toque para ler ↗</span></div>
+      <div class="news-dots" id="newsDots"></div>
+    </div>
+    <section class="info-card info-weather" aria-label="Clima em Marabá agora">
+      <div class="info-label"><span>MARABÁ-PA AGORA</span><span class="info-badge">30s</span></div>
+      <div class="info-main">
+        <div class="weather-emoji" id="weatherEmoji">⛅</div>
+        <div class="weather-temp"><b id="weatherTemp">--°</b></div>
+      </div>
+      <div class="weather-maxmin" id="weatherMaxMin">máx --° • mín --°</div>
+      <div class="weather-chip loading" id="weatherChip">AGUARDANDO CLIMA…</div>
+    </section>
+    <section class="info-card info-dollar" aria-label="Dólar hoje">
+      <div class="info-label"><span>DÓLAR HOJE</span><span class="info-badge">30s</span></div>
+      <div class="dollar-bid"><span class="cur">R$</span><b id="dollarBid">--,--</b></div>
+      <div class="dollar-change flat" id="dollarChange">▬ 0,00% • mín --,-- / máx --,--</div>
+      <div class="dollar-foot">USD/BRL • variações em tempo real</div>
+    </section>
   </div>
 
   <div class="grid-main">
@@ -928,7 +1030,27 @@ html[data-theme="dark"] .hud-gear { background: #131b31; border-color: rgba(255,
       <div class="sc-foot"><span>Requer Alt ou Ctrl (ou F2–F12) • Só com o painel desbloqueado</span><span>Esc = fechar modais</span></div>
     </div>
 
+    <div class="settings-sec">
+      <div class="pmodal-sec-title"><i>🤟</i> Acessibilidade — VLibras</div>
+      <div class="vlib-row">
+        <div class="vlib-info">
+          <b>🤟 VLibras</b>
+          <small>Traduz o conteúdo do painel para a Língua Brasileira de Sinais (Libras) através do botão flutuante oficial do governo federal. Requer internet.</small>
+        </div>
+        <button class="switch" id="vlibrasSwitch" type="button" role="switch" aria-checked="false" aria-label="Ativar VLibras"><span class="knob"></span></button>
+      </div>
+      <div class="vlib-state" id="vlibrasState">Desligado</div>
+    </div>
+
     <div class="settings-foot">Aplicado na hora • fica salvo neste navegador</div>
+  </div>
+</div>
+
+<!-- ===== VLIBRAS (acessibilidade em Libras — liga/desliga na aba Configuração) ===== -->
+<div id="vlibrasRoot" vw class="enabled" style="display:none;">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plug-top-wrapper"></div>
   </div>
 </div>
 
@@ -2085,6 +2207,215 @@ document.addEventListener('keydown', (ev) => {
   ev.preventDefault();
   runShortcutAction(action);
 }, true);
+
+// ===== AO VIVO: Destaque Mundo Logística (1 min) + Clima Marabá (30s) + Dólar (30s) =====
+const decodeEntities = (t) =>
+  String(t || '')
+    .replace(/<!\[CDATA\[|\]\]>/g, '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .trim();
+const fetchMundoLogistica = async () => {
+  // 1) RSS (quando disponível)
+  try {
+    const res = await fetch('https://mundologistica.com.br/feed/', { headers: { Accept: 'application/rss+xml, application/xml, text/xml, */*' } });
+    if (res.ok) {
+      const txt = await res.text();
+      const items = [...txt.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map((m) => {
+        const block = m[1];
+        const pick = (tag) => {
+          const mm = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+          return mm ? decodeEntities(mm[1].replace(/<[^>]*>/g, '')) : '';
+        };
+        const linkM = block.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
+        return { title: pick('title'), link: linkM ? decodeEntities(linkM[1]) : '', pubDate: pick('pubDate') };
+      }).filter((it) => it.title);
+      const ts = (d) => (d ? new Date(d).getTime() || 0 : 0);
+      if (items.length > 0) return items.sort((a, b) => ts(b.pubDate) - ts(a.pubDate));
+    }
+  } catch { /* tenta fallback */ }
+  // 2) Homepage (CORS liberado pelo portal): raspa <h1..h4><a href>
+  try {
+    const res = await fetch('https://mundologistica.com.br/', { headers: { Accept: 'text/html' } });
+    if (!res.ok) return [];
+    const html = await res.text();
+    const seen = new Set();
+    return [...html.matchAll(/<h[1-4][^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
+      .map((m) => {
+        let link = decodeEntities(m[1]).trim();
+        if (!/^https?:\/\//i.test(link)) link = 'https://mundologistica.com.br/' + link.replace(/^\.?\//, '');
+        return { title: decodeEntities(m[2].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')), link, pubDate: '' };
+      })
+      .filter((it) => it.title && it.title.length > 15 && !seen.has(it.title) && seen.add(it.title));
+  } catch { return []; }
+};
+const buildNewsList = (items) => {
+  const jt = items.filter((it) => /j\s*&\s*t|jt\s*express/i.test(it.title));
+  const rest = items.filter((it) => !/j\s*&\s*t|jt\s*express/i.test(it.title));
+  return [...jt, ...rest];
+};
+let NEWS = [];
+let newsIndex = 0;
+let newsAutoTimer = null;
+const renderNews = () => {
+  const titleEl = $('#newsTitle'), sourceEl = $('#newsSource'), dotsEl = $('#newsDots'), card = $('#newsCard');
+  if (!titleEl || !sourceEl || !card) return;
+  if (NEWS.length === 0) {
+    titleEl.textContent = 'Mundo Logística — destaque do momento';
+    sourceEl.textContent = 'mundologistica.com.br • toque para abrir';
+    card.dataset.newsLink = 'https://mundologistica.com.br/';
+    if (dotsEl) dotsEl.innerHTML = '';
+    return;
+  }
+  const item = NEWS[newsIndex % NEWS.length];
+  titleEl.textContent = item.title;
+  const isJt = /j\s*&\s*t|jt\s*express/i.test(item.title);
+  sourceEl.textContent = isJt ? 'Mundo Logística • J&T Express' : 'Mundo Logística • destaque do momento';
+  card.dataset.newsLink = item.link || 'https://mundologistica.com.br/';
+  if (dotsEl) {
+    const n = Math.min(NEWS.length, 6);
+    let html = '';
+    for (let i = 0; i < n; i++) html += '<button type="button" class="news-dot' + (i === newsIndex ? ' active' : '') + '" data-news-dot="' + i + '" aria-label="Destaque ' + (i + 1) + '"></button>';
+    dotsEl.innerHTML = html;
+  }
+};
+const startNewsAuto = () => {
+  if (newsAutoTimer) window.clearInterval(newsAutoTimer);
+  newsAutoTimer = window.setInterval(() => { if (NEWS.length > 1) { newsIndex = (newsIndex + 1) % Math.min(NEWS.length, 6); renderNews(); } }, 9000);
+};
+const loadNews = async () => {
+  const items = buildNewsList(await fetchMundoLogistica());
+  NEWS = items;
+  newsIndex = 0;
+  renderNews();
+  startNewsAuto();
+};
+(() => {
+  const card = $('#newsCard');
+  const openNews = () => { const u = card && card.dataset.newsLink ? card.dataset.newsLink : 'https://mundologistica.com.br/'; window.open(u, '_blank', 'noopener'); };
+  if (card) {
+    card.addEventListener('click', (ev) => { if (ev.target && ev.target.closest && ev.target.closest('[data-news-dot]')) return; openNews(); });
+    card.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openNews(); } });
+  }
+  const dotsEl = $('#newsDots');
+  if (dotsEl) dotsEl.addEventListener('click', (ev) => {
+    const b = ev.target && ev.target.closest ? ev.target.closest('[data-news-dot]') : null;
+    if (!b) return;
+    newsIndex = Number(b.dataset.newsDot) || 0;
+    renderNews();
+  });
+  loadNews();
+  window.setInterval(loadNews, 60000);
+})();
+
+const WEATHER_OPEN_METEO = 'https://api.open-meteo.com/v1/forecast?latitude=-5.365&longitude=-49.125&current=temperature_2m,weather_code,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FBelem';
+const weatherEmoji = (code) => {
+  if (code === 0) return '☀️'; if (code === 1) return '🌤️'; if (code === 2) return '⛅'; if (code === 3) return '☁️';
+  if (code === 45 || code === 48) return '🌫️';
+  if ([51, 53, 55, 56, 57].includes(code)) return '🌦️';
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return '🌧️';
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return '🌨️';
+  if ([95, 96, 99].includes(code)) return '⛈️';
+  return '🌤️';
+};
+const loadWeather = async () => {
+  const tempEl = $('#weatherTemp'), maxMinEl = $('#weatherMaxMin'), chipEl = $('#weatherChip'), emojiEl = $('#weatherEmoji');
+  if (!tempEl || !chipEl) return;
+  try {
+    const res = await fetch(WEATHER_OPEN_METEO);
+    if (!res.ok) throw new Error('http');
+    const j = await res.json();
+    const cur = j.current || {};
+    const daily = (j.daily || {});
+    const temp = typeof cur.temperature_2m === 'number' ? cur.temperature_2m : null;
+    const code = cur.weather_code ?? 0;
+    const precip = cur.precipitation ?? 0;
+    const max = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max[0] : null;
+    const min = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min[0] : null;
+    const rainChance = Array.isArray(daily.precipitation_probability_max) ? daily.precipitation_probability_max[0] : null;
+    if (temp != null) tempEl.textContent = Math.round(temp) + '°';
+    if (emojiEl) emojiEl.textContent = weatherEmoji(code);
+    if (maxMinEl) maxMinEl.textContent = 'máx ' + (max != null ? Math.round(max) + '°' : '--°') + ' • mín ' + (min != null ? Math.round(min) + '°' : '--°');
+    const raining = precip > 0 || code >= 51;
+    const strong = code === 65 || code === 82 || code >= 95;
+    if (raining) {
+      chipEl.textContent = (strong ? 'CHUVA FORTE' : 'CHUVANDO AGORA') + (rainChance != null ? ' (' + rainChance + '%)' : '');
+      chipEl.className = 'weather-chip ' + (strong ? 'heavy' : 'rain');
+    } else if (rainChance != null && rainChance >= 40) {
+      chipEl.textContent = 'CHUVA PROVÁVEL (' + rainChance + '%)';
+      chipEl.className = 'weather-chip maybe';
+    } else {
+      chipEl.textContent = 'SEM CHUVA' + (rainChance != null ? ' (' + (100 - rainChance) + '% sol)' : '');
+      chipEl.className = 'weather-chip dry';
+    }
+  } catch {
+    chipEl.textContent = 'CLIMA INDISPONÍVEL';
+    chipEl.className = 'weather-chip offline';
+  }
+};
+loadWeather();
+window.setInterval(loadWeather, 30000);
+
+const loadDollar = async () => {
+  const bidEl = $('#dollarBid'), changeEl = $('#dollarChange');
+  if (!bidEl || !changeEl) return;
+  try {
+    const res = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
+    if (!res.ok) throw new Error('http');
+    const j = await res.json();
+    const d = j.USDBRL || {};
+    const bid = Number(d.bid);
+    const pct = Number(d.pctChange || 0);
+    const low = Number(d.low);
+    const high = Number(d.high);
+    if (!Number.isFinite(bid)) throw new Error('valor');
+    bidEl.textContent = bid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '▬';
+    const pctAbs = Math.abs(pct).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const lo = Number.isFinite(low) ? low.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--,--';
+    const hi = Number.isFinite(high) ? high.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--,--';
+    changeEl.textContent = arrow + ' ' + pctAbs + '% • mín ' + lo + ' / máx ' + hi;
+    changeEl.className = 'dollar-change ' + (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat');
+  } catch {
+    changeEl.textContent = 'DÓLAR INDISPONÍVEL';
+    changeEl.className = 'dollar-change flat';
+  }
+};
+loadDollar();
+window.setInterval(loadDollar, 30000);
+
+// ===== VLIBRAS (acessibilidade Libras) — liga/desliga na Configuração =====
+const VL_KEY = 'jt_pa_vlibras';
+const VL_SCRIPT = 'https://vlibras.gov.br/app/vlibras-plugin.js';
+let vlibrasScriptLoaded = false;
+const setVLibras = (on) => {
+  try { localStorage.setItem(VL_KEY, on ? '1' : '0'); } catch { /* ignore */ }
+  const root = document.getElementById('vlibrasRoot');
+  const sw = document.getElementById('vlibrasSwitch');
+  const st = document.getElementById('vlibrasState');
+  if (sw) { sw.classList.toggle('on', on); sw.setAttribute('aria-checked', on ? 'true' : 'false'); }
+  if (st) { st.textContent = on ? 'Ligado' : 'Desligado'; st.classList.toggle('on', on); }
+  if (!root) return;
+  root.style.display = on ? '' : 'none';
+  if (on && !vlibrasScriptLoaded) {
+    const s = document.createElement('script');
+    s.src = VL_SCRIPT;
+    s.async = true;
+    s.onload = () => {
+      try { if (window.VLibras && window.VLibras.Widget) new window.VLibras.Widget('https://vlibras.gov.br/app/'); } catch (err) { console.error('VLibras', err); }
+    };
+    s.onerror = () => { if (st) { st.textContent = 'Sem internet — VLibras indisponível'; st.classList.remove('on'); } };
+    document.body.appendChild(s);
+    vlibrasScriptLoaded = true;
+  }
+};
+const vlibrasSwitchEl = document.getElementById('vlibrasSwitch');
+if (vlibrasSwitchEl) vlibrasSwitchEl.addEventListener('click', () => {
+  const on = !(localStorage.getItem(VL_KEY) === '1');
+  setVLibras(on);
+});
+try { if (localStorage.getItem(VL_KEY) === '1') setVLibras(true); } catch { /* ignore */ }
 
 // Aplica a fonte salva já na abertura
 applyFsize(paGet('fsize'));
