@@ -1291,6 +1291,10 @@ const GATE_PASS = 'jetexpress10';
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/\uFFFD/g, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+// Abreviação de cargos: Assistente → Ast. | Auxiliar → Aux.
+const abbrevFuncao = (s) => String(s || '')
+  .replace(/\bassistente\b/gi, 'Ast.')
+  .replace(/\bauxiliar\b/gi, 'Aux.');
 const strip = (v) => String(v || '').replace(/^0+/, '') || '0';
 const pad2 = (n) => String(n).padStart(2, '0');
 const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
@@ -1391,7 +1395,7 @@ const renderWall = (d) => {
     return '<div class="person' + (hasObs ? ' obs' : '') + '" data-turno="' + esc(c.turno || 'Turno 1') + '" data-mat="' + esc(c.matricula) + '" role="button" tabindex="0">'
       + avatarOf(c, 64)
       + '<div class="pname">' + esc(c.name) + (fer ? '<span class="pfer">FÉRIAS</span>' : '') + (hasObs ? '<span class="pobs" title="Contém observações">📝</span>' : '') + '</div>'
-      + '<div class="pfuncao">' + esc(c.funcao || 'COLABORADOR') + '</div>'
+      + '<div class="pfuncao">' + esc(abbrevFuncao(c.funcao || 'COLABORADOR')) + '</div>'
       + '<span class="ptag">' + esc(c.turno || 'Turno 1') + '</span>'
       + '</div>';
   }).join('') || '<div class="empty-note">Nenhum colaborador neste filtro.</div>';
@@ -1627,7 +1631,7 @@ const renderBirthdays = (d) => {
   $('#bdayList').innerHTML = list.length ? list.map(c => {
     const day = String(c.nascimento).slice(8, 10);
     return '<div class="list-row">' + avatarOf(c, 40) +
-      '<div class="list-info"><div class="list-name">' + esc(c.name) + '</div><div class="list-meta">' + esc(c.funcao || '') + ' • ' + esc(c.turno || '') + '</div></div>' +
+      '<div class="list-info"><div class="list-name">' + esc(c.name) + '</div><div class="list-meta">' + esc(abbrevFuncao(c.funcao || '')) + ' • ' + esc(c.turno || '') + '</div></div>' +
       '<span class="list-badge amber">DIA ' + esc(day) + '</span></div>';
   }).join('') : '<div class="empty-note">Nenhum aniversário neste mês.</div>';
 };
@@ -1762,7 +1766,7 @@ const renderFerias = (d) => {
   const rowHtml = (c) =>
     '<div class="list-row">' + avatarOf(c, 34) +
       '<div class="list-info"><div class="list-name">' + esc(c.name) + '</div>' +
-      '<div class="list-meta">' + esc(c.turno || '') + ' • ' + esc(c.funcao || 'AUX') + '</div></div>' +
+      '<div class="list-meta">' + esc(c.turno || '') + ' • ' + esc(abbrevFuncao(c.funcao || 'AUX')) + '</div></div>' +
       '<span class="pbadge pb-green" style="font-size:7px">LIVRE</span></div>';
   if (!rows.length) {
     $('#dispList').innerHTML = '<div class="empty-note">Ninguém disponível hoje.</div>';
@@ -2131,7 +2135,7 @@ const buildFichaText = (c) => {
     '',
     `👤 *Nome:* ${c.name || ''}`,
     `🆔 *Matrícula:* ${c.matricula || '—'}`,
-    `💼 *Função:* ${c.funcao || '—'}`,
+    `💼 *Função:* ${abbrevFuncao(c.funcao || '—')}`,
     `📅 *Turno:* ${teamLabel}`,
     `🕐 *Horário:* ${formatHorario(c.horario)}`,
     `🛌 *DSR:* ${c.dsr || '—'}`,
@@ -2197,7 +2201,7 @@ const openPerson = (c) => {
   const matK = strip(c.matricula);
   $('#pmAvatar').innerHTML = avatarOf(c, 96);
   $('#pmName').textContent = c.name || '—';
-  $('#pmRole').textContent = (c.funcao || 'COLABORADOR') + ' • ' + (c.turno || '');
+  $('#pmRole').textContent = abbrevFuncao(c.funcao || 'COLABORADOR') + ' • ' + (c.turno || '');
   const fer = isOnVacation(c);
   const badges = [];
   badges.push('<span class="pbadge pb-red">' + esc(c.turno || 'Turno 1') + '</span>');
@@ -2209,7 +2213,7 @@ const openPerson = (c) => {
   const chip = (label, value, mono) => '<div class="pchip"><b>' + esc(label) + '</b>' + (mono ? '<span style="font-family:ui-monospace,monospace">' : '') + value + (mono ? '</span>' : '') + '</div>';
   $('#pmChips').innerHTML = [
     chip('Matrícula', esc(c.matricula || '—'), true),
-    chip('Função', esc(c.funcao || '—')),
+    chip('Função', esc(abbrevFuncao(c.funcao || '—'))),
     chip('Horário', esc(formatHorario(c.horario))),
     chip('DSR', esc(c.dsr || '—')),
     chip('Admissão', esc(fmtBR(c.admissao) || '—')),
