@@ -867,6 +867,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="hud-date" id="hudDate">— — —</div>
     </div>
     <button class="hud-send" id="broadcastBtn" type="button" title="Enviar mensagem para todos os celulares">📢 <span class="hide-sm">Enviar alerta</span></button>
+    <button class="hud-gear" id="fullscreenBtn" type="button" title="Tela cheia — clique ou Alt+F (Esc para sair)" aria-label="Tela cheia">⛶</button>
     <button class="hud-gear" id="settingsBtn" type="button" title="Configuração — tema, fonte, bloqueio e atalhos" aria-label="Configuração">⚙</button>
   </div>
 </header>
@@ -2740,6 +2741,22 @@ document.querySelectorAll('[data-theme-set]').forEach(b => b.addEventListener('c
 document.querySelectorAll('[data-fsize-set]').forEach(b => b.addEventListener('click', () => paSet('fsize', b.dataset.fsizeSet)));
 document.querySelectorAll('[data-font-set]').forEach(b => b.addEventListener('click', () => paSet('font', b.dataset.fontSet)));
 
+// --- Tela cheia: botão ⛶ + atalho configurável; Esc sai nativamente ---
+const toggleFullscreen = () => {
+  try {
+    if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
+    else { document.documentElement.requestFullscreen().catch(() => {}); }
+  } catch (_) { /* navegador sem Fullscreen API */ }
+};
+$('#fullscreenBtn').addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', () => {
+  const b = $('#fullscreenBtn');
+  if (!b) return;
+  const on = !!document.fullscreenElement;
+  b.textContent = on ? '✕' : '⛶';
+  b.title = on ? 'Sair da tela cheia (Esc)' : 'Tela cheia — clique ou Alt+F (Esc para sair)';
+});
+
 // --- Bloquear painel: volta para a tela de bloqueio (pede a senha de novo) ---
 const lockNow = () => {
   try { sessionStorage.removeItem('dsr_dash_ok'); } catch { /* ignore */ }
@@ -2767,13 +2784,14 @@ const SHORTCUT_ACTIONS = [
   { id: 'turnoQualidade', icon: '✅', label: 'Filtrar Qualidade' },
   { id: 'turnoAdm', icon: '③', label: 'Filtrar ADM' },
   { id: 'broadcast', icon: '📢', label: 'Abrir Enviar alerta' },
-  { id: 'goTop', icon: '⤴️', label: 'Ir para o topo' }
+  { id: 'goTop', icon: '⤴️', label: 'Ir para o topo' },
+  { id: 'fullscreen', icon: '⛶', label: 'Alternar tela cheia (Esc sai)' }
 ];
 const DEFAULT_SHORTCUTS = {
   lock: 'Alt+B', settings: 'Alt+S', theme: 'Alt+T',
   fsizeUp: 'Alt+ArrowUp', fsizeDown: 'Alt+ArrowDown', fsizeReset: 'Alt+0',
   turnoAll: 'Alt+1', turno1: 'Alt+2', turno2: 'Alt+3', turnoQualidade: 'Alt+4', turnoAdm: 'Alt+5',
-  broadcast: 'Alt+M', goTop: 'Alt+G'
+  broadcast: 'Alt+M', goTop: 'Alt+G', fullscreen: 'Alt+F'
 };
 const loadShortcuts = () => {
   try {
@@ -2881,6 +2899,7 @@ const runShortcutAction = (id) => {
     case 'turnoAdm': clickTurnoChip('ADM'); break;
     case 'broadcast': openBroadcast(); break;
     case 'goTop': window.scrollTo({ top: 0, behavior: 'smooth' }); break;
+    case 'fullscreen': toggleFullscreen(); break;
   }
 };
 const gateIsOpen = () => { const g = $('#gate'); return !!g && getComputedStyle(g).display !== 'none'; };
