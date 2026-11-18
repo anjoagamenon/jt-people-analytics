@@ -280,6 +280,12 @@ img.list-avatar { object-fit: cover; }
 .vol-balance.ok { color: var(--green); border-color: #86efac; background: #f0fdf4; }
 .vol-balance.need { color: #c2410c; border-color: #fdba74; background: #fff7ed; }
 .vol-balance.over { color: #1d4ed8; border-color: #93c5fd; background: #eff6ff; }
+.vol-field-stretch { display: flex; flex-direction: column; }
+.vol-needed-box { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fafafa; border: 1.5px solid var(--line); border-radius: 10px; min-height: 64px; }
+#volNeeded { font-family: 'Baloo 2'; font-size: 23px; font-weight: 800; color: var(--red); line-height: 1.05; }
+.vol-needed-box span { font-size: 8px; letter-spacing: 1.5px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+html[data-theme="dark"] .vol-needed-box { background: #131b31; border-color: rgba(255, 70, 95, 0.35); }
+html[data-theme="dark"] .vol-needed-box span { color: #8b99bd; }
 
 .pm-actions { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:10px; }
 .pm-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:10px 6px; border-radius:12px; border:0; cursor:pointer; font-family:'Rajdhani'; font-weight:700; font-size:10px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; line-height:1.2; transition:transform 0.12s; }
@@ -455,7 +461,6 @@ html[data-theme="dark"] .bcm-field textarea:focus { border-color: var(--red); bo
 html[data-theme="dark"] .vol-chip { background: #131b31; border-color: rgba(255, 70, 95, 0.35); color: #c3cbdf; }
 html[data-theme="dark"] .vol-chip.active { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 0 14px rgba(255, 46, 76, 0.6); }
 html[data-theme="dark"] .vol-kpi, html[data-theme="dark"] .vol-balance, html[data-theme="dark"] .pmini, html[data-theme="dark"] .pchip, html[data-theme="dark"] .ferias-big .fb { background: #131b31; border-color: rgba(255, 70, 95, 0.32); }
-html[data-theme="dark"] .vol-field[style*="#fafafa"] { background: #131b31 !important; border-color: rgba(255, 70, 95, 0.32) !important; }
 html[data-theme="dark"] [style*="#f0f0f2"] { background: #1b2440 !important; color: #f4f7ff !important; }
 html[data-theme="dark"] .vol-kpi b, html[data-theme="dark"] .pmini b { color: #f4f7ff !important; }
 html[data-theme="dark"] .vol-kpi.red b { color: #ff6b87 !important; }
@@ -853,9 +858,9 @@ html[data-theme="dark"] .vlib-state.on { color: #34d399; }
           <label>Volume previsto (un)</label>
           <input id="volInput" type="number" min="0" placeholder="Ex: 24000" inputmode="numeric" />
         </div>
-        <div class="vol-field">
+        <div class="vol-field vol-field-stretch">
           <label>Necessidade</label>
-          <div class="vol-field" style="padding:0;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#fafafa;border:1.5px solid var(--line);border-radius:10px;"><b id="volNeeded" style="font-family:'Baloo 2';font-size:22px;font-weight:800;color:var(--red);">0</b><span style="font-size:8px;letter-spacing:1.5px;color:var(--gray);text-transform:uppercase;font-weight:700;">pessoas</span></div>
+          <div class="vol-needed-box"><b id="volNeeded">0</b><span>pessoas</span></div>
         </div>
       </div>
       <div class="vol-week" id="volWeek"></div>
