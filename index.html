@@ -1372,7 +1372,8 @@ const computeEscore = (d) => {
   const Y = new Date().getFullYear(), M = new Date().getMonth();
   const daysInMonth = new Date(Y, M + 1, 0).getDate();
   const strip = (v) => String(v || '').replace(/^0+/, '') || '0';
-  const matToColab = new Map((d.colabs || []).map(c => [strip(c.matricula), c]));
+  const matToColab = new Map();
+  (d.colabs || []).forEach(c => matToColab.set(String(c.matricula || '').replace(/\s/g, ''), c));
   const TURMAS = ['Turno 1', 'Turno 2', 'Qualidade', 'ADM'];
   const schedDays = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
   const presence = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
@@ -1393,21 +1394,26 @@ const computeEscore = (d) => {
   });
   (d.attendance || []).forEach(a => {
     if (!String(a.date || '').startsWith(month)) return;
-    const c = matToColab.get(strip(a.matricula)); if (!c) return;
-    const t = c.turno || 'Turno 1';
-    const s = String(a.status || '').toLowerCase();
-    if (/presente|cobrindo/.test(s)) presence[t] = (presence[t] || 0) + 1;
+    const c = matToColab.get(String(a.matricula || '').replace(/\s/g, ''));
+    if (c) {
+      const t = c.turno || 'Turno 1';
+      const s = String(a.status || '').toLowerCase();
+      if (/presente|cobrindo/.test(s)) presence[t] = (presence[t] || 0) + 1;
+      else if (/falta|atestado|afastado/.test(s)) absents[t] = (absents[t] || 0) + 1;
+    }
   });
   (d.occurrences || []).forEach(o => {
     if (!String(o.data || '').startsWith(month)) return;
-    const c = matToColab.get(strip(o.matricula)); if (!c) return;
+    const c = matToColab.get(String(o.matricula || '').replace(/\s/g, ''));
+    if (!c) return;
     const t = c.turno || 'Turno 1';
     const mt = String(o.tipo || '').toLowerCase();
     if (/falta|atestado|afastado/.test(mt)) absents[t] = (absents[t] || 0) + 1;
   });
   (d.indicators || []).forEach(i => {
     if (String(i.month || '') !== month) return;
-    const c = matToColab.get(strip(i.matricula)); if (!c) return;
+    const c = matToColab.get(String(i.matricula || '').replace(/\s/g, ''));
+    if (!c) return;
     const t = c.turno || 'Turno 1';
     indSum[t] = (indSum[t] || 0) + Number(i.score || 0);
     indCount[t] = (indCount[t] || 0) + 1;
