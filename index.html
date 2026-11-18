@@ -207,6 +207,8 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 html[data-theme="dark"] .assid-cell { background: #131b31; border-color: rgba(255, 70, 95, 0.3); }
 html[data-theme="dark"] .assid-cell.adm { background: rgba(251,191,36,.06); border-color: rgba(251,191,36,.35); }
 html[data-theme="dark"] .assid-cell-bar { background: #1b2440; }
+.assid-efficiency { margin-top: 8px; text-align: center; font-size: 9px; color: var(--gray); font-weight: 700; letter-spacing: 0.5px; }
+.assid-efficiency b { color: var(--green); }
 html[data-theme="dark"] .assid-total { background: linear-gradient(135deg, #ff2e4c, #d91f3d); box-shadow: 0 0 22px rgba(255, 46, 76, 0.45); }
 
 /* Top 5 — abas por setor e modo Escore Operacional */
@@ -920,6 +922,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
         <div class="panel-head"><div class="panel-title"><i>◎</i> Assiduidade média</div><div class="panel-tag">Último mês</div></div>
         <div class="assid-grid" id="assidGrid"></div>
         <div class="assid-total"><span>ESCORE OPERACIONAL</span><b id="assidTotal">0</b><small>pts / 100</small></div>
+        <div class="assid-efficiency" id="assidEfficiency">—</div>
       </section>
 
       <!-- ===== TOP 5 POR TURMA / ESCORE OPERACIONAL ===== -->
@@ -1353,31 +1356,102 @@ const renderDonut = (d) => {
   ).join('');
 };
 
+// ===== ESCORE OPERACIONAL — regra de cálculo oficial =====
+// Escore Operacional (por turma, 0–100) =
+//   • Assiduidade (40%): presenças ÷ dias escalados no mês × 100
+//     (escala dias_escalados conforme a grade individual de cada colaborador)
+//   • Indicadores operacionais (30%): score médio dos indicadores lançados na turma no mês
+//     (score = 35% qualidade + 30% produtividade + 20% assiduidade + 15% segurança, já ponderado pelo backend)
+//     — se não houver nenhum indicador lançado na turma, usa 50 (neutro)
+//   • Saúde do time (30%): 100 − faltas/atestados/afastamentos do mês da turma × 5 pontos
+// Escore Geral "ESCORE OPERACIONAL": média simples das 4 turmas.
+// Eficiência média no mês: presenças ÷ dias escalados de toda a empresa × 100.
+const WEEKDAYS_PT3 = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+const computeEscore = (d) => {
+  const month = monthNow();
+  const Y = new Date().getFullYear(), M = new Date().getMonth();
+  const daysInMonth = new Date(Y, M + 1, 0).getDate();
+  const strip = (v) => String(v || '').replace(/^0+/, '') || '0';
+  const matToColab = new Map((d.colabs || []).map(c => [strip(c.matricula), c]));
+  const TURMAS = ['Turno 1', 'Turno 2', 'Qualidade', 'ADM'];
+  const schedDays = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
+  const presence = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
+  const absents = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
+  const indSum = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
+  const indCount = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
+
+  (d.colabs || []).forEach(c => {
+    if (String(c.status || 'Ativo').toLowerCase() === 'desligado') return;
+    if (isOnVacation(c)) return;
+    const t = c.turno || 'Turno 1';
+    const sched = c.schedule || {};
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dt = new Date(Y, M, day, 12, 0, 0);
+      const key = WEEKDAYS_PT3[(dt.getDay() + 6) % 7];
+      if (String(sched[key] || '').toLowerCase() === 'trabalho') schedDays[t] = (schedDays[t] || 0) + 1;
+    }
+  });
+  (d.attendance || []).forEach(a => {
+    if (!String(a.date || '').startsWith(month)) return;
+    const c = matToColab.get(strip(a.matricula)); if (!c) return;
+    const t = c.turno || 'Turno 1';
+    const s = String(a.status || '').toLowerCase();
+    if (/presente|cobrindo/.test(s)) presence[t] = (presence[t] || 0) + 1;
+  });
+  (d.occurrences || []).forEach(o => {
+    if (!String(o.data || '').startsWith(month)) return;
+    const c = matToColab.get(strip(o.matricula)); if (!c) return;
+    const t = c.turno || 'Turno 1';
+    const mt = String(o.tipo || '').toLowerCase();
+    if (/falta|atestado|afastado/.test(mt)) absents[t] = (absents[t] || 0) + 1;
+  });
+  (d.indicators || []).forEach(i => {
+    if (String(i.month || '') !== month) return;
+    const c = matToColab.get(strip(i.matricula)); if (!c) return;
+    const t = c.turno || 'Turno 1';
+    indSum[t] = (indSum[t] || 0) + Number(i.score || 0);
+    indCount[t] = (indCount[t] || 0) + 1;
+  });
+
+  const result = {};
+  TURMAS.forEach(t => {
+    const sched = schedDays[t] || 0;
+    const pres = presence[t] || 0;
+    const ind = indCount[t] ? indSum[t] / indCount[t] : null;
+    const presenceScore = sched > 0 ? Math.min(100, Math.round((pres / sched) * 100)) : 80;
+    const indicatorsScore = ind === null ? 50 : Math.round(ind);
+    const penaltyScore = Math.max(0, 100 - (absents[t] || 0) * 5);
+    const score = Math.round(presenceScore * 0.40 + indicatorsScore * 0.30 + penaltyScore * 0.30);
+    result[t] = { sched, pres, absents: absents[t] || 0, indicatorsScore, presenceScore, penaltyScore, score, fichas: indCount[t] };
+  });
+  const overall = Math.round(TURMAS.reduce((s, t) => s + result[t].score, 0) / TURMAS.length);
+  const totalSched = TURMAS.reduce((s, t) => s + schedDays[t], 0);
+  const totalPres = TURMAS.reduce((s, t) => s + presence[t], 0);
+  const efficiency = totalSched ? Math.round((totalPres / totalSched) * 100) : null;
+  return { result, overall, efficiency, totalSched, totalPres, month };
+};
+
 // Assiduidade média por turma + destaque geral "ESCORE OPERACIONAL"
 const renderGauge = (d) => {
-  const ind = (d.indicators || []).slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')));
-  const latestMonth = ind[0]?.month;
-  const last = latestMonth ? ind.filter(i => i.month === latestMonth) : [];
-  const strip = (v) => String(v || '').replace(/^0+/, '') || '0';
-  const matToTurno = new Map((d.colabs || []).map(c => [strip(c.matricula), c.turno || 'Turno 1']));
-  const buckets = { 'Turno 1': [], 'Turno 2': [], 'Qualidade': [], 'ADM': [] };
-  last.forEach(i => {
-    const t = matToTurno.get(strip(i.matricula)) || 'Turno 1';
-    if (!buckets[t]) buckets[t] = [];
-    buckets[t].push(Number(i.assiduity || 0));
-  });
-  const cellColor = (v) => v >= 75 ? '#1a9e4b' : v >= 50 ? '#e6a23c' : '#E60000';
+  const r = computeEscore(d);
+  const TURMAS = ['Turno 1', 'Turno 2', 'Qualidade', 'ADM'];
   const turmaLabel = { 'Turno 1': 'TURNO 1', 'Turno 2': 'TURNO 2', 'Qualidade': 'QUALIDADE', 'ADM': 'ADM' };
-  const gridHtml = ['Turno 1', 'Turno 2', 'Qualidade', 'ADM'].map(t => {
-    const arr = buckets[t] || [];
-    const avg = arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
-    const color = avg === null ? '#c7c7cd' : cellColor(avg);
-    return '<div class="assid-cell"><div class="assid-cell-name"><span>' + esc(turmaLabel[t]) + '</span><i>' + (arr.length ? arr.length + ' ficha' + (arr.length > 1 ? 's' : '') : '—') + '</i></div><div class="assid-cell-value">' + (avg === null ? '—' : avg) + '<small>' + (avg === null ? '' : 'pts') + '</small></div><div class="assid-cell-bar"><div class="assid-cell-fill" style="--fill:' + color + ';width:' + (avg === null ? 0 : Math.min(100, avg)) + '%"></div></div></div>';
+  const cellColor = (v) => v >= 75 ? '#1a9e4b' : v >= 50 ? '#e6a23c' : '#E60000';
+  $('#assidGrid').innerHTML = TURMAS.map(t => {
+    const r_ = r.result[t];
+    const color = cellColor(r_.score);
+    const sub = r_.fichas > 0 ? r_.fichas + ' ficha' + (r_.fichas > 1 ? 's' : '') : (r_.absents ? r_.absents + ' falt.' : '—');
+    return '<div class="assid-cell"><div class="assid-cell-name"><span>' + esc(turmaLabel[t]) + '</span><i>' + esc(sub) + '</i></div>'
+      + '<div class="assid-cell-value">' + r_.score + '<small>pts</small></div>'
+      + '<div class="assid-cell-bar"><div class="assid-cell-fill" style="--fill:' + color + ';width:' + r_.score + '%"></div></div></div>';
   }).join('');
-  $('#assidGrid').innerHTML = gridHtml;
-  const allVals = last.map(i => Number(i.assiduity || 0));
-  const total = allVals.length ? Math.round(allVals.reduce((a, b) => a + b, 0) / allVals.length) : 0;
-  $('#assidTotal').textContent = total;
+  $('#assidTotal').textContent = r.overall;
+  const eff = $('#assidEfficiency');
+  if (eff) {
+    eff.innerHTML = r.efficiency === null
+      ? 'Eficiência do mês: <b>sem lançamentos</b>'
+      : 'Eficiência média do mês: <b>' + r.efficiency + '%</b> (' + r.totalPres + ' presenças em ' + r.totalSched + ' dias escalados)';
+  }
 };
 
 const renderTop = (d) => {
