@@ -160,6 +160,7 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .chip { background: var(--white); border: 1.5px solid var(--line); color: var(--gray); font-family: 'Rajdhani'; font-weight: 700; font-size: 9.5px; letter-spacing: 1.5px; padding: 6px 13px; border-radius: 99px; cursor: pointer; text-transform: uppercase; }
 .chip.active { color: #fff; background: var(--red); border-color: var(--red); box-shadow: var(--shadow-red); }
 .chip.t2.active { background: #c026d3; border-color: #c026d3; box-shadow: 0 0 12px rgba(192,38,211,0.4); }
+.chip.quali.active { background: #059669; border-color: #059669; box-shadow: 0 0 12px rgba(5,150,105,0.4); }
 .chip.adm.active { background: #b45309; border-color: #b45309; box-shadow: 0 0 12px rgba(180,83,9,0.4); }
 .person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; max-height: 560px; overflow-y: auto; padding-right: 4px; }
 .person-grid::-webkit-scrollbar, .list::-webkit-scrollbar { width: 7px; }
@@ -169,6 +170,7 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .avatar { width: 64px; height: 64px; margin: 0 auto 6px; border-radius: 50%; overflow: hidden; display: block; border: 2.5px solid var(--red); box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(230,0,0,0.35); background: #f5f5f6; }
 .person[data-turno="Turno 2"] .avatar { border-color: #c026d3; box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(192,38,211,0.35); }
 .person[data-turno="ADM"] .avatar { border-color: #b45309; box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(180,83,9,0.35); }
+.person[data-turno="Qualidade"] .avatar { border-color: #059669; box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(5,150,105,0.35); }
 .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .avatar .initials { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Baloo 2'; font-size: 19px; font-weight: 800; color: var(--red); }
 .pname { font-size: 9.5px; font-weight: 700; line-height: 1.2; min-height: 23px; letter-spacing: 0.2px; }
@@ -176,6 +178,7 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .ptag { display: inline-block; font-size: 7px; letter-spacing: 1.2px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: var(--red); color: #fff; }
 .person[data-turno="Turno 2"] .ptag { background: #c026d3; }
 .person[data-turno="ADM"] .ptag { background: #b45309; }
+.person[data-turno="Qualidade"] .ptag { background: #059669; }
 .pfer { display: inline-block; font-size: 7px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1d4ed8; color: #fff; margin-left: 3px; letter-spacing: 1px; }
 .pobs { display: inline-block; font-size: 11px; padding: 0 2px; }
 .person.obs { box-shadow: 0 0 0 2px #E60000, 0 4px 12px rgba(230,0,0,0.12); }
@@ -423,6 +426,7 @@ html[data-theme="dark"] .person.obs .pname { color: #ff8ba0; }
 html[data-theme="dark"] .avatar { background: #1c2742; box-shadow: 0 0 0 2px #0e1526, 0 0 14px rgba(255, 46, 76, 0.5); }
 html[data-theme="dark"] .person[data-turno="Turno 2"] .avatar { box-shadow: 0 0 0 2px #0e1526, 0 0 14px rgba(192, 38, 211, 0.55); }
 html[data-theme="dark"] .person[data-turno="ADM"] .avatar { box-shadow: 0 0 0 2px #0e1526, 0 0 14px rgba(180, 83, 9, 0.55); }
+html[data-theme="dark"] .person[data-turno="Qualidade"] .avatar { box-shadow: 0 0 0 2px #0e1526, 0 0 14px rgba(16, 185, 129, 0.55); }
 html[data-theme="dark"] .avatar .initials { color: #ff6b87; }
 html[data-theme="dark"] .pname { color: #f0f4ff; }
 html[data-theme="dark"] .pfuncao { color: #8b99bd; }
@@ -677,6 +681,54 @@ html[data-theme="dark"] .switch.on { background: #10B981; border-color: #10B981;
 html[data-theme="dark"] .vlib-state { color: #8b99bd; }
 html[data-theme="dark"] .vlib-state.on { color: #34d399; }
 
+/* ============ CALENDÁRIO DE FERIADOS + EXPERIÊNCIA ============ */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cal-nav button { border: 1px solid var(--line); background: var(--white); color: var(--ink); width: 30px; height: 30px; border-radius: 9px; cursor: pointer; font-weight: 800; font-size: 14px; line-height: 1; }
+.cal-nav button:hover { border-color: var(--red); color: var(--red); }
+.cal-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-wd { text-align: center; font-size: 8px; font-weight: 800; color: var(--gray); padding: 2px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+.cal-day { position: relative; aspect-ratio: 1.12; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border-radius: 8px; border: 1px solid transparent; color: var(--ink); }
+.cal-day.other { opacity: 0.28; }
+.cal-day.today { border-color: var(--red); box-shadow: 0 0 0 2px var(--line-red); font-weight: 800; }
+.cal-day.holiday { background: linear-gradient(160deg, var(--red), var(--red-dark)); color: #fff; box-shadow: var(--shadow-red); cursor: help; }
+.cal-day.holiday:hover::after { content: attr(data-name); position: absolute; bottom: 112%; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; font-size: 9px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 5; pointer-events: none; letter-spacing: 0.3px; }
+.cal-list { margin-top: 8px; max-height: 148px; overflow-y: auto; border-top: 1px solid var(--line); padding-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+.cal-item { display: flex; gap: 8px; align-items: baseline; font-size: 9px; color: var(--gray); font-weight: 600; }
+.cal-item b { color: var(--red); font-family: 'Baloo 2'; min-width: 38px; font-size: 9px; }
+.cal-item.today b { color: var(--green); }
+.cal-item.today { color: var(--ink); font-weight: 800; }
+html[data-theme="dark"] .cal-nav button { background: #1b2440; border-color: rgba(255, 70, 95, 0.35); color: #f4f7ff; }
+
+/* Tema automático por feriado — sobrescreve o acento do painel na data */
+html[data-holiday="confraternizacao"] { --red: #d97706; --red-dark: #b45309; --red-soft: #f59e0b; --line-red: rgba(217, 119, 6, 0.45); --shadow-red: 0 8px 30px rgba(217, 119, 6, 0.4); }
+html[data-holiday="carnaval"] { --red: #d946ef; --red-dark: #c026d3; --red-soft: #e879f9; --line-red: rgba(217, 70, 239, 0.45); --shadow-red: 0 8px 30px rgba(217, 70, 239, 0.4); }
+html[data-holiday="sexta_santa"] { --red: #6b7280; --red-dark: #4b5563; --red-soft: #9ca3af; --line-red: rgba(107, 114, 128, 0.45); --shadow-red: 0 8px 30px rgba(107, 114, 128, 0.4); }
+html[data-holiday="tiradentes"] { --red: #059669; --red-dark: #047857; --red-soft: #34d399; --line-red: rgba(5, 150, 105, 0.45); --shadow-red: 0 8px 30px rgba(5, 150, 105, 0.4); }
+html[data-holiday="dia_trabalho"] { --red: #dc2626; --red-dark: #b91c1c; --red-soft: #f87171; --line-red: rgba(220, 38, 38, 0.45); --shadow-red: 0 8px 30px rgba(220, 38, 38, 0.4); }
+html[data-holiday="corpus_christi"] { --red: #ca8a04; --red-dark: #a16207; --red-soft: #facc15; --line-red: rgba(202, 138, 4, 0.45); --shadow-red: 0 8px 30px rgba(202, 138, 4, 0.4); }
+html[data-holiday="independencia"] { --red: #16a34a; --red-dark: #15803d; --red-soft: #4ade80; --line-red: rgba(22, 163, 74, 0.45); --shadow-red: 0 8px 30px rgba(22, 163, 74, 0.4); }
+html[data-holiday="aparecida"] { --red: #7c3aed; --red-dark: #6d28d9; --red-soft: #a78bfa; --line-red: rgba(124, 58, 237, 0.45); --shadow-red: 0 8px 30px rgba(124, 58, 237, 0.4); }
+html[data-holiday="finados"] { --red: #4b5563; --red-dark: #374151; --red-soft: #9ca3af; --line-red: rgba(75, 85, 99, 0.45); --shadow-red: 0 8px 30px rgba(75, 85, 99, 0.4); }
+html[data-holiday="proclamacao"] { --red: #1d4ed8; --red-dark: #1e40af; --red-soft: #60a5fa; --line-red: rgba(29, 78, 216, 0.45); --shadow-red: 0 8px 30px rgba(29, 78, 216, 0.4); }
+html[data-holiday="consciencia_negra"] { --red: #b45309; --red-dark: #92400e; --red-soft: #fbbf24; --line-red: rgba(180, 83, 9, 0.45); --shadow-red: 0 8px 30px rgba(180, 83, 9, 0.4); }
+html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #22c55e; --line-red: rgba(21, 128, 61, 0.45); --shadow-red: 0 8px 30px rgba(21, 128, 61, 0.4); }
+
+/* ============ MODAL DE ALERTA EXPERIÊNCIA (admin fecha) ============ */
+.exp-modal { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 14px; background: rgba(2, 6, 16, 0.82); backdrop-filter: blur(6px); }
+.exp-modal[hidden] { display: none; }
+.exp-card { width: min(94vw, 460px); max-height: 80vh; overflow-y: auto; background: linear-gradient(170deg, #1b2440, #101830); border: 1.5px solid #fbbf24; border-radius: 20px; box-shadow: 0 0 40px rgba(251, 191, 36, 0.35); }
+.exp-head { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); padding: 12px 16px; border-radius: 19px 19px 0 0; }
+.exp-head h3 { color: #1f2937; font-family: 'Baloo 2'; font-size: 15px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+.exp-close { margin-left: auto; width: 36px; height: 36px; border-radius: 50%; border: 0; background: #92400e; color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+.exp-close:hover { background: #78350f; transform: rotate(90deg); transition: transform .2s; }
+.exp-list { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.exp-row { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 14px; padding: 10px 12px; }
+.exp-name { color: #fff; font-family: 'Baloo 2'; font-size: 13px; font-weight: 800; }
+.exp-detail { color: #fcd34d; font-size: 10px; font-weight: 700; margin-top: 2px; letter-spacing: 0.3px; }
+.exp-meta { color: #8b99bd; font-size: 8.5px; font-weight: 700; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+.exp-foot { color: #fbbf24; font-size: 9px; font-weight: 800; text-align: center; padding: 0 14px 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+
 @media (max-width: 1100px) {
   .live-strip { grid-template-columns: 1fr; }
   .news-title { min-height: 0; }
@@ -794,6 +846,7 @@ html[data-theme="dark"] .vlib-state.on { color: #34d399; }
           <button class="chip active" data-f="ALL">Todos</button>
           <button class="chip" data-f="Turno 1">Turno 1</button>
           <button class="chip t2" data-f="Turno 2">Turno 2</button>
+          <button class="chip quali" data-f="Qualidade">Qualidade</button>
           <button class="chip adm" data-f="ADM">ADM</button>
         </div>
       </div>
@@ -891,6 +944,27 @@ html[data-theme="dark"] .vlib-state.on { color: #34d399; }
     </section>
   </div>
 
+  <!-- ===== CALENDÁRIO DE FERIADOS (Brasil) ===== -->
+  <div class="grid-2" style="margin-top:14px;">
+    <section class="panel">
+      <div class="panel-accent"></div>
+      <div class="panel-head"><div class="panel-title"><i>📅</i> Calendário de feriados</div><div class="panel-tag" id="calYear">2026</div></div>
+      <div class="cal-nav">
+        <button type="button" id="calPrev" aria-label="Mês anterior">‹</button>
+        <div class="cal-title" id="calTitle">— —</div>
+        <button type="button" id="calNext" aria-label="Próximo mês">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-list" id="calList"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-accent"></div>
+      <div class="panel-head"><div class="panel-title"><i>⏳</i> Experiência — 45/90 dias</div><div class="panel-tag" id="experienciaTag">—</div></div>
+      <div class="list" id="experienceList" style="max-height:230px;"></div>
+      <div class="empty-note" id="experienceEmpty" hidden>Nenhum vencimento de experiência nos próximos dias. ✅</div>
+    </section>
+  </div>
+
   <!-- ===== HISTÓRICO 30 DIAS ===== -->
   <section class="panel" style="margin-top:14px;">
     <div class="panel-accent"></div>
@@ -981,6 +1055,15 @@ html[data-theme="dark"] .vlib-state.on { color: #34d399; }
 </div>
 
 <!-- ===== ABA CONFIGURAÇÃO (tema / tamanho do texto / fonte) ===== -->
+<!-- ===== ALERTA EXPERIÊNCIA (aparece 1 dia antes e no dia do vencimento; só admin encerra) ===== -->
+<div class="exp-modal" id="experienceModal" hidden role="alertdialog" aria-modal="true" aria-label="Experiência vencendo">
+  <div class="exp-card">
+    <div class="exp-head"><span style="font-size:20px;">⏳</span><h3>Experiência vencendo</h3><button class="exp-close" id="experienceClose" aria-label="Encerrar este aviso neste aparelho">✕</button></div>
+    <div class="exp-list" id="experienceModalList"></div>
+    <div class="exp-foot">Toque no ✕ para encerrar — este aviso nunca mais aparecerá neste aparelho</div>
+  </div>
+</div>
+
 <div class="pmodal" id="settingsModal" hidden>
   <div class="pmodal-backdrop" data-sclose></div>
   <div class="pmodal-card settings-card">
@@ -1175,13 +1258,14 @@ const renderWall = (d) => {
 };
 
 const renderDonut = (d) => {
-  const counts = { 'Turno 1': 0, 'Turno 2': 0, 'ADM': 0 };
+  const counts = { 'Turno 1': 0, 'Turno 2': 0, 'Qualidade': 0, 'ADM': 0 };
   d.colabs.forEach(c => { const t = c.turno || 'Turno 1'; if (counts[t] !== undefined) counts[t]++; });
-  const total = Math.max(1, counts['Turno 1'] + counts['Turno 2'] + counts['ADM']);
+  const total = Math.max(1, counts['Turno 1'] + counts['Turno 2'] + counts['Qualidade'] + counts['ADM']);
   const s = LAST.settings || {};
   const segs = [
     { label: s.team1Name || 'Turno 1', n: counts['Turno 1'], color: '#E60000' },
     { label: s.team2Name || 'Turno 2', n: counts['Turno 2'], color: '#c026d3' },
+    { label: s.teamQualidadeName || 'Qualidade', n: counts['Qualidade'], color: '#059669' },
     { label: s.team3Name || 'ADM', n: counts['ADM'], color: '#b45309' }
   ];
   const R = 54, CIRC = 2 * Math.PI * R;
@@ -1452,9 +1536,139 @@ const renderAll = (d) => {
   try { const nv = d.settings && d.settings.noVolumeDays && d.settings.noVolumeDays[todayISO()]; const b = $('#novolumeBanner'); if (b) b.hidden = !nv; } catch {}
   renderKpis(d); renderWall(d); renderDonut(d); renderGauge(d); renderTop(d); renderFaltas(d); renderBirthdays(d); renderFolgasHoje(d);
   renderVol(d); renderFerias(d); renderH30(d);
+  try { applyHolidayTheme(); renderHolidayCalendar(); } catch (e) { console.error('calendario', e); }
+  try { const expAlerts = getExperienceAlerts(d); renderExperiencePanel(expAlerts); maybeShowExperienceModal(expAlerts); } catch (e) { console.error('experiencia', e); }
   try { renderSummary(d); } catch (e) { console.error('summary', e); }
   try { const el = $('#footUpdated'); if (el) el.textContent = new Date().toLocaleTimeString('pt-BR'); } catch {}
 };
+
+// ============ CALENDÁRIO DE FERIADOS (Brasil) + TEMA POR FERIADO ============
+const easterDate = (Y) => {
+  const a = Y % 19, b = Math.floor(Y / 100), c = Y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(Y, month - 1, day);
+};
+const isoOf = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+const shiftDate = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const HOLIDAYS_OF = (Y) => {
+  const e = easterDate(Y);
+  return [
+    { id: 'confraternizacao', name: 'Confraternização Universal', date: Y + '-01-01', emoji: '🎆' },
+    { id: 'carnaval', name: 'Carnaval', date: isoOf(shiftDate(e, -47)), emoji: '🎭' },
+    { id: 'sexta_santa', name: 'Sexta-feira Santa', date: isoOf(shiftDate(e, -2)), emoji: '✝️' },
+    { id: 'tiradentes', name: 'Tiradentes', date: Y + '-04-21', emoji: '🎖️' },
+    { id: 'dia_trabalho', name: 'Dia do Trabalhador', date: Y + '-05-01', emoji: '🛠️' },
+    { id: 'corpus_christi', name: 'Corpus Christi', date: isoOf(shiftDate(e, 60)), emoji: '🌾' },
+    { id: 'independencia', name: 'Independência do Brasil', date: Y + '-09-07', emoji: '🇧🇷' },
+    { id: 'aparecida', name: 'Nossa Senhora Aparecida', date: Y + '-10-12', emoji: '🙏' },
+    { id: 'finados', name: 'Finados', date: Y + '-11-02', emoji: '🕯️' },
+    { id: 'proclamacao', name: 'Proclamação da República', date: Y + '-11-15', emoji: '🏛️' },
+    { id: 'consciencia_negra', name: 'Consciência Negra', date: Y + '-11-20', emoji: '✊🏿' },
+    { id: 'natal', name: 'Natal', date: Y + '-12-25', emoji: '🎄' }
+  ];
+};
+const MONTHS_PT2 = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+let calCursor = new Date(); calCursor.setDate(1);
+const applyHolidayTheme = () => {
+  const today = new Date();
+  const todayISO = isoOf(today);
+  const todays = HOLIDAYS_OF(today.getFullYear()).find(h => h.date === todayISO);
+  const root = document.documentElement;
+  if (todays) root.setAttribute('data-holiday', todays.id); else root.removeAttribute('data-holiday');
+};
+const renderHolidayCalendar = () => {
+  const grid = $('#calGrid'); if (!grid) return;
+  const y = calCursor.getFullYear(), m = calCursor.getMonth();
+  const today = new Date(); const todayISO = isoOf(today);
+  const calYear = $('#calYear'); if (calYear) calYear.textContent = String(y);
+  const calTitle = $('#calTitle'); if (calTitle) calTitle.textContent = MONTHS_PT2[m] + ' ' + y;
+  const holidays = HOLIDAYS_OF(y);
+  const holidayMap = new Map(holidays.map(h => [h.date, h]));
+  const first = new Date(y, m, 1);
+  const startIdx = (first.getDay() + 6) % 7; // semana começa na segunda-feira
+  const daysIn = new Date(y, m + 1, 0).getDate();
+  const prevDays = new Date(y, m, 0).getDate();
+  let html = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map(w => '<div class="cal-wd">' + w + '</div>').join('');
+  for (let i = 0; i < 42; i++) {
+    const dayNum = i - startIdx + 1;
+    let cellDate, other = false;
+    if (dayNum < 1) { cellDate = new Date(y, m - 1, prevDays + dayNum); other = true; }
+    else if (dayNum > daysIn) { cellDate = new Date(y, m + 1, dayNum - daysIn); other = true; }
+    else cellDate = new Date(y, m, dayNum);
+    const iso = isoOf(cellDate);
+    const h = holidayMap.get(iso);
+    const cls = ['cal-day'];
+    if (other) cls.push('other');
+    if (iso === todayISO) cls.push('today');
+    if (h) cls.push('holiday');
+    html += '<div class="' + cls.join(' ') + '"' + (h ? ' data-name="' + esc(h.name) + '" title="' + esc(h.name) + '"' : '') + '>' + cellDate.getDate() + '</div>';
+  }
+  grid.innerHTML = html;
+  const list = $('#calList');
+  if (list) {
+    list.innerHTML = holidays.map(h => {
+      const d = new Date(h.date + 'T12:00:00');
+      const isTodayCell = h.date === todayISO;
+      return '<div class="cal-item' + (isTodayCell ? ' today' : '') + '"><b>' + pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '</b><span>' + esc(h.emoji + ' ' + h.name) + '</span></div>';
+    }).join('');
+  }
+};
+(() => {
+  const prev = $('#calPrev'), next = $('#calNext');
+  if (prev) prev.addEventListener('click', () => { calCursor.setMonth(calCursor.getMonth() - 1); renderHolidayCalendar(); });
+  if (next) next.addEventListener('click', () => { calCursor.setMonth(calCursor.getMonth() + 1); renderHolidayCalendar(); });
+})();
+applyHolidayTheme();
+
+// ============ EXPERIÊNCIA 45/90 DIAS — alerta "não desliga" (só admin encerra com ✕) ============
+const expMatKey = (v) => String(v ?? '').trim().replace(/\D/g, '').replace(/^0+/, '') || '0';
+const expDismissKey = (ms, k) => 'dsr_exp_alert_' + ms + '_' + k;
+const getExperienceAlerts = (d) => {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const out = [];
+  (d.colabs || []).forEach(c => {
+    if (!c || !c.admissao) return;
+    const iso = String(c.admissao).slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
+    const adm = new Date(iso + 'T12:00:00');
+    [45, 90].forEach(ms => {
+      const due = new Date(adm.getFullYear(), adm.getMonth(), adm.getDate() + ms);
+      const diff = Math.round((new Date(due.getFullYear(), due.getMonth(), due.getDate()) - today) / 86400000);
+      if (diff !== 0 && diff !== 1) return;
+      try { if (localStorage.getItem(expDismissKey(ms, expMatKey(c.matricula))) === '1') return; } catch {}
+      out.push({ name: c.name, matricula: c.matricula, turno: c.turno || 'Turno 1', ms, daysLeft: diff, dueISO: isoOf(due) });
+    });
+  });
+  return out;
+};
+let experienceAlertShown = false;
+const initialsOf = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+const renderExperiencePanel = (alerts) => {
+  const list = $('#experienceList'), empty = $('#experienceEmpty'), tag = $('#experienciaTag');
+  if (tag) tag.textContent = alerts.length ? alerts.length + ' aviso(s)' : 'OK';
+  if (!list) return;
+  if (!alerts.length) { list.innerHTML = ''; if (empty) empty.hidden = false; return; }
+  if (empty) empty.hidden = true;
+  list.innerHTML = alerts.map(a => '<div class="list-row"><div class="avatar" style="width:40px;height:40px;font-size:13px;border-color:#f59e0b;box-shadow:0 0 0 2px var(--white),0 0 10px rgba(245,158,11,.45)"><div class="initials" style="color:#d97706">' + esc(initialsOf(a.name)) + '</div></div><div class="list-info"><div class="list-name">' + esc(a.name) + '</div><div class="list-meta">' + esc(a.turno) + ' • EXPERIÊNCIA DE ' + a.ms + ' DIAS ' + (a.daysLeft === 0 ? 'VENCE HOJE' : 'VENCE AMANHÃ') + ' — ' + esc(fmtBR(a.dueISO)) + '</div></div></div>').join('');
+};
+const maybeShowExperienceModal = (alerts) => {
+  if (experienceAlertShown || !alerts.length) return;
+  experienceAlertShown = true;
+  const modal = $('#experienceModal');
+  const list = $('#experienceModalList');
+  if (!modal || !list) return;
+  list.innerHTML = alerts.map(a => '<div class="exp-row"><div class="exp-name">' + esc(a.name) + '</div><div class="exp-detail">⏳ Experiência de ' + a.ms + ' dias ' + (a.daysLeft === 0 ? 'VENCE HOJE' : 'vence amanhã') + ' — ' + esc(fmtBR(a.dueISO)) + '</div><div class="exp-meta">Mat: ' + esc(a.matricula) + ' • ' + esc(a.turno) + '</div></div>').join('');
+  modal.hidden = false;
+};
+const dismissExperienceModal = () => {
+  const modal = $('#experienceModal');
+  try {
+    getExperienceAlerts(LAST || {}).forEach(a => localStorage.setItem(expDismissKey(a.ms, expMatKey(a.matricula)), '1'));
+  } catch {}
+  if (modal) modal.hidden = true;
+  if (LAST) renderExperiencePanel(getExperienceAlerts(LAST));
+};
+const experienceCloseBtn = $('#experienceClose');
+if (experienceCloseBtn) experienceCloseBtn.addEventListener('click', dismissExperienceModal);
 
 // ===== PERFIL INDIVIDUAL (clique no colaborador) =====
 const tempoEmpresa = (admissaoISO) => {
@@ -1491,18 +1705,25 @@ const formatHorario = (h) => {
   return String(h || '—');
 };
 
-const waLink = (phone, text) => {
+// WhatsApp abre no app no celular e no WHATSAPP WEB no PC (onde wa.me não é atendido)
+const isDesktopUA = () => !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent || '');
+const waOpenLink = (phone, text) => {
   const digits = String(phone || '').replace(/\D/g, '');
   const m = digits.startsWith('55') && digits.length === 13 ? digits : (digits.length === 11 ? '55' + digits : (digits.length === 10 ? '55' + digits : digits));
-  return (m ? 'https://wa.me/' + m : 'https://wa.me/') + (text ? '?text=' + encodeURIComponent(text) : '');
+  if (!isDesktopUA()) return (m ? 'https://wa.me/' + m : 'https://wa.me/') + (text ? '?text=' + encodeURIComponent(text) : '');
+  const q = [];
+  if (m) q.push('phone=' + m);
+  if (text) q.push('text=' + encodeURIComponent(text));
+  return 'https://web.whatsapp.com/send' + (q.length ? '?' + q.join('&') : '');
 };
+const waLink = (phone, text) => waOpenLink(phone, text);
 
 const buildFichaText = (c) => {
   const d = LAST;
   const now = new Date();
   const y = now.getFullYear();
   const mm = pad2(now.getMonth() + 1);
-  const teamLabel = c.turno === 'Turno 2' ? 'Turno 2' : (c.turno === 'ADM' ? 'ADM' : 'Turno 1');
+  const teamLabel = c.turno === 'Turno 2' ? 'Turno 2' : (c.turno === 'ADM' ? 'ADM' : (c.turno === 'Qualidade' ? 'Qualidade' : 'Turno 1'));
   const stripM = (v) => strip(v);
   const matK = stripM(c.matricula);
   const pres = (d.attendance || []).filter(a => a.date && String(a.date).startsWith(y + '-' + mm) && stripM(a.matricula) === matK);
@@ -1516,6 +1737,15 @@ const buildFichaText = (c) => {
   // Inclui observação privada do gestor na mensagem de compartilhamento (se registrada)
   const obsFromSettings = (d.settings && d.settings.observacoes) || {};
   const obsText = obsFromSettings[stripM(c.matricula)] ? String(obsFromSettings[stripM(c.matricula)]).trim() : '';
+  // Datas de TODAS as faltas da jornada (além da quantidade do mês)
+  const faltasDatas = (d.occurrences || [])
+    .filter(o => stripM(o.matricula) === matK && /falta/i.test(String(o.tipo || '')))
+    .map(o => String(o.data || '').slice(0, 10))
+    .filter(Boolean)
+    .sort();
+  const faltasLinhas = faltasDatas.length
+    ? '🕳 *Faltas na jornada (' + faltasDatas.length + '):* ' + faltasDatas.map(fmtBR).join(', ')
+    : '🕳 *Faltas na jornada:* nenhuma registrada';
   // Formato completo (foto + ficha numa única mensagem): ~700 caracteres, dentro da legenda do WhatsApp
   return [
     '📋 *FICHA DO COLABORADOR* — J&T Express Marabá',
@@ -1540,6 +1770,7 @@ const buildFichaText = (c) => {
     `  • Presentes: ${presentes}  •  Cobrindo: ${cobrindo}  •  Faltas: ${faltasMes}`,
     ind ? `  • Score ${ind.score || 0}  •  Assiduidade ${ind.assiduidade || 0}  •  Mês ${esc(ind.month || '')}` : '',
     obsText ? `📝 *Obs. Gestor:* ${obsText}` : '',
+    faltasLinhas,
     '',
     'Enviado pelo painel People Analytics'
   ].filter(Boolean).join('\n').replace(/\uFFFD/g, '');
@@ -1579,7 +1810,7 @@ const shareFichaWithPhoto = async (c) => {
   } catch (_) {}
   // Fallback final: wa.me com texto + URL da foto (se for remota)
   const extra = photoHttp ? '\n\n📎 Foto: ' + photoHttp : '';
-  window.open('https://wa.me/?text=' + encodeURIComponent(text + extra), '_blank', 'noopener,noreferrer');
+  window.open(waOpenLink('', text + extra), '_blank', 'noopener,noreferrer');
 };
 
 const openPerson = (c) => {
@@ -1628,7 +1859,7 @@ const openPerson = (c) => {
   const encoded = encodeURIComponent(fichaText);
   const mailto   = 'mailto:' + (c.email || '') + '?subject=' + encodeURIComponent('Ficha do colaborador — ' + (c.name || '')) + '&body=' + encoded;
   $('#pmActions').innerHTML = [
-    '<a class="pm-btn wa" href="' + (waNume ? ('https://wa.me/' + waNume + '?text=' + encodeURIComponent('Olá, ' + first + '!')) : 'https://wa.me/') + '" target="_blank" rel="noopener"><b>💬</b><span>WhatsApp</span></a>',
+    '<a class="pm-btn wa" href="' + esc(waOpenLink(waNume, 'Olá, ' + first + '!')) + '" target="_blank" rel="noopener"><b>💬</b><span>WhatsApp</span></a>',
     '<button id="pmShareBtn" type="button" class="pm-btn share" title="Envia a ficha + foto diretamente pelo WhatsApp ou outro app"><b>📋</b><span>Enviar ficha + foto</span></button>',
     '<a class="pm-btn mail" href="' + esc(mailto) + '" title="Abre o cliente de e-mail com a ficha completa"><b>✉️</b><span>E-mail</span></a>'
   ].join('');
@@ -2069,6 +2300,7 @@ const SHORTCUT_ACTIONS = [
   { id: 'turnoAll', icon: '👥', label: 'Mostrar Todos' },
   { id: 'turno1', icon: '①', label: 'Filtrar Turno 1' },
   { id: 'turno2', icon: '②', label: 'Filtrar Turno 2' },
+  { id: 'turnoQualidade', icon: '✅', label: 'Filtrar Qualidade' },
   { id: 'turnoAdm', icon: '③', label: 'Filtrar ADM' },
   { id: 'broadcast', icon: '📢', label: 'Abrir Enviar alerta' },
   { id: 'goTop', icon: '⤴️', label: 'Ir para o topo' }
@@ -2076,7 +2308,7 @@ const SHORTCUT_ACTIONS = [
 const DEFAULT_SHORTCUTS = {
   lock: 'Alt+B', settings: 'Alt+S', theme: 'Alt+T',
   fsizeUp: 'Alt+ArrowUp', fsizeDown: 'Alt+ArrowDown', fsizeReset: 'Alt+0',
-  turnoAll: 'Alt+1', turno1: 'Alt+2', turno2: 'Alt+3', turnoAdm: 'Alt+4',
+  turnoAll: 'Alt+1', turno1: 'Alt+2', turno2: 'Alt+3', turnoQualidade: 'Alt+4', turnoAdm: 'Alt+5',
   broadcast: 'Alt+M', goTop: 'Alt+G'
 };
 const loadShortcuts = () => {
@@ -2181,6 +2413,7 @@ const runShortcutAction = (id) => {
     case 'turnoAll': clickTurnoChip('ALL'); break;
     case 'turno1': clickTurnoChip('Turno 1'); break;
     case 'turno2': clickTurnoChip('Turno 2'); break;
+    case 'turnoQualidade': clickTurnoChip('Qualidade'); break;
     case 'turnoAdm': clickTurnoChip('ADM'); break;
     case 'broadcast': openBroadcast(); break;
     case 'goTop': window.scrollTo({ top: 0, behavior: 'smooth' }); break;
