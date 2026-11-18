@@ -190,7 +190,12 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .legend-item { display: flex; align-items: center; gap: 8px; }
 .legend-dot { width: 11px; height: 11px; border-radius: 3px; }
 .legend-item b { font-family: 'Baloo 2'; font-size: 13px; margin-left: auto; padding-left: 10px; color: var(--ink); }
-/* Assiduidade por turma + Escore Operacional */
+/* ===== Score Operacional — velocímetro ===== */
+.score-gauge-wrap { display: flex; justify-content: center; padding: 4px 0 2px; }
+.score-gauge-svg { width: 100%; max-width: 330px; height: auto; display: block; overflow: visible; }
+.score-needle { transform-origin: 100px 92px; transition: transform 1.4s cubic-bezier(.34,1.56,.64,1); }
+.score-gauge-value { text-align: center; font-family: 'Baloo 2'; font-size: 40px; font-weight: 800; line-height: 1; margin-top: -14px; color: var(--ink); letter-spacing: -1px; }
+.score-gauge-label { text-align: center; font-family: 'Baloo 2'; font-size: 9px; font-weight: 800; letter-spacing: 3.5px; text-transform: uppercase; color: var(--gray); margin-top: 4px; margin-bottom: 10px; }
 .assid-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .assid-cell { background: #fafafa; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
 .assid-cell.adm { border-color: #fde68a; background: #fffbeb; }
@@ -200,16 +205,12 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .assid-cell-value small { font-size: 9px; color: var(--gray); font-weight: 700; letter-spacing: 1px; margin-left: 4px; }
 .assid-cell-bar { margin-top: 6px; height: 6px; background: #efeff1; border-radius: 99px; overflow: hidden; }
 .assid-cell-fill { height: 100%; border-radius: 99px; background: var(--fill, #E60000); box-shadow: 0 0 8px rgba(230,0,0,.3); }
-.assid-total { margin-top: 12px; display: flex; align-items: baseline; justify-content: center; gap: 10px; background: linear-gradient(135deg, #E60000, #b91c1c); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow-red); }
-.assid-total span { color: #fff; font-family: 'Baloo 2'; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
-.assid-total b { color: #fff; font-family: 'Baloo 2'; font-size: 26px; font-weight: 800; line-height: 1; }
-.assid-total small { color: rgba(255, 255, 255, 0.85); font-size: 9px; font-weight: 700; }
+.assid-efficiency { margin-top: 8px; text-align: center; font-size: 9px; color: var(--gray); font-weight: 700; letter-spacing: 0.5px; }
+.assid-efficiency b { color: var(--green); }
 html[data-theme="dark"] .assid-cell { background: #131b31; border-color: rgba(255, 70, 95, 0.3); }
 html[data-theme="dark"] .assid-cell.adm { background: rgba(251,191,36,.06); border-color: rgba(251,191,36,.35); }
 html[data-theme="dark"] .assid-cell-bar { background: #1b2440; }
-.assid-efficiency { margin-top: 8px; text-align: center; font-size: 9px; color: var(--gray); font-weight: 700; letter-spacing: 0.5px; }
-.assid-efficiency b { color: var(--green); }
-html[data-theme="dark"] .assid-total { background: linear-gradient(135deg, #ff2e4c, #d91f3d); box-shadow: 0 0 22px rgba(255, 46, 76, 0.45); }
+html[data-theme="dark"] .assid-efficiency b { color: #34d399; }
 
 /* Top 5 — abas por setor e modo Escore Operacional */
 .top-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -916,12 +917,32 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
         </div>
       </section>
 
-      <!-- ===== ASSIDUIDADE POR TURMA + ESCORE OPERACIONAL ===== -->
+      <!-- ===== SCORE OPERACIONAL — velocímetro ===== -->
       <section class="panel">
         <div class="panel-accent"></div>
-        <div class="panel-head"><div class="panel-title"><i>◎</i> Assiduidade média</div><div class="panel-tag">Último mês</div></div>
+        <div class="panel-head"><div class="panel-title"><i>◈</i> Score Operacional</div><div class="panel-tag">ÚLTIMO MÊS</div></div>
+        <div class="score-gauge-wrap">
+          <svg id="scoreGaugeSvg" class="score-gauge-svg" viewBox="0 0 200 112" aria-label="Score operacional do mês">
+            <path d="M 14 92 A 86 86 0 0 1 30.4 41.5" fill="#f04438"/>
+            <path d="M 30.4 41.5 A 86 86 0 0 1 73.4 10.2" fill="#f79009"/>
+            <path d="M 73.4 10.2 A 86 86 0 0 1 126.6 10.2" fill="#ffd60a"/>
+            <path d="M 126.6 10.2 A 86 86 0 0 1 169.6 41.4" fill="#84cc16"/>
+            <path d="M 169.6 41.4 A 86 86 0 0 1 186 92" fill="#16a34a"/>
+            <text x="47" y="80" text-anchor="middle" font-size="13">😠</text>
+            <text x="66" y="50" text-anchor="middle" font-size="12">😟</text>
+            <text x="100" y="38" text-anchor="middle" font-size="12">😐</text>
+            <text x="134" y="50" text-anchor="middle" font-size="12">🙂</text>
+            <text x="153" y="80" text-anchor="middle" font-size="13">😄</text>
+            <circle cx="100" cy="92" r="22" fill="rgba(255,255,255,0.9)" stroke="#1a2b4a" stroke-width="2"/>
+            <g id="scoreNeedle" class="score-needle" transform="rotate(0 100 92)">
+              <polygon points="14,92 103,84 103,100" fill="#1a2b4a"/>
+            </g>
+            <circle cx="100" cy="92" r="7" fill="#1a2b4a"/>
+          </svg>
+        </div>
+        <div class="score-gauge-value" id="scoreGaugeValue">0</div>
+        <div class="score-gauge-label" id="scoreGaugeLabel">— · SEM DADOS</div>
         <div class="assid-grid" id="assidGrid"></div>
-        <div class="assid-total"><span>ESCORE OPERACIONAL</span><b id="assidTotal">0</b><small>pts / 100</small></div>
         <div class="assid-efficiency" id="assidEfficiency">—</div>
       </section>
 
@@ -1451,7 +1472,17 @@ const renderGauge = (d) => {
       + '<div class="assid-cell-value">' + r_.score + '<small>pts</small></div>'
       + '<div class="assid-cell-bar"><div class="assid-cell-fill" style="--fill:' + color + ';width:' + r_.score + '%"></div></div></div>';
   }).join('');
-  $('#assidTotal').textContent = r.overall;
+  const scoreNeedle = $('#scoreNeedle');
+  if (scoreNeedle) scoreNeedle.setAttribute('transform', 'rotate(' + (r.overall / 100) * 180 + ' 100 92)');
+  const gaugeValue = $('#scoreGaugeValue');
+  if (gaugeValue) gaugeValue.textContent = r.overall;
+  const gaugeLabel = $('#scoreGaugeLabel');
+  if (gaugeLabel) {
+    const v = r.overall;
+    const label = v >= 80 ? '😄 EXCELENTE' : v >= 60 ? '🙂 BOM' : v >= 40 ? '😐 REGULAR' : v >= 20 ? '😟 ATENÇÃO' : '😠 CRÍTICO';
+    gaugeLabel.textContent = label;
+    gaugeLabel.style.color = v >= 80 ? '#16a34a' : v >= 60 ? '#84cc16' : v >= 40 ? '#ca8a04' : v >= 20 ? '#f79009' : '#f04438';
+  }
   const eff = $('#assidEfficiency');
   if (eff) {
     eff.innerHTML = r.efficiency === null
@@ -2802,40 +2833,18 @@ const decodeEntities = (t) =>
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
     .trim();
-const fetchMundoLogistica = async () => {
-  // 1) RSS (quando disponível)
-  try {
-    const res = await fetch('https://mundologistica.com.br/feed/', { headers: { Accept: 'application/rss+xml, application/xml, text/xml, */*' } });
-    if (res.ok) {
-      const txt = await res.text();
-      const items = [...txt.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map((m) => {
-        const block = m[1];
-        const pick = (tag) => {
-          const mm = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
-          return mm ? decodeEntities(mm[1].replace(/<[^>]*>/g, '')) : '';
-        };
-        const linkM = block.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
-        return { title: pick('title'), link: linkM ? decodeEntities(linkM[1]) : '', pubDate: pick('pubDate') };
-      }).filter((it) => it.title);
-      const ts = (d) => (d ? new Date(d).getTime() || 0 : 0);
-      if (items.length > 0) return items.sort((a, b) => ts(b.pubDate) - ts(a.pubDate));
-    }
-  } catch { /* tenta fallback */ }
-  // 2) Homepage (CORS liberado pelo portal): raspa <h1..h4><a href>
-  try {
-    const res = await fetch('https://mundologistica.com.br/', { headers: { Accept: 'text/html' } });
-    if (!res.ok) return [];
-    const html = await res.text();
-    const seen = new Set();
-    return [...html.matchAll(/<h[1-4][^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)]
-      .map((m) => {
-        let link = decodeEntities(m[1]).trim();
-        if (!/^https?:\/\//i.test(link)) link = 'https://mundologistica.com.br/' + link.replace(/^\.?\//, '');
-        return { title: decodeEntities(m[2].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')), link, pubDate: '' };
-      })
-      .filter((it) => it.title && it.title.length > 15 && !seen.has(it.title) && seen.add(it.title));
-  } catch { return []; }
-};
+const fetchMundoLogistica = () => new Promise((resolve) => {
+  // Backend (Versão 37+) busca as manchetes server-side — sem bloqueio CORS/casa HTTP 204
+  const cb = '__newsCb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+  const cleanup = () => { window.clearTimeout(toTimer); try { delete window[cb]; } catch {} const s = document.getElementById(cb); if (s) s.remove(); };
+  const toTimer = window.setTimeout(() => { cleanup(); resolve([]); }, 15000);
+  window[cb] = (data) => { cleanup(); resolve((data && data.items) || []); };
+  const s = document.createElement('script');
+  s.id = cb;
+  s.src = EXEC_URL + '?action=NEWS&callback=' + cb + '&t=' + Date.now();
+  s.onerror = () => { cleanup(); resolve([]); };
+  document.head.appendChild(s);
+});
 const buildNewsList = (items) => {
   const jt = items.filter((it) => /j\s*&\s*t|jt\s*express/i.test(it.title));
   const rest = items.filter((it) => !/j\s*&\s*t|jt\s*express/i.test(it.title));
