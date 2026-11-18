@@ -360,6 +360,7 @@ html[data-theme="dark"] .vol-needed-box span { color: #8b99bd; }
 
 /* ==== HISTÓRICO 30 DIAS ==== */
 .h30-chart { display: flex; gap: 2px; align-items: flex-end; height: 96px; padding: 6px 2px 0; }
+.hist-panel .h30-chart { flex: 1 1 auto; height: auto; min-height: 96px; align-items: flex-end; }
 .h30-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
 .h30-bar { width: 100%; background: linear-gradient(180deg, var(--red), var(--red-dark)); border-radius: 2px 2px 0 0; min-height: 2px; opacity: 0.92; }
 .h30-bar.zero { background: #ececf0; }
@@ -742,7 +743,7 @@ html[data-theme="dark"] .cal-nav button { background: #1b2440; border-color: rgb
 .cal-mini-row b { font-family: 'Baloo 2'; font-size: 12px; font-weight: 800; color: var(--red); min-width: 36px; }
 .cal-mini-row span { font-size: 9px; font-weight: 700; color: var(--ink); letter-spacing: 0.2px; line-height: 1.35; }
 .cal-mini-open { width: 100%; justify-content: center; }
-#rowCalExp { grid-template-columns: minmax(250px, 320px) 1fr; }
+#rowCalExp { grid-template-columns: minmax(240px, 300px) 1fr 1.15fr; }
 .grid-2 > .panel { display: flex; flex-direction: column; }
 .grid-2 .list { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; justify-content: space-evenly; max-height: none; overflow: visible; }
 .grid-2 .list > .list-row { flex: 1 1 auto; min-height: 56px; max-height: 118px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; background: #fafafa; }
@@ -1065,20 +1066,20 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="list" id="experienceList"></div>
       <div class="empty-note" id="experienceEmpty" hidden>Nenhum vencimento de experiência nos próximos dias. ✅</div>
     </section>
-  </div>
 
-  <!-- ===== HISTÓRICO 30 DIAS ===== -->
-  <section class="panel" style="margin-top:14px;">
-    <div class="panel-accent"></div>
-    <div class="panel-head"><div class="panel-title"><i>▤</i> Histórico — últimos 30 dias</div><div class="panel-tag">Presença / faltas</div></div>
-    <div class="h30-chart" id="h30Chart"></div>
-    <div class="h30-foot">
-      <div class="h30-stat"><b id="h30Media">0</b><span>Média / dia</span></div>
-      <div class="h30-stat"><b id="h30Max">0</b><span>Melhor dia</span></div>
-      <div class="h30-stat red"><b id="h30Faltas">0</b><span>Faltas 30d</span></div>
-      <div class="h30-stat"><b id="h30Pico">0</b><span>Pico 30d</span></div>
-    </div>
-  </section>
+    <!-- ===== HISTÓRICO 30 DIAS ===== -->
+    <section class="panel hist-panel">
+      <div class="panel-accent"></div>
+      <div class="panel-head"><div class="panel-title"><i>▤</i> Histórico — últimos 30 dias</div><div class="panel-tag">Presença / faltas</div></div>
+      <div class="h30-chart" id="h30Chart"></div>
+      <div class="h30-foot">
+        <div class="h30-stat"><b id="h30Media">0</b><span>Média / dia</span></div>
+        <div class="h30-stat"><b id="h30Max">0</b><span>Melhor dia</span></div>
+        <div class="h30-stat red"><b id="h30Faltas">0</b><span>Faltas 30d</span></div>
+        <div class="h30-stat"><b id="h30Pico">0</b><span>Pico 30d</span></div>
+      </div>
+    </section>
+  </div>
 </main>
 
 <!-- ===== MODAL: PERFIL INDIVIDUAL ===== -->
