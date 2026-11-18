@@ -1389,6 +1389,13 @@ $('#faltasList').addEventListener('click', (ev) => {
   const c = LAST.colabs.find(cc => strip(cc.matricula) === mat);
   if (c) openPerson(c);
 });
+$('#experienceList').addEventListener('click', (ev) => {
+  const row = ev.target.closest('.list-row-clickable');
+  if (!row) return;
+  const mat = strip(row.getAttribute('data-mat'));
+  const c = LAST.colabs.find(cc => strip(cc.matricula) === mat);
+  if (c) openPerson(c);
+});
 
 const renderBirthdays = (d) => {
   const mm = pad2(new Date().getMonth() + 1);
@@ -1702,33 +1709,59 @@ updateNextHolidayText();
 // ============ EXPERIÊNCIA 45/90 DIAS — alerta "não desliga" (só admin encerra com ✕) ============
 const expMatKey = (v) => String(v ?? '').trim().replace(/\D/g, '').replace(/^0+/, '') || '0';
 const expDismissKey = (ms, k) => 'dsr_exp_alert_' + ms + '_' + k;
-const getExperienceAlerts = (d) => {
+const parseAnyDate = (s) => {
+  const str = String(s || '').trim();
+  if (!str) return null;
+  let m = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) { const d = new Date(+m[1], +m[2] - 1, +m[3], 12, 0, 0, 0); return isNaN(d.getTime()) ? null : d; }
+  m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) { const d = new Date(+m[3], +m[2] - 1, +m[1], 12, 0, 0, 0); return isNaN(d.getTime()) ? null : d; }
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+};
+// Todos os vencimentos de experiência (45/90 dias) nos próximos 30 dias — não depende do dismiss.
+const getUpcomingExperience = (d, daysAhead = 30) => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const out = [];
   (d.colabs || []).forEach(c => {
     if (!c || !c.admissao) return;
-    const iso = String(c.admissao).slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
-    const adm = new Date(iso + 'T12:00:00');
+    const adm = parseAnyDate(c.admissao);
+    if (!adm) return;
     [45, 90].forEach(ms => {
       const due = new Date(adm.getFullYear(), adm.getMonth(), adm.getDate() + ms);
       const diff = Math.round((new Date(due.getFullYear(), due.getMonth(), due.getDate()) - today) / 86400000);
-      if (diff !== 0 && diff !== 1) return;
-      try { if (localStorage.getItem(expDismissKey(ms, expMatKey(c.matricula))) === '1') return; } catch {}
+      if (diff < 0 || diff > daysAhead) return; // já venceu — não mostra
       out.push({ name: c.name, matricula: c.matricula, turno: c.turno || 'Turno 1', ms, daysLeft: diff, dueISO: isoOf(due) });
     });
   });
+  out.sort((a, b) => a.daysLeft - b.daysLeft || String(a.name).localeCompare(String(b.name), 'pt-BR'));
   return out;
+};
+// Alertas bloqueantes (modal + fala): só hoje/amanhã E não dispensados neste aparelho.
+const getExperienceAlerts = (d) => {
+  return getUpcomingExperience(d, 1).filter(a => {
+    try { if (localStorage.getItem(expDismissKey(a.ms, expMatKey(a.matricula))) === '1') return false; } catch {}
+    return true;
+  });
 };
 let experienceAlertShown = false;
 const initialsOf = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
 const renderExperiencePanel = (alerts) => {
+  // Sempre mostra TODOS os vencimentos nos próximos 30 dias — não some após dispensar o modal.
+  const upcoming = LAST ? getUpcomingExperience(LAST, 30) : [];
   const list = $('#experienceList'), empty = $('#experienceEmpty'), tag = $('#experienciaTag');
-  if (tag) tag.textContent = alerts.length ? alerts.length + ' aviso(s)' : 'OK';
+  if (tag) tag.textContent = upcoming.length ? upcoming.length + ' nos próximos 30d' : 'OK';
   if (!list) return;
-  if (!alerts.length) { list.innerHTML = ''; if (empty) empty.hidden = false; return; }
+  if (!upcoming.length) { list.innerHTML = ''; if (empty) empty.hidden = false; return; }
   if (empty) empty.hidden = true;
-  list.innerHTML = alerts.map(a => '<div class="list-row"><div class="avatar" style="width:40px;height:40px;font-size:13px;border-color:#f59e0b;box-shadow:0 0 0 2px var(--white),0 0 10px rgba(245,158,11,.45)"><div class="initials" style="color:#d97706">' + esc(initialsOf(a.name)) + '</div></div><div class="list-info"><div class="list-name">' + esc(a.name) + '</div><div class="list-meta">' + esc(a.turno) + ' • EXPERIÊNCIA DE ' + a.ms + ' DIAS ' + (a.daysLeft === 0 ? 'VENCE HOJE' : 'VENCE AMANHÃ') + ' — ' + esc(fmtBR(a.dueISO)) + '</div></div></div>').join('');
+  list.innerHTML = upcoming.map(a => {
+    const c = LAST.colabs.find(cc => strip(cc.matricula) === strip(a.matricula));
+    const badge = a.daysLeft === 0 ? 'VENCE HOJE' : (a.daysLeft === 1 ? 'AMANHÃ' : 'EM ' + a.daysLeft + ' DIAS');
+    return '<button type="button" class="list-row list-row-clickable" data-mat="' + esc(a.matricula) + '">' + avatarByMatricula(LAST, a.matricula, 40) +
+      '<div class="list-info"><div class="list-name">' + esc(a.name) + '</div>' +
+      '<div class="list-meta">' + esc(a.turno) + ' • ' + esc(a.ms + ' dias ') + '• ' + esc(fmtBR(a.dueISO)) + '</div></div>' +
+      '<span class="list-badge">' + esc(badge) + '</span></button>';
+  }).join('');
 };
 const maybeShowExperienceModal = (alerts) => {
   if (experienceAlertShown || !alerts.length) return;
