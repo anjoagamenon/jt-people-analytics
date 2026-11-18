@@ -190,9 +190,35 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .legend-item { display: flex; align-items: center; gap: 8px; }
 .legend-dot { width: 11px; height: 11px; border-radius: 3px; }
 .legend-item b { font-family: 'Baloo 2'; font-size: 13px; margin-left: auto; padding-left: 10px; color: var(--ink); }
-.gauge-wrap { text-align: center; }
-.gauge-value { font-family: 'Baloo 2'; font-size: 34px; font-weight: 800; margin-top: -28px; color: var(--ink); }
-.gauge-label { font-size: 8.5px; letter-spacing: 2.4px; color: var(--gray); text-transform: uppercase; margin-top: 2px; font-weight: 700; }
+/* Assiduidade por turma + Escore Operacional */
+.assid-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.assid-cell { background: #fafafa; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.assid-cell.adm { border-color: #fde68a; background: #fffbeb; }
+.assid-cell-name { font-size: 8px; font-weight: 800; letter-spacing: 2px; color: var(--gray); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+.assid-cell-name i { font-style: normal; color: var(--red); font-size: 9px; }
+.assid-cell-value { font-family: 'Baloo 2'; font-size: 22px; font-weight: 800; line-height: 1; color: var(--ink); }
+.assid-cell-value small { font-size: 9px; color: var(--gray); font-weight: 700; letter-spacing: 1px; margin-left: 4px; }
+.assid-cell-bar { margin-top: 6px; height: 6px; background: #efeff1; border-radius: 99px; overflow: hidden; }
+.assid-cell-fill { height: 100%; border-radius: 99px; background: var(--fill, #E60000); box-shadow: 0 0 8px rgba(230,0,0,.3); }
+.assid-total { margin-top: 12px; display: flex; align-items: baseline; justify-content: center; gap: 10px; background: linear-gradient(135deg, #E60000, #b91c1c); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow-red); }
+.assid-total span { color: #fff; font-family: 'Baloo 2'; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+.assid-total b { color: #fff; font-family: 'Baloo 2'; font-size: 26px; font-weight: 800; line-height: 1; }
+.assid-total small { color: rgba(255, 255, 255, 0.85); font-size: 9px; font-weight: 700; }
+html[data-theme="dark"] .assid-cell { background: #131b31; border-color: rgba(255, 70, 95, 0.3); }
+html[data-theme="dark"] .assid-cell.adm { background: rgba(251,191,36,.06); border-color: rgba(251,191,36,.35); }
+html[data-theme="dark"] .assid-cell-bar { background: #1b2440; }
+html[data-theme="dark"] .assid-total { background: linear-gradient(135deg, #ff2e4c, #d91f3d); box-shadow: 0 0 22px rgba(255, 46, 76, 0.45); }
+
+/* Top 5 — abas por setor e modo Escore Operacional */
+.top-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.top-tab { border: 1.5px solid var(--line); background: var(--white); color: var(--gray); font-family: 'Rajdhani'; font-weight: 700; font-size: 8.5px; letter-spacing: 1.5px; padding: 5px 9px; border-radius: 99px; cursor: pointer; text-transform: uppercase; transition: all .18s; }
+.top-tab:hover { border-color: var(--red); color: var(--red); }
+.top-tab.active { background: var(--red); border-color: var(--red); color: #fff; box-shadow: var(--shadow-red); }
+.top-mode { font-family: 'Baloo 2'; font-size: 9px; font-weight: 800; letter-spacing: 2px; color: var(--gray); text-transform: uppercase; margin-bottom: 8px; min-height: 14px; }
+.top-mode.score { color: var(--red); }
+html[data-theme="dark"] .top-tab { background: #131b31; border-color: rgba(255, 70, 95, 0.3); color: #c3cbdf; }
+html[data-theme="dark"] .top-tab:hover { border-color: #ff2e4c; color: #ff6b87; }
+html[data-theme="dark"] .top-tab.active { background: #ff2e4c; border-color: #ff2e4c; box-shadow: 0 0 12px rgba(255, 46, 76, 0.5); }
 .rank-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 10px; }
 .rank-pos { font-family: 'Baloo 2'; font-size: 12px; width: 20px; color: var(--gray); font-weight: 800; }
 .rank-1 .rank-pos { color: var(--red); } .rank-2 .rank-pos { color: #8a8a8a; } .rank-3 .rank-pos { color: #b45309; }
@@ -888,21 +914,20 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
         </div>
       </section>
 
-      <!-- ===== GAUGE ===== -->
+      <!-- ===== ASSIDUIDADE POR TURMA + ESCORE OPERACIONAL ===== -->
       <section class="panel">
         <div class="panel-accent"></div>
         <div class="panel-head"><div class="panel-title"><i>◎</i> Assiduidade média</div><div class="panel-tag">Último mês</div></div>
-        <div class="gauge-wrap">
-          <svg id="gaugeSvg" width="176" height="106" viewBox="0 0 180 112"></svg>
-          <div class="gauge-value" id="gaugeValue">0</div>
-          <div class="gauge-label">Pontos / 100</div>
-        </div>
+        <div class="assid-grid" id="assidGrid"></div>
+        <div class="assid-total"><span>ESCORE OPERACIONAL</span><b id="assidTotal">0</b><small>pts / 100</small></div>
       </section>
 
-      <!-- ===== TOP 5 ===== -->
+      <!-- ===== TOP 5 POR TURMA / ESCORE OPERACIONAL ===== -->
       <section class="panel">
         <div class="panel-accent"></div>
         <div class="panel-head"><div class="panel-title"><i>▲</i> Top 5 — Performance</div><div class="panel-tag">Ranking do mês</div></div>
+        <div class="top-tabs" id="topTabs"></div>
+        <div class="top-mode" id="topMode"></div>
         <div id="topRank"></div>
       </section>
     </div>
@@ -1328,36 +1353,70 @@ const renderDonut = (d) => {
   ).join('');
 };
 
+// Assiduidade média por turma + destaque geral "ESCORE OPERACIONAL"
 const renderGauge = (d) => {
-  const ind = d.indicators.slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')));
+  const ind = (d.indicators || []).slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')));
   const latestMonth = ind[0]?.month;
-  const last = ind.filter(i => i.month === latestMonth);
-  const avg = last.length ? Math.round(last.reduce((a, b) => a + Number(b.assiduidade || 0), 0) / last.length) : 0;
-  const R = 74;
-  const CIRC = Math.PI * R;
-  const frac = Math.min(1, Math.max(0, avg / 100));
-  const dash = frac * CIRC + ' ' + (CIRC + 10);
-  const color = avg >= 75 ? '#1a9e4b' : avg >= 50 ? '#e6a23c' : '#E60000';
-  $('#gaugeSvg').innerHTML =
-    '<path d="M 18 100 A 74 74 0 0 1 162 100" stroke="#efeff1" stroke-width="12" fill="none" stroke-linecap="round"/>' +
-    '<path d="M 18 100 A 74 74 0 0 1 162 100" stroke="' + color + '" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="' + dash + '"/>' +
-    '<circle cx="90" cy="100" r="6" fill="' + color + '"/>';
-  $('#gaugeValue').textContent = avg;
-  $('#gaugeValue').style.color = color;
+  const last = latestMonth ? ind.filter(i => i.month === latestMonth) : [];
+  const strip = (v) => String(v || '').replace(/^0+/, '') || '0';
+  const matToTurno = new Map((d.colabs || []).map(c => [strip(c.matricula), c.turno || 'Turno 1']));
+  const buckets = { 'Turno 1': [], 'Turno 2': [], 'Qualidade': [], 'ADM': [] };
+  last.forEach(i => {
+    const t = matToTurno.get(strip(i.matricula)) || 'Turno 1';
+    if (!buckets[t]) buckets[t] = [];
+    buckets[t].push(Number(i.assiduity || 0));
+  });
+  const cellColor = (v) => v >= 75 ? '#1a9e4b' : v >= 50 ? '#e6a23c' : '#E60000';
+  const turmaLabel = { 'Turno 1': 'TURNO 1', 'Turno 2': 'TURNO 2', 'Qualidade': 'QUALIDADE', 'ADM': 'ADM' };
+  const gridHtml = ['Turno 1', 'Turno 2', 'Qualidade', 'ADM'].map(t => {
+    const arr = buckets[t] || [];
+    const avg = arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+    const color = avg === null ? '#c7c7cd' : cellColor(avg);
+    return '<div class="assid-cell"><div class="assid-cell-name"><span>' + esc(turmaLabel[t]) + '</span><i>' + (arr.length ? arr.length + ' ficha' + (arr.length > 1 ? 's' : '') : '—') + '</i></div><div class="assid-cell-value">' + (avg === null ? '—' : avg) + '<small>' + (avg === null ? '' : 'pts') + '</small></div><div class="assid-cell-bar"><div class="assid-cell-fill" style="--fill:' + color + ';width:' + (avg === null ? 0 : Math.min(100, avg)) + '%"></div></div></div>';
+  }).join('');
+  $('#assidGrid').innerHTML = gridHtml;
+  const allVals = last.map(i => Number(i.assiduity || 0));
+  const total = allVals.length ? Math.round(allVals.reduce((a, b) => a + b, 0) / allVals.length) : 0;
+  $('#assidTotal').textContent = total;
 };
 
 const renderTop = (d) => {
-  const ind = d.indicators.slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')));
+  const ind = (d.indicators || []).slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')));
   const latestMonth = ind[0]?.month;
-  const last = ind.filter(i => i.month === latestMonth).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0)).slice(0, 5);
-  const max = Math.max(1, ...last.map(i => Number(i.score || 0)));
-  $('#topRank').innerHTML = last.length ? last.map((i, idx) =>
+  const last = latestMonth ? ind.filter(i => i.month === latestMonth) : [];
+  const strip = (v) => String(v || '').replace(/^0+/, '') || '0';
+  const matToTurno = new Map((d.colabs || []).map(c => [strip(c.matricula), c.turno || 'Turno 1']));
+  const buckets = { 'TODOS': last.slice(), 'Turno 1': [], 'Turno 2': [], 'Qualidade': [], 'ADM': [] };
+  last.forEach(i => {
+    const t = matToTurno.get(strip(i.matricula)) || 'Turno 1';
+    if (!buckets[t]) buckets[t] = [];
+    buckets[t].push(i);
+  });
+  const tabs = $('#topTabs');
+  const mode = $('#topMode');
+  const active = TOP_TAB;
+  mode.textContent = active === 'TODOS' ? 'ESCORE OPERACIONAL — RANKING GERAL' : 'ESCORE OPERACIONAL — ' + ({ 'Turno 1': 'TURNO 1', 'Turno 2': 'TURNO 2', 'Qualidade': 'QUALIDADE', 'ADM': 'ADM' }[active] || active);
+  mode.classList.toggle('score', active === 'TODOS');
+  tabs.innerHTML = ['TODOS', 'Turno 1', 'Turno 2', 'Qualidade', 'ADM'].map(t => {
+    const label = t === 'TODOS' ? 'TODOS' : ({ 'Turno 1': 'T1', 'Turno 2': 'T2', 'Qualidade': 'QUAL', 'ADM': 'ADM' }[t] || t);
+    return '<button class="top-tab' + (t === active ? ' active' : '') + '" data-tab="' + esc(t) + '" type="button">' + esc(label) + '</button>';
+  }).join('');
+  const list = (buckets[active] || []).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0)).slice(0, 5);
+  const max = Math.max(1, ...list.map(i => Number(i.score || 0)));
+  $('#topRank').innerHTML = list.length ? list.map((i, idx) =>
     '<div class="rank-row rank-' + (idx + 1) + '"><div class="rank-pos">0' + (idx + 1) + '</div>' +
     '<div class="rank-name">' + esc(i.colabName || i.matricula) + '</div>' +
     '<div class="rank-bar"><div class="rank-fill" style="width:' + Math.round((Number(i.score || 0) / max) * 100) + '%"></div></div>' +
     '<div class="rank-score">' + Number(i.score || 0) + '</div></div>'
   ).join('') : '<div class="empty-note">Sem indicadores no mês atual.</div>';
 };
+let TOP_TAB = 'TODOS';
+document.addEventListener('click', (ev) => {
+  const b = ev.target && ev.target.closest ? ev.target.closest('.top-tab[data-tab]') : null;
+  if (!b) return;
+  TOP_TAB = b.getAttribute('data-tab') || 'TODOS';
+  if (LAST) renderTop(LAST);
+});
 
 const avatarByMatricula = (d, mat, size) => {
   const c = d.colabs.find(c => strip(c.matricula) === strip(mat));
