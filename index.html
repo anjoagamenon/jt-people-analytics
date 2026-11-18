@@ -1380,7 +1380,10 @@ const renderKpis = (d) => {
 
 const renderWall = (d) => {
   const grid = $('#personGrid');
-  const list = d.colabs.filter(c => FILTER === 'ALL' || (c.turno || 'Turno 1') === FILTER);
+  const list = d.colabs
+    .filter(c => FILTER === 'ALL' || (c.turno || 'Turno 1') === FILTER)
+    .slice()
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base', numeric: true }));
   grid.innerHTML = list.map(c => {
     const fer = isOnVacation(c);
     const obsMap = (d.settings && d.settings.observacoes) || {};
