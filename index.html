@@ -24,6 +24,7 @@
 </script>
 <title>J&amp;T Express Marabá — People Analytics | Gestão de Pessoas em Tempo Real</title>
 <link rel="icon" href="https://www.jtexpress.com.br/favicon.ico" />
+<link rel="preload" as="video" href="login-intro.mp4" type="video/mp4" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -68,6 +69,15 @@ body {
 
 /* ==== GATE ==== */
 #gate { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.9); backdrop-filter: blur(6px); }
+/* Intro de vídeo pós-login — continuação visual da tela de acesso */
+#introOverlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: rgba(252, 251, 249, 0.97); backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility .45s ease; }
+#introOverlay.show { opacity: 1; visibility: visible; }
+.intro-frame { width: min(94vw, 1100px); }
+.intro-frame video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 22px; border: 2px solid var(--red); box-shadow: var(--shadow-red); background: #0b0b0c; }
+.intro-skip { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 10px; font-family: 'Rajdhani'; font-weight: 800; font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; color: #fff; background: var(--red); border: 0; border-radius: 99px; padding: 13px 28px; cursor: pointer; box-shadow: var(--shadow-red); z-index: 201; }
+.intro-skip span { font-size: 16px; line-height: 1; }
+.intro-skip:hover { background: var(--red-dark); }
+@media (max-width: 720px) { .intro-frame { width: 96vw; } .intro-skip { bottom: 14px; font-size: 10px; padding: 11px 20px; } }
 .gate-box { width: min(92vw, 420px); background: var(--white); border: 2px solid var(--red); border-radius: 22px; padding: 28px 26px 24px; text-align: center; box-shadow: var(--shadow-red); }
 .gate-logo { margin-bottom: 8px; }
 .gate-logo img { height: 56px; max-width: 100%; }
@@ -852,6 +862,14 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
   </div>
 </div>
 
+<!-- ===== INTRO DE VÍDEO (continuação da tela de login) ===== -->
+<div id="introOverlay" hidden>
+  <div class="intro-frame">
+    <video id="introVideo" src="login-intro.mp4" playsinline preload="auto"></video>
+  </div>
+  <button class="intro-skip" id="introSkip" type="button">Pular intro<span>›</span></button>
+</div>
+
 <!-- ===== HEADER ===== -->
 <header class="hud">
   <div class="hud-brand">
@@ -1330,7 +1348,43 @@ const tickClock = () => {
 };
 setInterval(tickClock, 1000); tickClock();
 
-const unlock = () => { sessionStorage.setItem('dsr_dash_ok', '1'); $('#gate').style.display = 'none'; };
+const unlock = () => {
+  sessionStorage.setItem('dsr_dash_ok', '1');
+  $('#gate').style.display = 'none';
+  playIntro();
+};
+const playIntro = () => {
+  const overlay = $('#introOverlay');
+  const video = $('#introVideo');
+  if (!overlay || !video) return;
+  overlay.hidden = false;
+  // forçar reflow para a transição de opacidade funcionar
+  void overlay.offsetWidth;
+  overlay.classList.add('show');
+  let introTimer = null;
+  const finish = () => {
+    overlay.classList.remove('show');
+    window.clearTimeout(introTimer);
+    window.removeEventListener('keydown', onKeySkip, true);
+    window.setTimeout(() => { overlay.hidden = true; try { video.pause(); video.currentTime = 0; } catch (_) {} }, 500);
+  };
+  const onKeySkip = (ev) => {
+    if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); finish(); }
+  };
+  window.addEventListener('keydown', onKeySkip, true);
+  window.clearTimeout(introTimer);
+  introTimer = window.setTimeout(finish, 15000); // failsafe: nunca trava no vídeo
+  video.onended = finish;
+  video.onerror = () => window.setTimeout(finish, 600); // vídeo falhou → entra direto
+  const skip = $('#introSkip');
+  if (skip) skip.addEventListener('click', finish, { once: true });
+  overlay.addEventListener('click', (ev) => { if (ev.target === overlay || ev.target.id === 'introSkip') finish(); });
+  try {
+    video.currentTime = 0;
+    const p = video.play();
+    if (p && p.catch) p.catch(() => finish());
+  } catch (_) { finish(); }
+};
 if (sessionStorage.getItem('dsr_dash_ok') === '1') $('#gate').style.display = 'none';
 $('#gateBtn').addEventListener('click', () => {
   const v = $('#gatePass').value.trim();
