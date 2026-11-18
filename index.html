@@ -745,6 +745,15 @@ html[data-theme="dark"] .cal-nav button { background: #1b2440; border-color: rgb
 .cal-mini-open { width: 100%; justify-content: center; }
 #rowCalExp { grid-template-columns: minmax(240px, 300px) 1fr 1.15fr; }
 .grid-2 > .panel { display: flex; flex-direction: column; }
+#volPanel { justify-content: space-evenly; }
+.disp-carousel { position: relative; }
+#dispList { flex: 0 0 auto; display: block; overflow: hidden; max-height: none; }
+.disp-page { display: none; }
+.disp-page.active { display: block; }
+.disp-dots { display: flex; gap: 6px; justify-content: center; padding: 8px 0 2px; }
+.disp-dot { width: 18px; height: 4px; border-radius: 99px; background: #e8e0e0; border: 0; cursor: pointer; transition: all .25s; }
+.disp-dot.active { background: var(--red); width: 26px; box-shadow: var(--shadow-red); }
+html[data-theme="dark"] .disp-dot { background: #1b2440; }
 .grid-2 .list { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; max-height: none; overflow: visible; }
 .grid-2 .list > .list-row { flex: 0 0 auto; }
 .grid-2 .list > .empty-note { flex: 0 0 auto; }
@@ -1004,7 +1013,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
   </div>
   <div class="grid-2" style="margin-top:14px;">
     <!-- ===== VOLUMETRIA DO DIA ===== -->
-    <section class="panel">
+    <section class="panel" id="volPanel">
       <div class="panel-accent"></div>
       <div class="panel-head"><div class="panel-title"><i>◐</i> Volumetria do dia</div><div class="panel-tag">800 un / pessoa</div></div>
       <div class="vol-grid">
@@ -1041,7 +1050,10 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="ferias-bar"><div class="ferias-fill" id="feriasFill" style="width:0%"></div></div>
       <div class="ferias-small" id="feriasTxt">—</div>
       <div class="panel-head" style="margin-top:14px;margin-bottom:8px;"><div class="panel-title"><i>▣</i> Quem está disponível agora</div></div>
-      <div class="list" id="dispList"></div>
+      <div class="disp-carousel" id="dispCarousel">
+        <div class="list" id="dispList"></div>
+        <div class="disp-dots" id="dispDots"></div>
+      </div>
     </section>
   </div>
 
@@ -1737,14 +1749,46 @@ const renderFerias = (d) => {
   const pct = d.colabs.length ? Math.round((ferias.length / d.colabs.length) * 100) : 0;
   $('#feriasFill').style.width = pct + '%';
   $('#feriasTxt').textContent = pct + '% da base em férias hoje — ' + disponiveis + ' disponíveis para escalar';
-  const rows = d.colabs.filter(c => !isOnVacation(c) && String(c.status || 'Ativo').toLowerCase() === 'ativo').slice(0, 10);
-  $('#dispList').innerHTML = rows.map(c =>
+  const rows = d.colabs.filter(c => !isOnVacation(c) && String(c.status || 'Ativo').toLowerCase() === 'ativo').slice(0, 15);
+  const rowHtml = (c) =>
     '<div class="list-row">' + avatarOf(c, 34) +
       '<div class="list-info"><div class="list-name">' + esc(c.name) + '</div>' +
       '<div class="list-meta">' + esc(c.turno || '') + ' • ' + esc(c.funcao || 'AUX') + '</div></div>' +
-      '<span class="pbadge pb-green" style="font-size:7px">LIVRE</span></div>'
-  ).join('') || '<div class="empty-note">Ninguém disponível hoje.</div>';
+      '<span class="pbadge pb-green" style="font-size:7px">LIVRE</span></div>';
+  if (!rows.length) {
+    $('#dispList').innerHTML = '<div class="empty-note">Ninguém disponível hoje.</div>';
+    $('#dispDots').innerHTML = '';
+    return;
+  }
+  const PAGE_SIZE = 5;
+  const pages = [];
+  for (let i = 0; i < rows.length; i += PAGE_SIZE) pages.push(rows.slice(i, i + PAGE_SIZE));
+  $('#dispList').innerHTML = pages.map((pg, i) => '<div class="disp-page' + (i === 0 ? ' active' : '') + '">' + pg.map(rowHtml).join('') + '</div>').join('');
+  $('#dispDots').innerHTML = pages.length > 1 ? pages.map((_, i) => '<button type="button" class="disp-dot' + (i === 0 ? ' active' : '') + '" data-page="' + i + '" aria-label="Página ' + (i + 1) + '"></button>').join('') : '';
+  startDispCarousel(pages.length);
 };
+let dispPage = 0;
+let dispTimer = null;
+const showDispPage = (i) => {
+  const pages = $$('#dispList .disp-page');
+  if (!pages.length) return;
+  dispPage = ((i % pages.length) + pages.length) % pages.length;
+  pages.forEach((p, idx) => p.classList.toggle('active', idx === dispPage));
+  $$('#dispDots .disp-dot').forEach((dot, idx) => dot.classList.toggle('active', idx === dispPage));
+};
+const startDispCarousel = (count) => {
+  window.clearInterval(dispTimer);
+  dispPage = 0;
+  if (count > 1) dispTimer = window.setInterval(() => showDispPage(dispPage + 1), 6000);
+};
+document.addEventListener('click', (ev) => {
+  const dot = ev.target.closest ? ev.target.closest('#dispDots .disp-dot') : null;
+  if (!dot) return;
+  showDispPage(Number(dot.getAttribute('data-page') || 0));
+  window.clearInterval(dispTimer);
+  const pages = $$('#dispList .disp-page');
+  if (pages.length > 1) dispTimer = window.setInterval(() => showDispPage(dispPage + 1), 6000);
+});
 
 // ===== HISTÓRICO 30 DIAS =====
 const renderH30 = (d) => {
