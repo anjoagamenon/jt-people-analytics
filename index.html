@@ -754,7 +754,7 @@ html[data-theme="dark"] .cal-nav button { background: #1b2440; border-color: rgb
 .disp-dot { width: 18px; height: 4px; border-radius: 99px; background: #e8e0e0; border: 0; cursor: pointer; transition: all .25s; }
 .disp-dot.active { background: var(--red); width: 26px; box-shadow: var(--shadow-red); }
 html[data-theme="dark"] .disp-dot { background: #1b2440; }
-.grid-2 .list { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; max-height: none; overflow: visible; }
+.grid-2 .list { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-start; max-height: none; overflow: visible; }
 .grid-2 .list > .list-row { flex: 0 0 auto; }
 .grid-2 .list > .empty-note { flex: 0 0 auto; }
 .grid-2 .empty-note:not([hidden]) { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
@@ -1581,7 +1581,7 @@ const rowFaltasFlash = (el) => { try { el.animate([{ background: '#fff7ed' }, { 
 
 const renderFaltas = (d) => {
   const list = d.occurrences.filter(o => String(o.data || '').startsWith(monthNow()))
-    .slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 12);
+    .slice().sort((a, b) => Number(b.id || 0) - Number(a.id || 0)).slice(0, 12);
   const obsMap = (d.settings && d.settings.observacoes) || {};
   $('#faltasCount').textContent = list.length + ' REGISTRO' + (list.length === 1 ? '' : 'S');
   $('#faltasList').innerHTML = list.length ? list.map(o => {
