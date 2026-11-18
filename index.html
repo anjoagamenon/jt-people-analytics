@@ -1870,6 +1870,7 @@ const updateNextHolidayText = () => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const todayISO = isoOf(today);
   const all = [...HOLIDAYS_OF(today.getFullYear()), ...HOLIDAYS_OF(today.getFullYear() + 1)];
+  const todayHoliday = all.find(h => h.date === todayISO);
   if (todayHoliday) {
     el.textContent = 'Hoje é feriado: ' + todayHoliday.name + ' ' + todayHoliday.emoji;
   } else {
