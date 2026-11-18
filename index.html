@@ -735,8 +735,20 @@ html[data-theme="dark"] .cal-nav button { background: #1b2440; border-color: rgb
 /* Botão compacto do calendário */
 .panel-click { cursor: pointer; text-align: left; font: inherit; color: inherit; transition: transform .18s, box-shadow .18s, border-color .18s; }
 .panel-click:hover { transform: translateY(-2px); border-color: var(--red); box-shadow: var(--shadow-red); }
-.calendar-mini { padding: 12px 14px; }
-.calendar-mini-inner { display: flex; align-items: center; gap: 12px; min-height: 100%; }
+.calendar-mini { padding: 14px; display: flex; align-items: center; justify-content: center; }
+.calendar-mini-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; width: 100%; text-align: center; }
+.cal-mini-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; width: 100%; }
+.cal-mini-row { display: flex; align-items: center; gap: 10px; padding: 6px 9px; background: #faf5f0; border: 1px solid var(--line); border-radius: 10px; text-align: left; }
+.cal-mini-row b { font-family: 'Baloo 2'; font-size: 12px; font-weight: 800; color: var(--red); min-width: 36px; }
+.cal-mini-row span { font-size: 9px; font-weight: 700; color: var(--ink); letter-spacing: 0.2px; line-height: 1.35; }
+.cal-mini-open { width: 100%; justify-content: center; }
+#rowCalExp { grid-template-columns: minmax(250px, 320px) 1fr; }
+.grid-2 > .panel { display: flex; flex-direction: column; }
+.grid-2 .list { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
+.grid-2 .empty-note:not([hidden]) { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+html[data-theme="dark"] .cal-mini-row { background: #131b31; border-color: rgba(255,70,95,0.3); }
+html[data-theme="dark"] .cal-mini-row span { color: #e8edff; }
+@media (max-width: 1100px) { #rowCalExp { grid-template-columns: 1fr; } }
 .cal-mini-icon { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 27px; background: linear-gradient(160deg, #dc2626, #991b1b); color: #fff; box-shadow: var(--shadow-red); }
 .cal-mini-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .cal-mini-text b { font-family: 'Baloo 2'; font-size: 13px; font-weight: 800; color: var(--ink); letter-spacing: 0.3px; }
@@ -984,7 +996,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="panel-head"><div class="panel-title"><i>★</i> Aniversariantes do mês</div><div class="panel-tag" id="bdayCount">0 —</div></div>
       <div class="list" id="bdayList"></div>
       <div class="panel-head" style="margin-top:14px; margin-bottom:8px;"><div class="panel-title"><i>◈</i> Folgas de hoje</div></div>
-      <div class="list" id="folgasList" style="max-height:128px;"></div>
+      <div class="list" id="folgasList"></div>
     </section>
   </div>
   <div class="grid-2" style="margin-top:14px;">
@@ -1026,12 +1038,12 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="ferias-bar"><div class="ferias-fill" id="feriasFill" style="width:0%"></div></div>
       <div class="ferias-small" id="feriasTxt">—</div>
       <div class="panel-head" style="margin-top:14px;margin-bottom:8px;"><div class="panel-title"><i>▣</i> Quem está disponível agora</div></div>
-      <div class="list" id="dispList" style="max-height:110px;"></div>
+      <div class="list" id="dispList"></div>
     </section>
   </div>
 
   <!-- ===== CALENDÁRIO DE FERIADOS (compacto; abre em modal) ===== -->
-  <div class="grid-2" style="margin-top:14px;">
+  <div class="grid-2" id="rowCalExp" style="margin-top:14px;">
     <button class="panel panel-click calendar-mini" id="calOpen" type="button" aria-haspopup="dialog" aria-controls="holidayModal">
       <div class="panel-accent"></div>
       <div class="calendar-mini-inner">
@@ -1039,6 +1051,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
         <div class="cal-mini-text">
           <b>Calendário de feriados</b>
           <span id="nextHolidayTxt">Carregando…</span>
+          <div class="cal-mini-list" id="calMiniList"></div>
         </div>
         <div class="cal-mini-open">Abrir<span class="cal-mini-arrow">›</span></div>
       </div>
@@ -1046,7 +1059,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     <section class="panel">
       <div class="panel-accent"></div>
       <div class="panel-head"><div class="panel-title"><i>⏳</i> Experiência — 45/90 dias</div><div class="panel-tag" id="experienciaTag">—</div></div>
-      <div class="list" id="experienceList" style="max-height:230px;"></div>
+      <div class="list" id="experienceList"></div>
       <div class="empty-note" id="experienceEmpty" hidden>Nenhum vencimento de experiência nos próximos dias. ✅</div>
     </section>
   </div>
@@ -1857,15 +1870,25 @@ const updateNextHolidayText = () => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const todayISO = isoOf(today);
   const all = [...HOLIDAYS_OF(today.getFullYear()), ...HOLIDAYS_OF(today.getFullYear() + 1)];
-  const todayHoliday = all.find(h => h.date === todayISO);
   if (todayHoliday) {
     el.textContent = 'Hoje é feriado: ' + todayHoliday.name + ' ' + todayHoliday.emoji;
-    return;
+  } else {
+    const upcoming = all.filter(h => h.date > todayISO).sort((a, b) => a.date.localeCompare(b.date))[0];
+    if (!upcoming) {
+      el.textContent = 'Sem feriados nacionais previstos';
+    } else {
+      const d = new Date(upcoming.date + 'T12:00:00');
+      el.textContent = 'Próximo: ' + pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + ' (' + WEEKDAYS_PT[d.getDay()] + ') • ' + upcoming.name + ' ' + upcoming.emoji;
+    }
   }
-  const upcoming = all.filter(h => h.date > todayISO).sort((a, b) => a.date.localeCompare(b.date))[0];
-  if (!upcoming) { el.textContent = 'Sem feriados nacionais previstos'; return; }
-  const d = new Date(upcoming.date + 'T12:00:00');
-  el.textContent = 'Próximo: ' + pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + ' (' + WEEKDAYS_PT[d.getDay()] + ') • ' + upcoming.name + ' ' + upcoming.emoji;
+  const listEl = $('#calMiniList');
+  if (listEl) {
+    const next3 = all.filter(h => h.date >= todayISO).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 3);
+    listEl.innerHTML = next3.map(h => {
+      const d = new Date(h.date + 'T12:00:00');
+      return '<div class="cal-mini-row"><b>' + pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '</b><span>' + esc(h.emoji + ' ' + h.name) + ' · ' + esc(WEEKDAYS_PT[d.getDay()]) + '</span></div>';
+    }).join('');
+  }
 };
 
 // Abre/fecha o modal do calendário
