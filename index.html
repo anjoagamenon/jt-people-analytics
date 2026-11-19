@@ -446,6 +446,15 @@ html[data-theme="dark"] .vol-needed-box { background: #131b31; border-color: rgb
 html[data-theme="dark"] .vol-needed-box span { color: #8b99bd; }
 
 .pm-actions { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:10px; }
+.pm-share-wrap { position: relative; }
+.pm-share-wrap .pm-btn { width: 100%; height: 100%; }
+.pm-share-menu { position: absolute; top: calc(100% + 8px); left: 0; width: 240px; z-index: 40; background: #ffffff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 45px rgba(15,23,42,.3); padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+.pm-share-item { display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: transparent; padding: 10px 12px; border-radius: 12px; cursor: pointer; }
+.pm-share-item:hover { background: #f1f5f9; }
+.pm-share-item:focus-visible { outline: 2px solid var(--red); }
+.pm-share-item b { font-size: 17px; flex: 0 0 auto; }
+.pm-share-item .pmi-txt { display: flex; flex-direction: column; font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 800; color: var(--ink); letter-spacing: .3px; line-height: 1.1; }
+.pm-share-item .pmi-txt small { font-size: 8px; color: var(--gray); font-weight: 700; letter-spacing: 0; margin-top: 2px; }
 @media (max-width: 640px) { .pm-actions { grid-template-columns: repeat(2, 1fr); } }
 .pm-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:10px 6px; border-radius:12px; border:0; cursor:pointer; font-family:'Rajdhani'; font-weight:700; font-size:10px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; line-height:1.2; transition:transform 0.12s; }
 .pm-btn:hover { transform:translateY(-1px); }
@@ -2517,42 +2526,67 @@ const buildFichaText = (c) => {
   ].filter(Boolean).join('\n').replace(/\uFFFD/g, '');
 };
 
-// === Compartilha a foto como imagem + legenda com todo o texto da ficha ===
-const shareFichaWithPhoto = async (c) => {
-  const text = buildFichaText(c);
+// Imagem embutida (base64) vira arquivo para o compartilhamento nativo; remota vira File quando possível
+const buildPhotoFile = async (c) => {
   const photoRaw = String(c?.avatar || '').trim();
-  const photoHttp = /^https?:\/\//.test(photoRaw) ? photoRaw : '';
-  let file = null;
+  if (!photoRaw) return null;
   try {
     if (photoRaw.startsWith('data:image')) {
       const parts = photoRaw.split(',');
       const meta = parts[0] || '';
-      const b64  = parts.slice(1).join(',');
+      const b64 = parts.slice(1).join(',');
       const mime = (meta.match(/data:(.*?);/) || [, 'image/jpeg'])[1] || 'image/jpeg';
-      const bin  = atob(b64);
-      const buf  = new Uint8Array(bin.length);
+      const bin = atob(b64);
+      const buf = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-      file = new File([buf], (c.matricula || 'foto') + '.jpg', { type: mime });
-    } else if (photoHttp) {
-      try {
-        const r = await fetch(photoHttp);
-        const blob = await r.blob();
-        file = new File([blob], (c.matricula || 'foto') + '.jpg', { type: blob.type || 'image/jpeg' });
-      } catch (_) { /* CORS: cai no fallback */ }
+      return new File([buf], (c.matricula || 'foto') + '.jpg', { type: mime });
     }
+    if (/^https?:\/\//.test(photoRaw)) {
+      try {
+        const r = await fetch(photoRaw);
+        const blob = await r.blob();
+        return new File([blob], (c.matricula || 'foto') + '.jpg', { type: blob.type || 'image/jpeg' });
+      } catch (_) { return null; }
+    }
+  } catch (err) { console.warn('buildPhotoFile:', err); }
+  return null;
+};
+const downloadDataUrl = (dataUrl, filename) => {
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+// Compartilha a ficha via WhatsApp/Webshare nativo (opção "Aplicativo")
+const shareFichaNative = async (c) => {
+  const text = buildFichaText(c);
+  const file = await buildPhotoFile(c);
+  try {
     if (file && navigator.canShare && navigator.canShare({ files: [file], text })) {
       await navigator.share({ files: [file], text, title: 'Ficha do colaborador' });
-      return;
+      return true;
     }
-  } catch (err) { console.warn('shareFichaWithPhoto:', err && (err.message || err)); }
-  // Fallback: só texto (sem foto)
+  } catch (err) { console.warn('shareFichaNative:', err && (err.message || err)); }
   try {
-    if (navigator.share) { await navigator.share({ text, title: 'Ficha do colaborador' }); return; }
+    if (navigator.share) { await navigator.share({ text, title: 'Ficha do colaborador' }); return true; }
   } catch (_) {}
-  // Fallback final: wa.me com texto + URL da foto (se for remota)
-  const extra = photoHttp ? '\n\n📎 Foto: ' + photoHttp : '';
-  window.open(waOpenLink('', text + extra), '_blank', 'noopener,noreferrer');
+  return false;
 };
+// Compartilha via WhatsApp Web na aba do navegador (reaproveita a mesma aba em envios seguidos)
+const shareFichaWaWeb = (c) => {
+  const text = buildFichaText(c);
+  const photoRaw = String(c?.avatar || '').trim();
+  if (photoRaw && !/^https?:\/\//.test(photoRaw)) {
+    // Foto embutida não vira link: baixa o JPG para anexar no WhatsApp Web
+    downloadDataUrl(photoRaw, (c.matricula || 'foto') + '.jpg');
+  }
+  const extra = /^https?:\/\//.test(photoRaw) ? '\n\n📎 Foto: ' + photoRaw : '';
+  window.open(waOpenLink('', text + extra), 'escala-wapp', 'noopener');
+  return true;
+};
+// === Menu de envio: WhatsApp Web (aba do navegador) ou Aplicativo (menu nativo) ===
 
 const openPerson = (c) => {
   const d = LAST;
@@ -2602,11 +2636,28 @@ const openPerson = (c) => {
   $('#pmActions').innerHTML = [
     '<a class="pm-btn wa" href="' + esc(waOpenLink(waNume, 'Olá, ' + first + '!')) + '" target="_blank" rel="noopener"><b>💬</b><span>WhatsApp</span></a>',
     '<button id="pmReadBtn" type="button" class="pm-btn share" style="background:#0f172a;color:#fff;" title="Lê a ficha completa em voz alta com a voz do mascote" aria-label="Ler ficha completa em voz alta"><b>🔊</b><span>Ler ficha</span></button>',
-    '<button id="pmShareBtn" type="button" class="pm-btn share" title="Envia a ficha + foto diretamente pelo WhatsApp ou outro app"><b>📋</b><span>Enviar ficha + foto</span></button>',
+    '<div class="pm-share-wrap"><button id="pmShareBtn" type="button" class="pm-btn share pm-share-toggle" title="Enviar a ficha + foto" aria-haspopup="menu" aria-expanded="false"><b>📋</b><span>Enviar ficha + foto</span></button>'
+      + '<div class="pm-share-menu" id="pmShareMenu" role="menu" hidden>'
+      + '<button type="button" class="pm-share-item" id="pmShareWaWeb" role="menuitem"><b>💬</b><span class="pmi-txt">WhatsApp Web<small>Na aba do navegador (recomendado no PC)</small></span></button>'
+      + '<button type="button" class="pm-share-item" id="pmShareWaApp" role="menuitem"><b>📱</b><span class="pmi-txt">Aplicativo<small>Compartilhar no aparelho (menu nativo)</small></span></button>'
+      + '</div></div>',
     '<a class="pm-btn mail" href="' + esc(mailto) + '" title="Abre o cliente de e-mail com a ficha completa"><b>✉️</b><span>E-mail</span></a>'
   ].join('');
+  const closeShareMenu = () => { const m = document.getElementById('pmShareMenu'); if (m) m.hidden = true; const b = document.getElementById('pmShareBtn'); if (b) b.setAttribute('aria-expanded', 'false'); };
   const sb = document.getElementById('pmShareBtn');
-  if (sb) sb.addEventListener('click', () => { shareFichaWithPhoto(c); });
+  if (sb) sb.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const m = document.getElementById('pmShareMenu');
+    if (!m) return;
+    const willOpen = m.hidden;
+    m.hidden = !m.hidden;
+    sb.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) setTimeout(() => document.addEventListener('click', closeShareMenu, { once: true }), 0);
+  });
+  const waWeb = document.getElementById('pmShareWaWeb');
+  if (waWeb) waWeb.addEventListener('click', () => { shareFichaWaWeb(c); closeShareMenu(); });
+  const waApp = document.getElementById('pmShareWaApp');
+  if (waApp) waApp.addEventListener('click', async () => { shareFichaNative(c); closeShareMenu(); });
   const rb = document.getElementById('pmReadBtn');
   if (rb) rb.addEventListener('click', () => { chime(); ttsSpeak(buildFichaText(c), voicePref(), null); });
   // Ação especial: card de aniversário (só no dia)
