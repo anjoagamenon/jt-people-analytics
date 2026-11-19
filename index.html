@@ -283,23 +283,22 @@ html.only-wall main { padding-top: 14px; }
 /* Janela separada (?only=wall): preenche 100vh, cards maiores e sem deformação */
 html.only-wall body { height: 100vh; overflow: hidden; background: var(--bg); }
 html.only-wall main { height: 100vh; padding: 6px 10px 8px; box-sizing: border-box; }
-html.only-wall .main-layout { height: 100%; align-content: stretch; }
-html.only-wall .wall-panel { height: 100%; margin: 0; }
+html.only-wall .main-layout { height: 100%; grid-template-rows: minmax(0, 1fr); align-content: stretch; }
+html.only-wall .wall-panel { height: 100%; min-height: 0; overflow: hidden; }
 html.only-wall .person-grid {
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  grid-auto-rows: minmax(104px, 1fr);
   align-content: stretch;
-  gap: 8px;
+  gap: 7px;
   min-height: 0;
   overflow-y: auto;
 }
-html.only-wall .person { aspect-ratio: auto; min-height: 0; justify-content: space-evenly; gap: 3px; }
-html.only-wall .avatar { width: clamp(68px, 13vh, 96px); height: clamp(68px, 13vh, 96px); margin-bottom: 2px; }
+html.only-wall .person { aspect-ratio: auto; min-height: 0; justify-content: space-evenly; gap: 1px; padding: 7px 5px 6px; }
+html.only-wall .avatar { width: clamp(46px, 8.5vh, 62px); height: clamp(46px, 8.5vh, 62px); margin-bottom: 1px; }
 html.only-wall .avatar img, html.only-wall .avatar .initials { width: 100% !important; height: 100% !important; }
-html.only-wall .pname { font-size: 10px; min-height: 24px; }
-html.only-wall .pfuncao { font-size: 7.5px; }
-html.only-wall .ptag { font-size: 9px; padding: 4px 12px; }
-html.only-wall .person-grid::-webkit-scrollbar { width: 6px; }
+html.only-wall .pname { font-size: 8.5px; line-height: 1.15; -webkit-line-clamp: 2; min-height: 19px; }
+html.only-wall .pfuncao { font-size: 6.5px; }
+html.only-wall .ptag { font-size: 8px; padding: 3px 9px; }
 .person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: start; grid-auto-rows: minmax(112px, max-content); overflow-y: auto; padding-right: 4px; }
 
 .person-grid::-webkit-scrollbar, .list::-webkit-scrollbar { width: 7px; }
@@ -2559,6 +2558,8 @@ const shareFichaWaWeb = (c) => {
 const openPerson = (c) => {
   const d = LAST;
   const matK = strip(c.matricula);
+  // Pré-gera a voz da ficha em segundo plano: o clique em "Ler ficha" sai na hora
+  try { ttsFetchCached(buildFichaText(c), voicePref()); } catch (_) {}
   $('#pmAvatar').innerHTML = avatarOf(c, 96);
   $('#pmName').textContent = c.name || '—';
   $('#pmRole').textContent = abbrevFuncao(c.funcao || 'COLABORADOR') + ' • ' + (c.turno || '');
@@ -2610,7 +2611,13 @@ const openPerson = (c) => {
   const sb = document.getElementById('pmShareBtn');
   if (sb) sb.addEventListener('click', () => { try { shareFichaWaWeb(c); } catch (e) { console.error('pmShare', e); } });
   const rb = document.getElementById('pmReadBtn');
-  if (rb) rb.addEventListener('click', () => { chime(); ttsSpeak(buildFichaText(c), voicePref(), null); });
+  if (rb) rb.addEventListener('click', () => {
+    const prevHTML = rb.innerHTML;
+    rb.disabled = true;
+    rb.innerHTML = '<b>⏳</b><span>Gerando…</span>';
+    chime();
+    ttsSpeak(buildFichaText(c), voicePref(), () => { rb.disabled = false; rb.innerHTML = prevHTML; });
+  });
   // Ação especial: card de aniversário (só no dia)
   try {
     if (isTodayBday(c) && typeof openBirthdayCard === 'function') {
@@ -2831,12 +2838,30 @@ const ttsFetch = (text, voice) => new Promise((resolve, reject) => {
 });
 let __ttsAudio = null;
 
+// Cache de áudio por texto+voz: a primeira geração fica guardada, os próximos toques saem na hora
+const __ttsCache = new Map();
+const ttsFetchCached = (text, voice) => {
+  const key = (voice || 'Charon') + '|' + text;
+  let p = __ttsCache.get(key);
+  if (!p) {
+    p = ttsFetch(text, voice).then((resp) => {
+      if (resp && resp.ok && resp.audioBase64) {
+        try { return pcmToWav(resp.audioBase64); } catch (_) { return null; }
+      }
+      return null;
+    }).catch(() => null);
+    // Falha: tira do cache para a nova tentativa buscar de novo
+    p = p.then((blob) => { if (!blob) __ttsCache.delete(key); return blob; });
+    __ttsCache.set(key, p);
+  }
+  return p;
+};
+
 // Somente a voz do Gemini (sem fallback para voz local) — com uma nova tentativa
 const geminiSpeak = (text, voice, onDone) => {
   const attempt = (retry) => {
-    ttsFetch(text, voice || voicePref()).then((resp) => {
-      if (resp && resp.ok && resp.audioBase64) {
-        const blob = pcmToWav(resp.audioBase64);
+    ttsFetchCached(text, voice || voicePref()).then((blob) => {
+      if (blob) {
         if (__ttsAudio) { try { __ttsAudio.pause(); } catch {} }
         const url = URL.createObjectURL(blob);
         __ttsAudio = new Audio(url);
