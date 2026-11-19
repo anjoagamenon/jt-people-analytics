@@ -173,7 +173,31 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .chip.quali.active { background: #059669; border-color: #059669; box-shadow: 0 0 12px rgba(5,150,105,0.4); }
 .chip.adm.active { background: #b45309; border-color: #b45309; box-shadow: 0 0 12px rgba(180,83,9,0.4); }
 
-.person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: start; grid-auto-rows: minmax(112px, max-content); padding-right: 4px; }
+.wall-panel { align-self: start; }
+.wall-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; flex: 0 0 auto; }
+.wall-btn { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--line); background: var(--white); color: var(--gray); font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .18s; line-height: 1; font-family: 'Rajdhani'; }
+.wall-btn:hover { border-color: var(--red); color: var(--red); box-shadow: var(--shadow-red); transform: translateY(-1px); }
+.wall-btn-back { display: none; color: #fff; background: var(--red); border-color: var(--red); font-size: 13px; font-weight: 800; }
+.wall-btn-back:hover { color: #fff; }
+/* Somente o módulo Destaque (nova janela com ?only=wall) */
+html.only-wall header.hud,
+html.only-wall footer.hud,
+html.only-wall .grid-fx,
+html.only-wall .orb,
+html.only-wall .kpis,
+html.only-wall .masonry > *:not(.wall-panel) { display: none !important; }
+html.only-wall .masonry { columns: 1; margin-top: 8px; }
+html.only-wall .wall-back-only { display: inline-flex !important; }
+html.only-wall .wall-btn-back { display: inline-flex; }
+html.only-wall .wall-actions { margin-left: auto; }
+html.only-wall body { overflow-y: auto; background: var(--bg); }
+html.only-wall main { padding-top: 14px; }
+/* Módulo em tela cheia */
+.wall-panel:fullscreen { background: var(--bg); padding: clamp(14px, 3vw, 40px); overflow-y: auto; display: flex; flex-direction: column; }
+.wall-panel:fullscreen .person-grid { flex: 1 1 auto; grid-auto-rows: minmax(150px, 1fr); align-content: stretch; overflow-y: auto; }
+.wall-panel:fullscreen .panel-title { font-size: 20px; }
+.wall-panel:fullscreen .panel-head { margin-bottom: 14px; }
+.person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: start; grid-auto-rows: minmax(112px, max-content); overflow-y: auto; padding-right: 4px; }
 
 .person-grid::-webkit-scrollbar, .list::-webkit-scrollbar { width: 7px; }
 .person-grid::-webkit-scrollbar-thumb, .list::-webkit-scrollbar-thumb { background: rgba(230,0,0,0.25); border-radius: 4px; }
@@ -938,7 +962,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
 
   <div class="masonry">
     <!-- ===== WALL ===== -->
-    <section class="panel wall-panel">
+    <section class="panel wall-panel" id="wallPanel">
       <div class="panel-accent"></div>
       <div class="panel-head">
         <div class="panel-title"><i>▣</i> Destaque da equipe</div>
@@ -948,6 +972,11 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
           <button class="chip t2" data-f="Turno 2">Turno 2</button>
           <button class="chip quali" data-f="Qualidade">Qualidade</button>
           <button class="chip adm" data-f="ADM">ADM</button>
+        </div>
+        <div class="wall-actions">
+          <button class="wall-btn" id="wallPopoutBtn" type="button" title="Abrir o módulo Destaque em nova janela" aria-label="Abrir em nova janela">⧉</button>
+          <button class="wall-btn" id="wallFullscreenBtn" type="button" title="Mostrar o módulo em tela cheia" aria-label="Tela cheia do módulo">⛶</button>
+          <button class="wall-btn wall-btn-back" id="wallBackBtn" type="button" title="Voltar ao painel completo" aria-label="Voltar ao painel">✕</button>
         </div>
       </div>
       <div class="person-grid" id="personGrid"></div>
@@ -2736,6 +2765,31 @@ $$('.chip').forEach(btn => btn.addEventListener('click', () => {
   $$('.chip').forEach(b => b.classList.toggle('active', b === btn));
   renderWall(LAST);
 }));
+
+// ===== Destaque da equipe: abrir em nova janela (somente o módulo) / tela cheia =====
+(() => {
+  const wallPanelEl = document.getElementById('wallPanel');
+  const popout = document.getElementById('wallPopoutBtn');
+  const fullscreen = document.getElementById('wallFullscreenBtn');
+  const back = document.getElementById('wallBackBtn');
+  if (new URLSearchParams(window.location.search).get('only') === 'wall') {
+    document.documentElement.classList.add('only-wall');
+  }
+  if (popout) popout.addEventListener('click', () => {
+    window.open(window.location.pathname + '?only=wall', '_blank', 'width=1180,height=840,menubar=no,toolbar=no');
+  });
+  if (fullscreen) fullscreen.addEventListener('click', () => {
+    if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
+    else if (wallPanelEl && wallPanelEl.requestFullscreen) wallPanelEl.requestFullscreen().catch(() => {});
+  });
+  if (back) back.addEventListener('click', () => { window.location.assign(window.location.pathname); });
+  document.addEventListener('fullscreenchange', () => {
+    if (!fullscreen) return;
+    const on = !!document.fullscreenElement;
+    fullscreen.textContent = on ? '✕' : '⛶';
+    fullscreen.title = on ? 'Sair da tela cheia (Esc)' : 'Mostrar o módulo em tela cheia';
+  });
+})();
 
 // ===== Broadcast: mensagem em massa para todos os celulares =====
 const openBroadcast = () => { const m = $('#broadcastModal'); if (!m) return; m.hidden = false; const f = m.querySelector('#bcTitle'); if (f) f.focus(); };
