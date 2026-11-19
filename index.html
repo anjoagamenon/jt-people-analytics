@@ -762,7 +762,56 @@ html[data-theme="dark"] .hud-gear { background: #131b31; border-color: rgba(255,
 .settings-foot { margin-top: 12px; text-align: center; font-size: 8.5px; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
 
 /* ============ AO VIVO: notícias / clima / dólar (uniforme com o painel) ============ */
-.live-strip { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.live-strip { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 14px; }
+
+/* ===== Faixa de gráficos ao vivo: clima 24h + dólar 3D ===== */
+.strip-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.strip-charts .live-info { min-height: 0; }
+.strip-charts .panel-accent { top: 0; }
+.weather-live .weather-temp b { font-size: 42px; }
+.weather-live .weather-emoji { font-size: 44px; }
+.wh-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.wh-head span { font-family: 'Rajdhani'; font-size: 8px; font-weight: 800; letter-spacing: 2px; color: var(--red); text-transform: uppercase; }
+.wh-head small { font-size: 7px; color: var(--gray); font-weight: 700; }
+.weather-hours { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(52px, 1fr); gap: 6px; overflow-x: auto; padding: 8px 2px 4px; scrollbar-width: thin; }
+.wh-slot { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); backdrop-filter: blur(4px); transition: transform .18s ease, border-color .18s ease; }
+.wh-slot:hover { transform: translateY(-3px); border-color: var(--red); }
+.wh-slot.now { border-color: var(--red); box-shadow: 0 0 0 1.5px var(--red), var(--shadow-red); }
+.wh-hour { font-family: 'Rajdhani'; font-size: 8.5px; font-weight: 800; color: var(--gray); letter-spacing: 1px; }
+.wh-slot.now .wh-hour { color: var(--red); }
+.wh-icon { width: 44px; height: 44px; }
+.wh-temp { font-family: 'Baloo 2'; font-size: 12.5px; font-weight: 800; color: var(--ink); }
+.wh-rain { font-size: 7px; font-weight: 700; color: #2563eb; }
+/* Ícones animados de clima */
+@keyframes spin360 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.anim-rays { animation: spin360 14s linear infinite; transform-origin: 28px 28px; }
+@keyframes driftX { 0% { transform: translateX(-2px); } 100% { transform: translateX(3px); } }
+.anim-drift { animation: driftX 3.4s ease-in-out infinite alternate; }
+@keyframes fallY { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(7px); opacity: 0; } }
+.anim-fall { animation: fallY 1.1s linear infinite; }
+.anim-fall.d2 { animation-delay: .33s; }
+.anim-fall.d3 { animation-delay: .66s; }
+@keyframes flashY { 0%, 55%, 68%, 100% { opacity: 1; } 60%, 72% { opacity: .12; } }
+.anim-flash { animation: flashY 1.5s ease-in-out infinite; }
+@keyframes twinkleK { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+.anim-twinkle { animation: twinkleK 2.5s ease-in-out infinite; }
+@keyframes fogK { 0% { transform: translateX(0); opacity: .85; } 100% { transform: translateX(7px); opacity: .35; } }
+.anim-fogslide { animation: fogK 2.8s ease-in-out infinite alternate; }
+/* Dólar: gráfico em vidro 3D */
+.dollar-live-row { display: flex; align-items: center; gap: 16px; margin: 6px 0 8px; }
+.dollar-live-row .dollar-bid { font-size: 46px; }
+.dollar-live-row .dollar-bid b { font-size: 46px; }
+.dollar-side { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.dollar-live-row .dollar-foot { margin-top: 0; padding-top: 0; border-top: 0; }
+.dol-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 6px; border-top: 1px solid var(--line); padding-top: 8px; }
+.dol-chart-head span { font-family: 'Rajdhani'; font-size: 8px; font-weight: 800; letter-spacing: 2px; color: var(--red); text-transform: uppercase; }
+.dol-chart-head small { font-size: 7px; color: var(--gray); font-weight: 700; }
+.dol-chart-wrap { position: relative; width: 100%; height: 150px; margin-top: 2px; }
+#dollarChart { width: 100%; height: 100%; display: block; cursor: crosshair; }
+.dol-tip { position: absolute; pointer-events: none; background: rgba(255, 255, 255, 0.92); border: 1.5px solid var(--red); border-radius: 10px; padding: 5px 8px; font-family: 'Rajdhani'; font-size: 9px; font-weight: 700; color: var(--ink); box-shadow: var(--shadow-red); white-space: nowrap; z-index: 5; backdrop-filter: blur(6px); }
+html[data-theme="dark"] .wh-slot, html[data-theme="dark"] .dol-tip { background: #131b31; color: #e8edff; border-color: rgba(255, 70, 95, 0.4); }
+html[data-theme="dark"] .wh-slot.now { background: rgba(255, 46, 76, 0.1); }
+html[data-theme="dark"] .dol-tip { background: rgba(19, 27, 49, 0.92); }
 .live-panel { cursor: default; }
 .live-info { display: flex; flex-direction: column; }
 .live-news { cursor: pointer; display: flex; flex-direction: column; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; outline: none; }
@@ -917,6 +966,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
 @media (max-width: 1100px) {
   .live-strip { grid-template-columns: 1fr; }
   .news-title { min-height: 0; }
+  .strip-charts { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 1100px) {
@@ -991,7 +1041,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     <div class="kpi"><div class="kpi-label">Folgas hoje</div><div class="kpi-value" id="kpiFolgas">0</div><div class="kpi-foot">Folgas / DSR do dia</div></div>
   </div>
 
-  <!-- ===== AO VIVO: Destaque Mundo Logística • Clima Marabá • Dólar ===== -->
+  <!-- ===== AO VIVO: Destaque Mundo Logística ===== -->
   <div class="live-strip">
     <section class="panel live-news" id="newsCard" role="link" tabindex="0" aria-label="Abrir destaque do dia no Mundo Logística">
       <div class="panel-accent"></div>
@@ -1003,7 +1053,10 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="news-meta"><span id="newsSource">Mundo Logística • destaque do momento</span><span class="news-cta">toque para ler ↗</span></div>
       <div class="news-dots" id="newsDots"></div>
     </section>
-    <section class="panel live-info" aria-label="Clima em Marabá agora">
+  </div>
+
+  <div class="strip-charts">
+    <section class="panel live-info weather-live" aria-label="Clima em Marabá agora e previsão de 24 horas">
       <div class="panel-accent"></div>
       <div class="panel-head">
         <div class="panel-title"><i>🌦️</i> Marabá-PA Agora</div>
@@ -1015,16 +1068,27 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       </div>
       <div class="weather-maxmin" id="weatherMaxMin">máx --° • mín --°</div>
       <div class="weather-chip loading" id="weatherChip">AGUARDANDO CLIMA…</div>
+      <div class="wh-head"><span>PRÓXIMAS 24H • HORA A HORA</span><small id="weatherUpdated">agora</small></div>
+      <div class="weather-hours" id="weatherHours" aria-label="Previsão hora a hora"></div>
     </section>
-    <section class="panel live-info" aria-label="Dólar hoje">
+    <section class="panel live-info dollar-live" aria-label="Dólar hoje e gráfico de variações em 3D">
       <div class="panel-accent"></div>
       <div class="panel-head">
         <div class="panel-title"><i>💵</i> Dólar Hoje</div>
         <div class="panel-tag">30s</div>
       </div>
-      <div class="dollar-bid"><span class="cur">R$</span><b id="dollarBid">--,--</b></div>
-      <div class="dollar-change flat" id="dollarChange">▬ 0,00% • mín --,-- / máx --,--</div>
-      <div class="dollar-foot">USD/BRL • variações em tempo real</div>
+      <div class="dollar-live-row">
+        <div class="dollar-bid"><span class="cur">R$</span><b id="dollarBid">--,--</b></div>
+        <div class="dollar-side">
+          <div class="dollar-change flat" id="dollarChange">▬ 0,00% • mín --,-- / máx --,--</div>
+          <div class="dollar-foot">USD/BRL • variações em tempo real</div>
+        </div>
+      </div>
+      <div class="dol-chart-head"><span>ÚLTIMOS 30 DIAS</span><small id="dollarChartTag">—</small></div>
+      <div class="dol-chart-wrap">
+        <canvas id="dollarChart" aria-label="Gráfico da variação do dólar em 30 dias"></canvas>
+        <div class="dol-tip" id="dollarTip" hidden></div>
+      </div>
     </section>
   </div>
 
@@ -3215,7 +3279,59 @@ const loadNews = async () => {
   window.setInterval(loadNews, 60000);
 })();
 
-const WEATHER_OPEN_METEO = 'https://api.open-meteo.com/v1/forecast?latitude=-5.365&longitude=-49.125&current=temperature_2m,weather_code,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FBelem';
+const WEATHER_OPEN_METEO = 'https://api.open-meteo.com/v1/forecast?latitude=-5.365&longitude=-49.125&current=temperature_2m,weather_code,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&forecast_days=2&timezone=America%2FBelem';
+// ===== 24h de clima animado (hora a hora) =====
+const weatherArt = (code, isNight) => {
+  const c = Number(code) || 0;
+  if (c === 0 || c === 1) {
+    return isNight
+      ? '<svg viewBox="0 0 56 56" role="img" aria-label="Lua"><path d="M36.5 8.5A16.5 16.5 0 1 0 46.8 37 14 14 0 0 1 36.5 8.5Z" fill="#e5e7eb"/><circle class="anim-twinkle" cx="17" cy="18" r="1.6" fill="#fbbf24"/><circle class="anim-twinkle" cx="12" cy="33" r="1.2" fill="#fbbf24" style="animation-delay:.8s"/><circle class="anim-twinkle" cx="24" cy="11" r="1.1" fill="#fbbf24" style="animation-delay:1.6s"/></svg>'
+      : '<svg viewBox="0 0 56 56" role="img" aria-label="Sol"><g class="anim-rays" stroke="#ffd60a" stroke-width="3.4" stroke-linecap="round"><line x1="28" y1="3.5" x2="28" y2="11"/><line x1="28" y1="45" x2="28" y2="52.5"/><line x1="3.5" y1="28" x2="11" y2="28"/><line x1="45" y1="28" x2="52.5" y2="28"/><line x1="10.7" y1="10.7" x2="16" y2="16"/><line x1="40" y1="40" x2="45.3" y2="45.3"/><line x1="45.3" y1="10.7" x2="40" y2="16"/><line x1="16" y1="40" x2="10.7" y2="45.3"/></g><circle cx="28" cy="28" r="10.5" fill="#ffd60a"/></svg>';
+  }
+  if (c === 2) {
+    return '<svg viewBox="0 0 56 56" role="img" aria-label="Parcialmente nublado"><g class="anim-rays" stroke="#ffd60a" stroke-width="2.4" stroke-linecap="round" opacity="0.9"><line x1="22" y1="6" x2="22" y2="11"/><line x1="10" y1="12" x2="13.6" y2="15.6"/><line x1="34" y1="12" x2="30.4" y2="15.6"/><line x1="8" y1="24" x2="13" y2="24"/></g><circle cx="22" cy="22" r="7" fill="#ffd60a"/><path class="anim-drift" d="M16 44a7 7 0 0 1 .8-13.95A9 9 0 0 1 34 32.5a8 8 0 0 1 5 11.5H16Z" fill="#f1f5f9" stroke="#dbe4ef" stroke-width="1.6"/></svg>';
+  }
+  if (c === 3 || (c >= 45 && c <= 48)) {
+    return c === 3
+      ? '<svg viewBox="0 0 56 56" role="img" aria-label="Nublado"><path class="anim-drift" d="M10 40a8 8 0 0 1 .9-15.95A11 11 0 0 1 32 21.5a9.5 9.5 0 0 1 6 18.5H10Z" fill="#e5e9ef" stroke="#cdd6e2" stroke-width="1.6"/></svg>'
+      : '<svg viewBox="0 0 56 56" role="img" aria-label="Neblina"><path d="M10 22a7 7 0 0 1 .8-13.9A9.5 9.5 0 0 1 30 13a8 8 0 0 1 5 9H10Z" fill="#e5e9ef"/><g stroke="#aeb9c9" stroke-width="2.6" stroke-linecap="round"><line class="anim-fogslide" x1="10" y1="32" x2="46" y2="32"/><line class="anim-fogslide" x1="14" y1="40" x2="50" y2="40" style="animation-delay:.7s"/><line class="anim-fogslide" x1="8" y1="48" x2="44" y2="48" style="animation-delay:1.4s"/></g></svg>';
+  }
+  if ((c >= 51 && c <= 57) || (c >= 80 && c <= 82)) {
+    return '<svg viewBox="0 0 56 56" role="img" aria-label="Chuva"><path d="M10 26a8 8 0 0 1 .9-15.9A10.5 10.5 0 0 1 32.5 12a9 9 0 0 1 5.4 14H10Z" fill="#cdd6e2"/><g stroke="#38bdf8" stroke-width="3" stroke-linecap="round"><line class="anim-fall" x1="17" y1="34" x2="17" y2="42"/><line class="anim-fall d2" x1="28" y1="34" x2="28" y2="44"/><line class="anim-fall d3" x1="39" y1="34" x2="39" y2="40"/></g></svg>';
+  }
+  if ((c >= 61 && c <= 67) || c === 65) {
+    return '<svg viewBox="0 0 56 56" role="img" aria-label="Chuva forte"><path d="M10 24a8 8 0 0 1 .9-15.9A10.5 10.5 0 0 1 32.5 10a9 9 0 0 1 5.4 14H10Z" fill="#b8c4d4"/><g stroke="#0284c7" stroke-width="3.6" stroke-linecap="round"><line class="anim-fall" x1="15" y1="32" x2="15" y2="44"/><line class="anim-fall d2" x1="24" y1="32" x2="24" y2="46"/><line class="anim-fall d3" x1="33" y1="32" x2="33" y2="44"/><line class="anim-fall" x1="42" y1="32" x2="42" y2="46" style="animation-delay:.2s"/><line class="anim-fall d2" x1="50" y1="32" x2="50" y2="42"/></g></svg>';
+  }
+  if (c >= 95 && c <= 99) {
+    return '<svg viewBox="0 0 56 56" role="img" aria-label="Tempestade"><path d="M10 24a8 8 0 0 1 .9-15.9A10.5 10.5 0 0 1 32.5 10a9 9 0 0 1 5.4 14H10Z" fill="#94a3b8"/><polygon class="anim-flash" points="27,29 19,42 26,42 22,54 34,38 27.5,38 32,29" fill="#ffd60a" stroke="#f59e0b" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+  }
+  return '<svg viewBox="0 0 56 56" role="img" aria-label="Tempo"><circle cx="28" cy="28" r="10.5" fill="#ffd60a"/></svg>';
+};
+const renderHourly = (hourly) => {
+  const box = $('#weatherHours');
+  if (!box || !hourly) return;
+  const times = hourly.time || [], temps = hourly.temperature_2m || [], codes = hourly.weather_code || [], probs = hourly.precipitation_probability || [];
+  const now = new Date();
+  const nowMs = now.getTime();
+  const items = [];
+  for (let i = 0; i < times.length; i++) {
+    const t = new Date(times[i]).getTime();
+    if (t >= nowMs - 30 * 60 * 1000 && items.length < 9) {
+      const d = new Date(times[i]);
+      const isNow = Math.abs(t - nowMs) < 60 * 60 * 1000;
+      const isNight = d.getHours() < 6 || d.getHours() >= 18;
+      items.push('<div class="wh-slot' + (isNow ? ' now' : '') + '" title="' + esc(isNow ? 'Agora' : d.getDate() + '/' + (d.getMonth() + 1) + ' ' + d.getHours() + 'h') + '">'
+        + '<div class="wh-hour">' + (isNow ? 'AGORA' : d.getHours() + 'h') + '</div>'
+        + '<div class="wh-icon">' + weatherArt(codes[i], isNight) + '</div>'
+        + '<div class="wh-temp">' + Math.round(Number(temps[i] ?? 0)) + '°</div>'
+        + (Number(probs[i] ?? 0) >= 25 ? '<div class="wh-rain">💧 ' + Math.round(Number(probs[i])) + '%</div>' : '<div class="wh-rain" style="opacity:.35">·</div>')
+        + '</div>');
+    }
+  }
+  box.innerHTML = items.join('');
+  const upd = $('#weatherUpdated');
+  if (upd) upd.textContent = 'atualizado ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+};
 const weatherEmoji = (code) => {
   if (code === 0) return '☀️'; if (code === 1) return '🌤️'; if (code === 2) return '⛅'; if (code === 3) return '☁️';
   if (code === 45 || code === 48) return '🌫️';
@@ -3263,6 +3379,7 @@ const loadWeather = async () => {
       raining,
       strong
     };
+    try { renderHourly(j.hourly); } catch (_) { /* faixa horária opcional */ }
   } catch {
     chipEl.textContent = 'CLIMA INDISPONÍVEL';
     chipEl.className = 'weather-chip offline';
@@ -3299,6 +3416,137 @@ const loadDollar = async () => {
 };
 loadDollar();
 window.setInterval(loadDollar, 30000);
+
+// ===== DÓLAR: gráfico em vidro 3D (últimos 30 dias) =====
+const dolCanvas = $('#dollarChart');
+const dolTip = $('#dollarTip');
+let dolData = [];
+const drawDollarChart = () => {
+  if (!dolCanvas) return;
+  const ctx = dolCanvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.max(220, dolCanvas.clientWidth), H = Math.max(110, dolCanvas.clientHeight);
+  dolCanvas.width = W * dpr; dolCanvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const pts = dolData.map(d => d.bid);
+  const n = pts.length;
+  if (n < 2) {
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '700 10px Rajdhani, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('AGUARDANDO HISTÓRICO…', W / 2, H / 2);
+    return;
+  }
+  const minV = Math.min.apply(null, pts), maxV = Math.max.apply(null, pts);
+  const pad = (maxV - minV) * 0.18 || 0.05;
+  const lo = minV - pad, hi = maxV + pad;
+  const X = (i) => 10 + (i * (W - 20)) / (n - 1);
+  const Y = (v) => H - 16 - ((v - lo) * (H - 40)) / (hi - lo);
+  // Grade horizontal tracejada
+  ctx.strokeStyle = 'rgba(120,120,130,0.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  for (let g = 0; g <= 2; g++) {
+    const gy = 10 + (g * (H - 34)) / 2;
+    ctx.beginPath(); ctx.moveTo(10, gy); ctx.lineTo(W - 10, gy); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // Caminho suave (curva por pontos médios)
+  const tracePath = () => {
+    ctx.beginPath();
+    ctx.moveTo(X(0), Y(pts[0]));
+    for (let i = 1; i < n; i++) {
+      const xc = (X(i) + X(i - 1)) / 2, yc = (Y(pts[i]) + Y(pts[i - 1])) / 2;
+      ctx.quadraticCurveTo(X(i - 1), Y(pts[i - 1]), xc, yc);
+    }
+    ctx.lineTo(X(n - 1), Y(pts[n - 1]));
+  };
+  // Preenchimento em gradiente vermelho (vidro)
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, 'rgba(230,0,0,0.40)');
+  grad.addColorStop(0.6, 'rgba(230,0,0,0.12)');
+  grad.addColorStop(1, 'rgba(230,0,0,0.02)');
+  tracePath();
+  ctx.lineTo(W - 10, H - 2); ctx.lineTo(X(0), H - 2); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+  // Linha principal com brilho neon
+  const lineGrad = ctx.createLinearGradient(0, 0, W, 0);
+  lineGrad.addColorStop(0, '#ff6b6b');
+  lineGrad.addColorStop(0.45, '#E60000');
+  lineGrad.addColorStop(1, '#a11212');
+  ctx.save();
+  ctx.shadowColor = 'rgba(230,0,0,0.55)';
+  ctx.shadowBlur = 14;
+  tracePath();
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 2.6;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.restore();
+  // Reflexo de vidro (linha fina clara por cima)
+  tracePath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+  // Último ponto destacado
+  const lx = X(n - 1), ly = Y(pts[n - 1]);
+  ctx.save();
+  ctx.shadowColor = 'rgba(230,0,0,0.85)';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#E60000';
+  ctx.beginPath(); ctx.arc(lx, ly, 3.8, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(lx, ly, 1.6, 0, Math.PI * 2); ctx.fill();
+  // Rótulos máx/mín
+  ctx.fillStyle = '#8a8a93';
+  ctx.font = '700 8.5px Rajdhani, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('máx ' + maxV.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), W - 12, 12);
+  ctx.textAlign = 'left';
+  ctx.fillText('mín ' + minV.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 12, 12);
+};
+const loadDollarChart = async () => {
+  const tag = $('#dollarChartTag');
+  try {
+    const res = await fetch('https://economia.awesomeapi.com.br/json/daily/USD-BRL/30');
+    const arr = await res.json();
+    dolData = (arr || []).map(d => ({ date: new Date(Number(d.timestamp) * 1000), bid: Number(d.bid) })).filter(d => Number.isFinite(d.bid)).sort((a, b) => a.date - b.date);
+    if (tag && dolData.length) {
+      const first = dolData[0].bid, last = dolData[dolData.length - 1].bid;
+      const delta = ((last - first) / first) * 100;
+      tag.textContent = (delta >= 0 ? '▲ ' : '▼ ') + Math.abs(delta).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '% no mês';
+      tag.style.color = delta >= 0 ? '#16a34a' : '#dc2626';
+    }
+    drawDollarChart();
+  } catch {
+    if (tag) tag.textContent = 'GRÁFICO INDISPONÍVEL';
+  }
+};
+loadDollarChart();
+window.setInterval(loadDollarChart, 300000);
+window.addEventListener('resize', () => drawDollarChart());
+if (dolCanvas) {
+  dolCanvas.addEventListener('mousemove', (ev) => {
+    if (!dolData.length || !dolTip) return;
+    const rect = dolCanvas.getBoundingClientRect();
+    const x = ev.clientX - rect.left;
+    const raw = Math.round(((x - 10) / Math.max(1, rect.width - 20)) * (dolData.length - 1));
+    const idx = Math.max(0, Math.min(dolData.length - 1, raw));
+    const d = dolData[idx];
+    const day = String(d.date.getDate()).padStart(2, '0') + '/' + String(d.date.getMonth() + 1).padStart(2, '0');
+    dolTip.innerHTML = '<b>' + day + '</b> • R$ ' + d.bid.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    dolTip.hidden = false;
+    const tipW = dolTip.offsetWidth || 150;
+    let tx = ev.clientX - rect.left + 12;
+    if (tx + tipW > rect.width - 4) tx = x - tipW - 12;
+    dolTip.style.left = tx + 'px';
+    dolTip.style.top = Math.max(4, ev.clientY - rect.top - 36) + 'px';
+  });
+  dolCanvas.addEventListener('mouseleave', () => { if (dolTip) dolTip.hidden = true; });
+}
 
 // ===== VLIBRAS (acessibilidade Libras) — liga/desliga na Configuração =====
 const VL_KEY = 'jt_pa_vlibras';
