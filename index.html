@@ -226,6 +226,9 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .side-stack .cal-mini-row span { font-size: 7px; }
 .side-stack .cal-mini-open { padding: 8px 9px; font-size: 7px; }
 @media (max-width: 1100px) {
+  .main-layout { grid-template-columns: minmax(0, 1.55fr) 340px; }
+}
+@media (max-width: 899px) {
   .main-layout { grid-template-columns: 1fr; }
   .side-stack { flex-flow: row wrap; gap: 10px; }
   .side-stack .panel { flex: 1 1 300px; }
