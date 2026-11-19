@@ -204,6 +204,7 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .side-stack .disp-carousel { flex: 0 0 auto; }
 .side-stack #dispList { max-height: 128px; }
 .side-stack .top-tabs { gap: 3px; margin-bottom: 6px; }
+.side-stack #topRank { max-height: 96px; overflow-y: auto; }
 .side-stack .top-tab { font-size: 7.5px; padding: 4px 7px; }
 .side-stack .top-mode { font-size: 7.5px; }
 .side-stack .rank-row { gap: 6px; padding: 5px 0; }
@@ -3320,9 +3321,9 @@ const renderHourly = (hourly) => {
   const items = [];
   for (let i = 0; i < times.length; i++) {
     const t = new Date(times[i]).getTime();
-    if (t >= nowMs - 30 * 60 * 1000 && items.length < 9) {
+    if (t >= nowMs - 30 * 60 * 1000 && items.length < 12) {
       const d = new Date(times[i]);
-      const isNow = Math.abs(t - nowMs) < 60 * 60 * 1000;
+      const isNow = items.length === 0;
       const isNight = d.getHours() < 6 || d.getHours() >= 18;
       items.push('<div class="wh-slot' + (isNow ? ' now' : '') + '" title="' + esc(isNow ? 'Agora' : d.getDate() + '/' + (d.getMonth() + 1) + ' ' + d.getHours() + 'h') + '">'
         + '<div class="wh-hour">' + (isNow ? 'AGORA' : d.getHours() + 'h') + '</div>'
