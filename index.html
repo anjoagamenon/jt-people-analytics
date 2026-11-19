@@ -163,11 +163,9 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 
 /* ==== LAYOUT ==== */
 .main-layout { display: grid; grid-template-columns: minmax(0, 1.62fr) 400px; gap: 14px; margin-top: 14px; align-items: start; }
-.wall-panel { display: flex; flex-direction: column; margin: 0; }
+.wall-panel { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; margin: 0; }
 .wall-panel .person-grid { flex: 1 1 auto; align-content: space-evenly; }
-
-/* Sidebar: coluna única com respiro */
-.side-stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.side-stack { grid-column: 2; grid-row: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .side-stack .panel { margin: 0; box-sizing: border-box; }
 .side-stack .panel-head { margin-bottom: 6px; padding: 0; }
 .side-stack .panel-title { font-size: 11px; }
@@ -180,9 +178,10 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .side-stack .score-gauge-svg { max-width: 232px; }
 .side-stack .score-gauge-value { font-size: 28px; margin-top: -10px; }
 .side-stack .score-gauge-label { font-size: 7.5px; letter-spacing: 2px; margin-top: 2px; margin-bottom: 8px; }
-.side-stack .assid-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.side-stack .assid-cell { padding: 7px 5px; }
+.side-stack .assid-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.side-stack .assid-cell { padding: 7px 5px; min-width: 0; overflow: hidden; }
 .side-stack .assid-cell-value { font-size: 15px; }
+.side-stack .assid-cell-name { font-size: 7px; letter-spacing: 1px; gap: 3px; }
 .side-stack .assid-cell-name span { font-size: 8px; }
 .side-stack .assid-cell-name i { font-size: 7px; }
 .side-stack .assid-efficiency { font-size: 8.5px; margin-top: 8px; }
@@ -199,27 +198,35 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .side-stack .rank-name { font-size: 10.5px; }
 .side-stack .rank-score { font-size: 13px; }
 
-/* Blocos de apoio: grid uniforme abaixo da equipe */
-.bottom-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; align-items: stretch; }
+/* Blocos de apoio: sobem para completar embaixo do bloco da equipe */
+.bottom-grid { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; align-items: stretch; min-width: 0; }
 .bottom-grid .panel { margin: 0; display: flex; flex-direction: column; min-width: 0; }
 .bottom-grid .panel > .list { flex: 1 1 auto; min-height: 0; max-height: 260px; overflow-y: auto; }
 .bottom-grid .panel > .empty-note { margin: auto 0; }
 .bottom-grid .vol-panel .vol-week { margin: 10px 0 4px; }
 .bottom-grid .ferias-big .fb b { font-size: 26px; }
 .bottom-grid .disp-carousel { flex: 0 0 auto; }
-.bottom-grid #dispList { max-height: 230px; }
+.bottom-grid #dispList { max-height: 190px; }
 .bottom-grid .h30-chart { height: 108px; }
 .bottom-grid .h30-stat b { font-size: 18px; }
 .bottom-grid .calendar-mini { justify-content: center; }
+.bottom-grid #topRank { max-height: 230px; overflow-y: auto; }
+.side-stack .h30-chart { height: 90px; }
+
+/* Donut da distribuição dentro do painel do Destaque */
+.news-donut-head { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-family: 'Rajdhani'; font-size: 7px; font-weight: 800; letter-spacing: 2px; color: var(--gray); }
+.news-donut { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.news-donut #donutSvg { width: 84px; height: 84px; }
+.live-news .donut-legend { font-size: 9px; gap: 4px; }
 
 @media (max-width: 1100px) {
   .main-layout { grid-template-columns: minmax(0, 1.55fr) 340px; }
-  .bottom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 899px) {
   .main-layout { grid-template-columns: 1fr; }
-  .side-stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
-  .side-stack .score-panel { grid-column: 1 / -1; }
+  .wall-panel { grid-column: 1; grid-row: 1; }
+  .side-stack { grid-column: 1; grid-row: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+  .bottom-grid { grid-column: 1; grid-row: 3; }
 }
 @media (max-width: 620px) {
   .side-stack, .bottom-grid { grid-template-columns: 1fr; }
@@ -1049,6 +1056,12 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="news-title" id="newsTitle">Carregando destaque do dia…</div>
       <div class="news-meta"><span id="newsSource">Mundo Logística • destaque do momento</span><span class="news-cta">toque para ler ↗</span></div>
       <div class="news-dots" id="newsDots"></div>
+      <div class="news-donut-head"><span>DISTRIBUIÇÃO POR TURNO</span></div>
+      <div class="news-donut" id="newsDonut">
+        <svg id="donutSvg" width="108" height="108" viewBox="0 0 132 132"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+
     </section>
     <section class="panel live-info weather-live" aria-label="Clima em Marabá agora e previsão de 24 horas">
       <div class="panel-accent"></div>
@@ -1150,38 +1163,36 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
             <div class="assid-efficiency" id="assidEfficiency">—</div>
           </section>
 
-      <!-- ===== DONUT ===== -->
-    <section class="panel">
-            <div class="panel-accent"></div>
-            <div class="panel-head"><div class="panel-title"><i>◉</i> Distribuição por turno</div><div class="panel-tag">Headcount</div></div>
-            <div class="donut-wrap">
-              <svg id="donutSvg" width="130" height="130" viewBox="0 0 132 132"></svg>
-              <div class="donut-legend" id="donutLegend"></div>
-            </div>
-          </section>
-
-      <!-- ===== TOP 5 POR TURMA / ESCORE OPERACIONAL ===== -->
-    <section class="panel">
-            <div class="panel-accent"></div>
-            <div class="panel-head"><div class="panel-title"><i>▲</i> Top 5 — Performance</div><div class="panel-tag">Ranking do mês</div></div>
-            <div class="top-tabs" id="topTabs"></div>
-            <div class="top-mode" id="topMode"></div>
-            <div id="topRank"></div>
-          </section>
-
-      <!-- ===== ANIVERSÁRIOS + FOLGAS ===== -->
-    <section class="panel">
+      <!-- ===== HISTÓRICO 30 DIAS ===== -->
+    <section class="panel hist-panel">
           <div class="panel-accent"></div>
-          <div class="panel-head"><div class="panel-title"><i>★</i> Aniversariantes do mês</div><div class="panel-tag" id="bdayCount">0 —</div></div>
-          <div class="list" id="bdayList"></div>
-          <div class="panel-head" style="margin-top:14px; margin-bottom:8px;"><div class="panel-title"><i>◈</i> Folgas de hoje</div></div>
-          <div class="list" id="folgasList"></div>
+          <div class="panel-head"><div class="panel-title"><i>▤</i> Histórico — últimos 30 dias</div><div class="panel-tag">Presença / faltas</div></div>
+          <div class="h30-chart" id="h30Chart"></div>
+          <div class="h30-foot">
+            <div class="h30-stat"><b id="h30Media">0</b><span>Média / dia</span></div>
+            <div class="h30-stat"><b id="h30Max">0</b><span>Melhor dia</span></div>
+            <div class="h30-stat red"><b id="h30Faltas">0</b><span>Faltas 30d</span></div>
+            <div class="h30-stat"><b id="h30Pico">0</b><span>Pico 30d</span></div>
+          </div>
         </section>
 
-    </div><!-- /side-stack -->
-  </div><!-- /main-layout -->
+      <!-- ===== CALENDÁRIO DE FERIADOS ===== -->
+    <button class="panel panel-click calendar-mini calendario-panel" id="calOpen" type="button" aria-haspopup="dialog" aria-controls="holidayModal">
+          <div class="panel-accent"></div>
+          <div class="calendar-mini-inner">
+            <div class="cal-mini-icon">📅</div>
+            <div class="cal-mini-text">
+              <b>Calendário de feriados</b>
+              <span id="nextHolidayTxt">Carregando…</span>
+              <div class="cal-mini-list" id="calMiniList"></div>
+            </div>
+            <div class="cal-mini-open">Abrir<span class="cal-mini-arrow">›</span></div>
+          </div>
+        </button>
 
-  <!-- ===== BLOCOS DE APOIO — grid uniforme abaixo da equipe ===== -->
+    </div><!-- /side-stack -->
+
+  <!-- ===== BLOCOS DE APOIO — completam embaixo do bloco da equipe ===== -->
   <div class="bottom-grid">
 
     <!-- ===== FALTAS / OCORRÊNCIAS ===== -->
@@ -1243,34 +1254,31 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
           <div class="empty-note" id="experienceEmpty" hidden>Nenhum vencimento de experiência nos próximos dias. ✅</div>
         </section>
 
-    <!-- ===== HISTÓRICO 30 DIAS ===== -->
-    <section class="panel hist-panel">
+
+
+
+    <!-- ===== TOP 5 POR TURMA / ESCORE OPERACIONAL ===== -->
+<!-- ===== TOP 5 POR TURMA / ESCORE OPERACIONAL ===== -->
+    <section class="panel">
+            <div class="panel-accent"></div>
+            <div class="panel-head"><div class="panel-title"><i>▲</i> Top 5 — Performance</div><div class="panel-tag">Ranking do mês</div></div>
+            <div class="top-tabs" id="topTabs"></div>
+            <div class="top-mode" id="topMode"></div>
+            <div id="topRank"></div>
+          </section>
+
+    <!-- ===== ANIVERSÁRIOS + FOLGAS ===== -->
+<!-- ===== ANIVERSÁRIOS + FOLGAS ===== -->
+    <section class="panel">
           <div class="panel-accent"></div>
-          <div class="panel-head"><div class="panel-title"><i>▤</i> Histórico — últimos 30 dias</div><div class="panel-tag">Presença / faltas</div></div>
-          <div class="h30-chart" id="h30Chart"></div>
-          <div class="h30-foot">
-            <div class="h30-stat"><b id="h30Media">0</b><span>Média / dia</span></div>
-            <div class="h30-stat"><b id="h30Max">0</b><span>Melhor dia</span></div>
-            <div class="h30-stat red"><b id="h30Faltas">0</b><span>Faltas 30d</span></div>
-            <div class="h30-stat"><b id="h30Pico">0</b><span>Pico 30d</span></div>
-          </div>
+          <div class="panel-head"><div class="panel-title"><i>★</i> Aniversariantes do mês</div><div class="panel-tag" id="bdayCount">0 —</div></div>
+          <div class="list" id="bdayList"></div>
+          <div class="panel-head" style="margin-top:14px; margin-bottom:8px;"><div class="panel-title"><i>◈</i> Folgas de hoje</div></div>
+          <div class="list" id="folgasList"></div>
         </section>
 
-    <!-- ===== CALENDÁRIO DE FERIADOS (compacto; abre em modal) ===== -->
-    <button class="panel panel-click calendar-mini calendario-panel" id="calOpen" type="button" aria-haspopup="dialog" aria-controls="holidayModal">
-          <div class="panel-accent"></div>
-          <div class="calendar-mini-inner">
-            <div class="cal-mini-icon">📅</div>
-            <div class="cal-mini-text">
-              <b>Calendário de feriados</b>
-              <span id="nextHolidayTxt">Carregando…</span>
-              <div class="cal-mini-list" id="calMiniList"></div>
-            </div>
-            <div class="cal-mini-open">Abrir<span class="cal-mini-arrow">›</span></div>
-          </div>
-        </button>
-
-  </div><!-- /bottom-grid -->
+    </div><!-- /bottom-grid -->
+  </div><!-- /main-layout -->
 </main>
 
 <!-- ===== MODAL: PERFIL INDIVIDUAL ===== -->
@@ -1524,8 +1532,8 @@ const playIntro = () => {
     window.removeEventListener('keydown', onKeySkip, true);
     window.setTimeout(() => { overlay.hidden = true; try { video.pause(); video.currentTime = 0; } catch (_) {} }, 500);
     // Painel abriu: leitura do resumo do dia na voz padrão escolhida
-    if (speakEnabled()) {
-      window.setTimeout(() => { try { speakSummary(LAST); } catch (e) { console.error('speak', e); } }, 700);
+    if (speakEnabled() && LAST) {
+      window.setTimeout(() => { try { trySpeakSummary(LAST); } catch (e) { console.error('speak', e); } }, 700);
     }
   };
   const onKeySkip = (ev) => {
@@ -2576,11 +2584,10 @@ const exec = (cbName) => {
 window.__dashOnData = function (data) { try {
   renderAll(data || { colabs: [], attendance: [], occurrences: [], indicators: [], folgas: [], epis: [], settings: {} });
   // Fala o resumo do dia na primeira leva de dados da sessão (voz padrão escolhida)
-  if (!window.__autoSummaryPlayed) {
-    window.__autoSummaryPlayed = true;
+  if (!window.__autoSummaryPlayed && speakEnabled()) {
     const introShowing = (() => { const o = document.getElementById('introOverlay'); return o && !o.hidden; })();
     if (!introShowing) {
-      window.setTimeout(() => { try { if (speakEnabled()) speakSummary(LAST); } catch (e) { console.error('speak', e); } }, 1500);
+      window.setTimeout(() => { try { trySpeakSummary(LAST); } catch (e) { console.error('speak', e); } }, 600);
     }
   }
 } catch (e) { console.error('render', e); } };
@@ -2730,6 +2737,31 @@ try {
   }
 } catch {}
 
+// Somente a voz do Gemini (sem fallback para voz local) — com uma nova tentativa
+const geminiSpeak = (text, voice, onDone) => {
+  const attempt = (retry) => {
+    ttsFetch(text, voice || voicePref()).then((resp) => {
+      if (resp && resp.ok && resp.audioBase64) {
+        const blob = pcmToWav(resp.audioBase64);
+        if (__ttsAudio) { try { __ttsAudio.pause(); } catch {} }
+        const url = URL.createObjectURL(blob);
+        __ttsAudio = new Audio(url);
+        __ttsAudio.onended = () => { try { URL.revokeObjectURL(url); } catch {}; if (onDone) onDone(true); };
+        __ttsAudio.onerror = () => { if (onDone) onDone(false); };
+        const p = __ttsAudio.play();
+        if (p && p.catch) p.catch(() => { if (onDone) onDone(false); });
+      } else if (retry < 1) {
+        window.setTimeout(() => attempt(retry + 1), 1800);
+      } else {
+        if (onDone) onDone(false);
+      }
+    }).catch(() => {
+      if (retry < 1) window.setTimeout(() => attempt(retry + 1), 1800);
+      else if (onDone) onDone(false);
+    });
+  };
+  attempt(0);
+};
 const buildSummaryText = (d) => {
   const today = todayISO();
   const y = new Date().getFullYear();
@@ -2749,7 +2781,8 @@ const buildSummaryText = (d) => {
   // Dólar do dia
   const dlr = window.__lastDolar;
   if (dlr && Number.isFinite(dlr.bid)) {
-    parts.push('O dólar hoje está em ' + dlr.bid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' reais.');
+    const pct = Number.isFinite(dlr.pctChange) ? (dlr.pctChange >= 0 ? ', com alta de ' : ', com queda de ') + Math.abs(dlr.pctChange).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' por cento' : '';
+    parts.push('O dólar hoje está em ' + dlr.bid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' reais' + pct + '.');
   }
   // Clima e previsão do tempo de hoje (Marabá)
   const w = window.__lastWeather;
@@ -2772,10 +2805,30 @@ const speakSummary = (d) => {
   try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch {}
   chime(); // atenção: sino suave antes da fala
   updateVoiceLine(voicePref());
-  const done = () => { try { setTimeout(() => { const p = $('#mascotPanel'); if (p && !p.hidden) closeMascot(); }, 2400); } catch {} };
-  ttsSpeak(buildSummaryText(d), voicePref(), done);
+  const done = (ok) => {
+    if (ok === false) { try { const n = $('#mpVoiceName'); if (n) n.textContent = 'Gemini indisponível agora — tente novamente'; } catch {} }
+    else { updateVoiceLine(voicePref()); }
+    try { setTimeout(() => { const p = $('#mascotPanel'); if (p && !p.hidden) closeMascot(); }, 2400); } catch {}
+  };
+  geminiSpeak(buildSummaryText(d), voicePref(), done);
   // Segurança: desliga sozinho mesmo se o áudio nunca terminar
   setTimeout(() => { const p = $('#mascotPanel'); if (p && !p.hidden) closeMascot(); }, 60000);
+};
+
+// Aguarda as duas fontes (dólar + clima) antes de montar o resumo — no máximo 12s
+const waitForSummaryFeeds = (cb, timeoutMs) => {
+  const started = Date.now();
+  const tick = () => {
+    if (window.__lastWeather && window.__lastDolar) return cb();
+    if (Date.now() - started >= (timeoutMs || 12000)) return cb();
+    window.setTimeout(tick, 250);
+  };
+  tick();
+};
+const trySpeakSummary = (d) => {
+  if (window.__autoSummaryPlayed) return;
+  window.__autoSummaryPlayed = true;
+  waitForSummaryFeeds(() => { try { speakSummary(d); } catch (e) { console.error('speak', e); } }, 12000);
 };
 
 const speakEnabled = () => { try { return localStorage.getItem('jt_speak') !== '0'; } catch { return true; } };
