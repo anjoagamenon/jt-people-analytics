@@ -280,8 +280,26 @@ html.only-wall main { padding-top: 14px; }
 .wall-panel.wall-fullscreen .ptag { font-size: 8.5px; padding: 4px 10px; }
 .wall-panel.wall-fullscreen .panel-title { font-size: 18px; }
 .wall-panel.wall-fullscreen .panel-head { margin-bottom: 12px; }
-html.only-wall .person { aspect-ratio: 0.68; }
-html.only-wall .person-grid { grid-auto-rows: auto; align-content: space-evenly; }
+/* Janela separada (?only=wall): preenche 100vh, cards maiores e sem deformação */
+html.only-wall body { height: 100vh; overflow: hidden; background: var(--bg); }
+html.only-wall main { height: 100vh; padding: 6px 10px 8px; box-sizing: border-box; }
+html.only-wall .main-layout { height: 100%; align-content: stretch; }
+html.only-wall .wall-panel { height: 100%; margin: 0; }
+html.only-wall .person-grid {
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+}
+html.only-wall .person { aspect-ratio: auto; min-height: 0; justify-content: space-evenly; gap: 3px; }
+html.only-wall .avatar { width: clamp(68px, 13vh, 96px); height: clamp(68px, 13vh, 96px); margin-bottom: 2px; }
+html.only-wall .avatar img, html.only-wall .avatar .initials { width: 100% !important; height: 100% !important; }
+html.only-wall .pname { font-size: 10px; min-height: 24px; }
+html.only-wall .pfuncao { font-size: 7.5px; }
+html.only-wall .ptag { font-size: 9px; padding: 4px 12px; }
+html.only-wall .person-grid::-webkit-scrollbar { width: 6px; }
 .person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: start; grid-auto-rows: minmax(112px, max-content); overflow-y: auto; padding-right: 4px; }
 
 .person-grid::-webkit-scrollbar, .list::-webkit-scrollbar { width: 7px; }
@@ -446,15 +464,6 @@ html[data-theme="dark"] .vol-needed-box { background: #131b31; border-color: rgb
 html[data-theme="dark"] .vol-needed-box span { color: #8b99bd; }
 
 .pm-actions { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:10px; }
-.pm-share-wrap { position: relative; }
-.pm-share-wrap .pm-btn { width: 100%; height: 100%; }
-.pm-share-menu { position: absolute; top: calc(100% + 8px); left: 0; width: 240px; z-index: 40; background: #ffffff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 45px rgba(15,23,42,.3); padding: 6px; display: flex; flex-direction: column; gap: 4px; }
-.pm-share-item { display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: transparent; padding: 10px 12px; border-radius: 12px; cursor: pointer; }
-.pm-share-item:hover { background: #f1f5f9; }
-.pm-share-item:focus-visible { outline: 2px solid var(--red); }
-.pm-share-item b { font-size: 17px; flex: 0 0 auto; }
-.pm-share-item .pmi-txt { display: flex; flex-direction: column; font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 800; color: var(--ink); letter-spacing: .3px; line-height: 1.1; }
-.pm-share-item .pmi-txt small { font-size: 8px; color: var(--gray); font-weight: 700; letter-spacing: 0; margin-top: 2px; }
 @media (max-width: 640px) { .pm-actions { grid-template-columns: repeat(2, 1fr); } }
 .pm-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:10px 6px; border-radius:12px; border:0; cursor:pointer; font-family:'Rajdhani'; font-weight:700; font-size:10px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; line-height:1.2; transition:transform 0.12s; }
 .pm-btn:hover { transform:translateY(-1px); }
@@ -2526,31 +2535,7 @@ const buildFichaText = (c) => {
   ].filter(Boolean).join('\n').replace(/\uFFFD/g, '');
 };
 
-// Imagem embutida (base64) vira arquivo para o compartilhamento nativo; remota vira File quando possível
-const buildPhotoFile = async (c) => {
-  const photoRaw = String(c?.avatar || '').trim();
-  if (!photoRaw) return null;
-  try {
-    if (photoRaw.startsWith('data:image')) {
-      const parts = photoRaw.split(',');
-      const meta = parts[0] || '';
-      const b64 = parts.slice(1).join(',');
-      const mime = (meta.match(/data:(.*?);/) || [, 'image/jpeg'])[1] || 'image/jpeg';
-      const bin = atob(b64);
-      const buf = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-      return new File([buf], (c.matricula || 'foto') + '.jpg', { type: mime });
-    }
-    if (/^https?:\/\//.test(photoRaw)) {
-      try {
-        const r = await fetch(photoRaw);
-        const blob = await r.blob();
-        return new File([blob], (c.matricula || 'foto') + '.jpg', { type: blob.type || 'image/jpeg' });
-      } catch (_) { return null; }
-    }
-  } catch (err) { console.warn('buildPhotoFile:', err); }
-  return null;
-};
+// Baixa a foto embutida (base64) como JPG para anexar no WhatsApp Web
 const downloadDataUrl = (dataUrl, filename) => {
   const a = document.createElement('a');
   a.href = dataUrl;
@@ -2559,22 +2544,7 @@ const downloadDataUrl = (dataUrl, filename) => {
   a.click();
   a.remove();
 };
-// Compartilha a ficha via WhatsApp/Webshare nativo (opção "Aplicativo")
-const shareFichaNative = async (c) => {
-  const text = buildFichaText(c);
-  const file = await buildPhotoFile(c);
-  try {
-    if (file && navigator.canShare && navigator.canShare({ files: [file], text })) {
-      await navigator.share({ files: [file], text, title: 'Ficha do colaborador' });
-      return true;
-    }
-  } catch (err) { console.warn('shareFichaNative:', err && (err.message || err)); }
-  try {
-    if (navigator.share) { await navigator.share({ text, title: 'Ficha do colaborador' }); return true; }
-  } catch (_) {}
-  return false;
-};
-// Compartilha via WhatsApp Web na aba do navegador (reaproveita a mesma aba em envios seguidos)
+// Compartilha a ficha direto no WhatsApp Web (aba do navegador; reaproveita a mesma aba em envios seguidos)
 const shareFichaWaWeb = (c) => {
   const text = buildFichaText(c);
   const photoRaw = String(c?.avatar || '').trim();
@@ -2586,8 +2556,6 @@ const shareFichaWaWeb = (c) => {
   window.open(waOpenLink('', text + extra), 'escala-wapp', 'noopener');
   return true;
 };
-// === Menu de envio: WhatsApp Web (aba do navegador) ou Aplicativo (menu nativo) ===
-
 const openPerson = (c) => {
   const d = LAST;
   const matK = strip(c.matricula);
@@ -2636,28 +2604,11 @@ const openPerson = (c) => {
   $('#pmActions').innerHTML = [
     '<a class="pm-btn wa" href="' + esc(waOpenLink(waNume, 'Olá, ' + first + '!')) + '" target="_blank" rel="noopener"><b>💬</b><span>WhatsApp</span></a>',
     '<button id="pmReadBtn" type="button" class="pm-btn share" style="background:#0f172a;color:#fff;" title="Lê a ficha completa em voz alta com a voz do mascote" aria-label="Ler ficha completa em voz alta"><b>🔊</b><span>Ler ficha</span></button>',
-    '<div class="pm-share-wrap"><button id="pmShareBtn" type="button" class="pm-btn share pm-share-toggle" title="Enviar a ficha + foto" aria-haspopup="menu" aria-expanded="false"><b>📋</b><span>Enviar ficha + foto</span></button>'
-      + '<div class="pm-share-menu" id="pmShareMenu" role="menu" hidden>'
-      + '<button type="button" class="pm-share-item" id="pmShareWaWeb" role="menuitem"><b>💬</b><span class="pmi-txt">WhatsApp Web<small>Na aba do navegador (recomendado no PC)</small></span></button>'
-      + '<button type="button" class="pm-share-item" id="pmShareWaApp" role="menuitem"><b>📱</b><span class="pmi-txt">Aplicativo<small>Compartilhar no aparelho (menu nativo)</small></span></button>'
-      + '</div></div>',
+    '<button id="pmShareBtn" type="button" class="pm-btn share" title="Envia a ficha + foto direto no WhatsApp Web (aba do navegador)" aria-label="Enviar ficha + foto no WhatsApp Web"><b>📋</b><span>Enviar ficha + foto</span></button>',
     '<a class="pm-btn mail" href="' + esc(mailto) + '" title="Abre o cliente de e-mail com a ficha completa"><b>✉️</b><span>E-mail</span></a>'
   ].join('');
-  const closeShareMenu = () => { const m = document.getElementById('pmShareMenu'); if (m) m.hidden = true; const b = document.getElementById('pmShareBtn'); if (b) b.setAttribute('aria-expanded', 'false'); };
   const sb = document.getElementById('pmShareBtn');
-  if (sb) sb.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    const m = document.getElementById('pmShareMenu');
-    if (!m) return;
-    const willOpen = m.hidden;
-    m.hidden = !m.hidden;
-    sb.setAttribute('aria-expanded', String(willOpen));
-    if (willOpen) setTimeout(() => document.addEventListener('click', closeShareMenu, { once: true }), 0);
-  });
-  const waWeb = document.getElementById('pmShareWaWeb');
-  if (waWeb) waWeb.addEventListener('click', () => { shareFichaWaWeb(c); closeShareMenu(); });
-  const waApp = document.getElementById('pmShareWaApp');
-  if (waApp) waApp.addEventListener('click', async () => { shareFichaNative(c); closeShareMenu(); });
+  if (sb) sb.addEventListener('click', () => { try { shareFichaWaWeb(c); } catch (e) { console.error('pmShare', e); } });
   const rb = document.getElementById('pmReadBtn');
   if (rb) rb.addEventListener('click', () => { chime(); ttsSpeak(buildFichaText(c), voicePref(), null); });
   // Ação especial: card de aniversário (só no dia)
@@ -2814,15 +2765,12 @@ setInterval(loadData, 15000); // sincroniza a cada 15s (em tempo quase real)
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadData(); });
 
 // ===== MASCOTE: falar o resumo (TTS) =====
-const speakSupported = () => 'speechSynthesis' in window;
+const closeMascot = () => { try { const p = $('#mascotPanel'); if (p) p.hidden = true; try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}; markSummarySeen(); const btn = $('#mascotBtn'); if (btn) btn.classList.toggle('idle', summarySeenToday()); } catch {} };
 const summarySeenToday = () => { try { return localStorage.getItem('jt_summary_seen') === todayISO(); } catch { return false; } };
 const markSummarySeen = () => {
   try { localStorage.setItem('jt_summary_seen', todayISO()); } catch {}
   try { const b = $('#mascotBadge'); if (b) b.hidden = true; } catch {}
 };
-const closeMascot = () => { try { const p = $('#mascotPanel'); if (p) p.hidden = true; if (speakSupported()) window.speechSynthesis.cancel(); markSummarySeen(); const btn = $('#mascotBtn'); if (btn) btn.classList.toggle('idle', summarySeenToday()); } catch {} };
-
-// Sino suave (C5-E5-G5) via WebAudio — funciona mesmo com o iframe sandboxed
 const chime = () => {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -2882,59 +2830,6 @@ const ttsFetch = (text, voice) => new Promise((resolve, reject) => {
   document.head.appendChild(s);
 });
 let __ttsAudio = null;
-const ttsSpeak = (text, voice, onDone) => {
-  return new Promise((resolve) => {
-    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch {}
-    ttsFetch(text, voice || voicePref()).then((resp) => {
-      if (resp && resp.ok && resp.audioBase64) {
-        const blob = pcmToWav(resp.audioBase64);
-        if (__ttsAudio) { try { __ttsAudio.pause(); } catch {} }
-        const url = URL.createObjectURL(blob);
-        __ttsAudio = new Audio(url);
-        __ttsAudio.onended = () => { try { URL.revokeObjectURL(url); } catch {}; if (onDone) onDone(); resolve(true); };
-        __ttsAudio.onerror = () => { if (onDone) onDone(); resolve(false); };
-        const p = __ttsAudio.play();
-        if (p && p.catch) p.catch(() => { if (onDone) onDone(); resolve(false); });
-      } else {
-        if (speakSupported()) {
-          try {
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'pt-BR';
-            if (onDone) u.onend = onDone;
-            u.onerror = onDone || (() => {});
-            window.speechSynthesis.speak(u);
-            resolve(true);
-            return;
-          } catch {}
-        }
-        if (onDone) onDone();
-        resolve(false);
-      }
-    }).catch(() => {
-      if (speakSupported()) {
-        try {
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = 'pt-BR';
-          if (onDone) u.onend = onDone;
-          window.speechSynthesis.speak(u);
-          resolve(true);
-          return;
-        } catch {}
-      }
-      if (onDone) onDone();
-      resolve(false);
-    });
-  });
-};
-try { updateVoiceLine(voicePref()); } catch {}
-
-// Aquece a lista de vozes (o navegador carrega em segundo plano)
-try {
-  if (speakSupported() && 'onvoiceschanged' in window.speechSynthesis) {
-    window.speechSynthesis.onvoiceschanged = () => { try { window.speechSynthesis.getVoices(); } catch {} };
-    window.speechSynthesis.getVoices();
-  }
-} catch {}
 
 // Somente a voz do Gemini (sem fallback para voz local) — com uma nova tentativa
 const geminiSpeak = (text, voice, onDone) => {
@@ -2961,6 +2856,11 @@ const geminiSpeak = (text, voice, onDone) => {
   };
   attempt(0);
 };
+try { updateVoiceLine(voicePref()); } catch {}
+// Ler ficha / alertas do painel: somente a voz do Gemini (nunca a voz do navegador)
+const ttsSpeak = (text, voice, onDone) => new Promise((resolve) => {
+  geminiSpeak(text, voice || voicePref(), (ok) => { if (onDone) onDone(); resolve(!!ok); });
+});
 const buildSummaryText = (d) => {
   const today = todayISO();
   const y = new Date().getFullYear();
