@@ -239,6 +239,8 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
   .side-stack .score-panel { grid-column: auto; }
 }
 
+.offline-banner { position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 90; max-width: min(94vw, 640px); background: #b91c1c; color: #fff; padding: 7px 18px 8px; border-radius: 0 0 14px 14px; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 10.5px; letter-spacing: 0.8px; display: none; box-shadow: 0 8px 22px rgba(0,0,0,.35); text-align: center; line-height: 1.3; }
+.offline-banner.show { display: block; }
 /* ==== WALL ==== */
 .filters { display: flex; gap: 6px; }
 .chip { background: var(--white); border: 1.5px solid var(--line); color: var(--gray); font-family: 'Rajdhani'; font-weight: 700; font-size: 9.5px; letter-spacing: 1.5px; padding: 6px 13px; border-radius: 99px; cursor: pointer; text-transform: uppercase; }
@@ -1013,6 +1015,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
 </style>
 </head>
 <body>
+<div class="offline-banner" id="offlineBanner" role="status" aria-live="polite"></div>
 
 <div class="grid-fx"></div>
 <div class="orb orb-1"></div>
@@ -2730,14 +2733,60 @@ document.addEventListener('click', (ev) => {
 document.querySelectorAll('[data-pclose]').forEach(el => el.addEventListener('click', closePerson));
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closePerson(); });
 
+// ===== Resiliência de conexão: nunca mais um painel todo em zero em silêncio =====
+const DASH_CACHE_KEY = 'dsr_dash_cache_last';
+let dashFailStreak = 0;
+const gateOpen = () => { try { return sessionStorage.getItem('dsr_dash_ok') === '1'; } catch (_) { return false; } };
+const showOfflineBanner = (on, tsText) => {
+  const b = document.getElementById('offlineBanner');
+  if (!b) return;
+  if (!on) { b.classList.remove('show'); b.textContent = ''; return; }
+  b.textContent = tsText
+    ? '⚠ SEM SINCRONIZAÇÃO — exibindo últimos dados de ' + tsText + '. Reconectando…'
+    : '⚠ SEM SINCRONIZAÇÃO com a planilha — dados podem estar desatualizados. Reconectando…';
+  b.classList.add('show');
+};
+const saveDashCache = (data) => {
+  try {
+    const clone = JSON.parse(JSON.stringify(data || {}));
+    if (Array.isArray(clone.colabs)) {
+      clone.colabs = clone.colabs.map((c) => { const x = Object.assign({}, c); delete x.avatar; delete x.fotoBase64; return x; });
+    }
+    localStorage.setItem(DASH_CACHE_KEY, JSON.stringify({ t: Date.now(), body: clone }));
+  } catch (_) { /* tamanho/quota — ignora */ }
+};
+const restoreDashCache = () => {
+  if (!gateOpen()) { showOfflineBanner(true); return; }
+  try {
+    const raw = localStorage.getItem(DASH_CACHE_KEY);
+    if (!raw) { showOfflineBanner(true); return; }
+    const cached = JSON.parse(raw);
+    if (cached && cached.body && Array.isArray(cached.body.colabs) && cached.body.colabs.length) {
+      renderAll(cached.body);
+      const d = new Date(cached.t || Date.now());
+      const label = ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+      showOfflineBanner(true, label);
+    } else {
+      showOfflineBanner(true);
+    }
+  } catch (_) { showOfflineBanner(true); }
+};
+
 const exec = (cbName) => {
   const s = document.createElement('script');
   s.src = EXEC_URL + (EXEC_URL.includes('?') ? '&' : '?') + 'callback=' + cbName + '&t=' + Date.now();
   s.onload = () => { try { s.remove(); } catch {} };
-  s.onerror = () => { try { s.remove(); } catch {} };
+  s.onerror = () => {
+    dashFailStreak += 1;
+    if (dashFailStreak >= 2) { try { restoreDashCache(); } catch (_) { showOfflineBanner(true); } }
+    try { s.remove(); } catch {}
+  };
   document.body.appendChild(s);
 };
 window.__dashOnData = function (data) { try {
+  dashFailStreak = 0;
+  showOfflineBanner(false);
+  saveDashCache(data);
   renderAll(data || { colabs: [], attendance: [], occurrences: [], indicators: [], folgas: [], epis: [], settings: {} });
   // Pré-carrega todos os áudios do Gemini em segundo plano (1x por sessão, ~10s de janela)
   try { window.__dashHasData = true; preloadAllAudios(); } catch (_) {}
