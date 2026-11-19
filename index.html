@@ -165,8 +165,8 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .main-layout { display: grid; grid-template-columns: minmax(0, 1.62fr) 400px; gap: 14px; margin-top: 14px; align-items: stretch; }
 .wall-panel { display: flex; flex-direction: column; margin: 0; }
 .wall-panel .person-grid { flex: 1 1 auto; align-content: space-evenly; }
-.side-stack { display: flex; flex-direction: column; gap: 10px; align-content: start; min-width: 0; }
-.side-stack .panel { margin: 0; padding: 8px 10px; }
+.side-stack { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 10px; align-content: start; min-width: 0; }
+.side-stack .panel { margin: 0; padding: 8px 10px; height: 100%; box-sizing: border-box; overflow: hidden; }
 .side-stack .panel-head { margin-bottom: 4px; padding: 0; }
 .side-stack .panel-title { font-size: 10px; }
 .side-stack .panel-title i { font-size: 11px; }
@@ -230,9 +230,16 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 }
 @media (max-width: 899px) {
   .main-layout { grid-template-columns: 1fr; }
-  .side-stack { flex-flow: row wrap; gap: 10px; }
-  .side-stack .panel { flex: 1 1 300px; }
 }
+@media (max-width: 560px) {
+  .side-stack { grid-template-columns: 1fr; grid-auto-rows: 155px; }
+}
+.side-stack .score-panel { grid-column: 1 / -1; grid-row: span 2; }
+.side-stack .vol-panel, .side-stack .ferias-panel { grid-row: span 2; }
+.side-stack .hist-panel, .side-stack .calendario-panel { grid-column: 1 / -1; grid-row: span 2; }
+.side-stack .list { max-height: 88px; overflow-y: auto; height: auto; }
+.side-stack .vol-panel .list, .side-stack .ferias-panel .list { max-height: 150px; }
+.side-stack .hist-panel .h30-chart { height: 80px; }
 
 /* ==== WALL ==== */
 .filters { display: flex; gap: 6px; }
@@ -1189,7 +1196,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     </section>
 
     <!-- ===== VOLUMETRIA DO DIA ===== -->
-    <section class="panel" id="volPanel">
+    <section class="panel vol-panel" id="volPanel">
       <div class="panel-accent"></div>
       <div class="panel-head"><div class="panel-title"><i>◐</i> Volumetria do dia</div><div class="panel-tag">800 un / pessoa</div></div>
       <div class="vol-grid">
@@ -1215,7 +1222,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     </section>
 
     <!-- ===== FÉRIAS & DISPONÍVEIS ===== -->
-    <section class="panel">
+    <section class="panel ferias-panel">
       <div class="panel-accent"></div>
       <div class="panel-head"><div class="panel-title"><i>🏖</i> Férias &amp; Disponíveis</div><div class="panel-tag">Hoje</div></div>
       <div class="ferias-big">
@@ -1233,7 +1240,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     </section>
 
   <!-- ===== CALENDÁRIO DE FERIADOS (compacto; abre em modal) ===== -->
-    <button class="panel panel-click calendar-mini" id="calOpen" type="button" aria-haspopup="dialog" aria-controls="holidayModal">
+    <button class="panel panel-click calendar-mini calendario-panel" id="calOpen" type="button" aria-haspopup="dialog" aria-controls="holidayModal">
       <div class="panel-accent"></div>
       <div class="calendar-mini-inner">
         <div class="cal-mini-icon">📅</div>
