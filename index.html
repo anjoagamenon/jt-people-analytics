@@ -4053,8 +4053,15 @@ $('#bcSend').addEventListener('click', async () => {
     try {
       if (btn) { btn.disabled = true; btn.dataset.prev = btn.innerHTML; btn.innerHTML = '<b>⏳</b><span>Preparando o card…</span>'; }
       setStatus('Montando a arte do card…');
-      const canvas = await drawCard(c);
-      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      // Foto remota (Drive) pode manchar o canvas; se toBlob falhar, refaz com as iniciais
+      const renderBlob = async (person) => {
+        const canvas = await drawCard(person);
+        return new Promise((res) => {
+          try { canvas.toBlob((b) => res(b), 'image/png'); } catch (_) { res(null); }
+        });
+      };
+      let blob = await renderBlob(c);
+      if (!blob && c && c.avatar) blob = await renderBlob({ ...c, avatar: '' });
       if (!blob) throw new Error('Falha ao gerar a imagem do card.');
       const file = new File([blob], 'aniversario-' + slug(c.name) + '.png', { type: 'image/png' });
       const text = '🎉 Parabéns pelo seu dia, ' + String(c.name || '') + '! 🎂❤️';
