@@ -762,7 +762,7 @@ html[data-theme="dark"] .hud-gear { background: #131b31; border-color: rgba(255,
 .settings-foot { margin-top: 12px; text-align: center; font-size: 8.5px; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; }
 
 /* ============ AO VIVO: notícias / clima / dólar (uniforme com o painel) ============ */
-.live-strip { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 14px; }
+.live-strip { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
 
 /* ===== Faixa de gráficos ao vivo: clima 24h + dólar 3D ===== */
 .strip-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
@@ -1053,9 +1053,6 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="news-meta"><span id="newsSource">Mundo Logística • destaque do momento</span><span class="news-cta">toque para ler ↗</span></div>
       <div class="news-dots" id="newsDots"></div>
     </section>
-  </div>
-
-  <div class="strip-charts">
     <section class="panel live-info weather-live" aria-label="Clima em Marabá agora e previsão de 24 horas">
       <div class="panel-accent"></div>
       <div class="panel-head">
