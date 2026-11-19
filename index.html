@@ -1676,7 +1676,7 @@ const playIntro = () => {
     window.setTimeout(() => { overlay.hidden = true; try { video.pause(); video.currentTime = 0; } catch (_) {} }, 500);
     // Painel abriu: leitura do resumo do dia na voz padrão escolhida
     if (speakEnabled() && LAST) {
-      window.setTimeout(() => { try { trySpeakSummary(LAST); } catch (e) { console.error('speak', e); } }, 700);
+      window.setTimeout(() => { try { trySpeakSummary(LAST); } catch (e) { console.error('speak', e); } }, 250);
     }
   };
   const onKeySkip = (ev) => {
@@ -2737,7 +2737,7 @@ window.__dashOnData = function (data) { try {
   if (!window.__autoSummaryPlayed && speakEnabled()) {
     const introShowing = (() => { const o = document.getElementById('introOverlay'); return o && !o.hidden; })();
     if (!introShowing) {
-      window.setTimeout(() => { try { trySpeakSummary(LAST); } catch (e) { console.error('speak', e); } }, 600);
+      window.setTimeout(() => { try { trySpeakSummary(LAST); } catch (e) { console.error('speak', e); } }, 150);
     }
   }
 } catch (e) { console.error('render', e); } };
@@ -2915,19 +2915,20 @@ const speakSummary = (d) => {
 };
 
 // Aguarda as duas fontes (dólar + clima) antes de montar o resumo — no máximo 12s
+// Espera MUITO curta (no máx. 2,5s): feeds rápidos incluem dólar+clima; senão fala mesmo assim
 const waitForSummaryFeeds = (cb, timeoutMs) => {
   const started = Date.now();
   const tick = () => {
     if (window.__lastWeather && window.__lastDolar) return cb();
-    if (Date.now() - started >= (timeoutMs || 12000)) return cb();
-    window.setTimeout(tick, 250);
+    if (Date.now() - started >= (timeoutMs || 2500)) return cb();
+    window.setTimeout(tick, 120);
   };
   tick();
 };
 const trySpeakSummary = (d) => {
   if (window.__autoSummaryPlayed) return;
   window.__autoSummaryPlayed = true;
-  waitForSummaryFeeds(() => { try { speakSummary(d); } catch (e) { console.error('speak', e); } }, 12000);
+  waitForSummaryFeeds(() => { try { speakSummary(d); } catch (e) { console.error('speak', e); } }, 2500);
 };
 
 const speakEnabled = () => { try { return localStorage.getItem('jt_speak') !== '0'; } catch { return true; } };
