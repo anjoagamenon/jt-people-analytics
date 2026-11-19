@@ -162,8 +162,8 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .kpi-good .kpi-value { color: var(--green); }
 
 /* ==== LAYOUT ==== */
-.grid-main { display: grid; grid-template-columns: 1fr 380px; gap: 14px; }
-.col-side { display: flex; flex-direction: column; gap: 14px; }
+.masonry { columns: 2; column-gap: 14px; margin-top: 14px; }
+.masonry > .panel, .masonry > button.panel { width: 100%; margin: 0 0 14px; break-inside: avoid; display: flex; flex-direction: column; box-sizing: border-box; }
 
 /* ==== WALL ==== */
 .filters { display: flex; gap: 6px; }
@@ -172,9 +172,9 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .chip.t2.active { background: #c026d3; border-color: #c026d3; box-shadow: 0 0 12px rgba(192,38,211,0.4); }
 .chip.quali.active { background: #059669; border-color: #059669; box-shadow: 0 0 12px rgba(5,150,105,0.4); }
 .chip.adm.active { background: #b45309; border-color: #b45309; box-shadow: 0 0 12px rgba(180,83,9,0.4); }
-.wall-panel { align-self: start; }
+
 .person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: start; grid-auto-rows: minmax(112px, max-content); padding-right: 4px; }
-.col-side > .panel:nth-child(2), .col-side > .panel:nth-child(3) { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-evenly; }
+
 .person-grid::-webkit-scrollbar, .list::-webkit-scrollbar { width: 7px; }
 .person-grid::-webkit-scrollbar-thumb, .list::-webkit-scrollbar-thumb { background: rgba(230,0,0,0.25); border-radius: 4px; }
 .person { background: #fafafa; border: 1px solid var(--line); border-radius: 14px; padding: 10px 6px 8px; text-align: center; transition: transform .15s, box-shadow .15s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; overflow: hidden; }
@@ -248,7 +248,7 @@ html[data-theme="dark"] .top-tab.active { background: #ff2e4c; border-color: #ff
 .rank-score { font-family: 'Baloo 2'; font-size: 11px; width: 30px; text-align: right; color: var(--red); font-weight: 800; }
 
 /* ==== LISTAS ==== */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+
 .list { max-height: 262px; overflow-y: auto; }
 .list-row { display: flex; align-items: center; gap: 10px; padding: 7px 6px; border-bottom: 1px solid #efeff1; }
 .list-row:last-child { border-bottom: 0; }
@@ -758,8 +758,7 @@ html[data-theme="dark"] .cal-nav button { background: #1b2440; border-color: rgb
 .cal-mini-row b { font-family: 'Baloo 2'; font-size: 12px; font-weight: 800; color: var(--red); min-width: 36px; }
 .cal-mini-row span { font-size: 9px; font-weight: 700; color: var(--ink); letter-spacing: 0.2px; line-height: 1.35; }
 .cal-mini-open { width: 100%; justify-content: center; }
-#rowCalExp { grid-template-columns: minmax(240px, 300px) 1fr 1.15fr; }
-.grid-2 > .panel { display: flex; flex-direction: column; }
+
 #volPanel { justify-content: space-evenly; }
 .disp-carousel { position: relative; }
 #dispList { flex: 0 0 auto; display: block; overflow: hidden; max-height: none; }
@@ -769,13 +768,13 @@ html[data-theme="dark"] .cal-nav button { background: #1b2440; border-color: rgb
 .disp-dot { width: 18px; height: 4px; border-radius: 99px; background: #e8e0e0; border: 0; cursor: pointer; transition: all .25s; }
 .disp-dot.active { background: var(--red); width: 26px; box-shadow: var(--shadow-red); }
 html[data-theme="dark"] .disp-dot { background: #1b2440; }
-.grid-2 .list { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-start; max-height: none; overflow: visible; }
-.grid-2 .list > .list-row { flex: 0 0 auto; }
-.grid-2 .list > .empty-note { flex: 0 0 auto; }
-.grid-2 .empty-note:not([hidden]) { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+.masonry .list { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-start; max-height: none; overflow: visible; }
+.masonry .list > .list-row { flex: 0 0 auto; }
+.masonry .list > .empty-note { flex: 0 0 auto; }
+.masonry .empty-note:not([hidden]) { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+@media (max-width: 1100px) { .masonry { columns: 1; } }
 html[data-theme="dark"] .cal-mini-row { background: #131b31; border-color: rgba(255,70,95,0.3); }
 html[data-theme="dark"] .cal-mini-row span { color: #e8edff; }
-@media (max-width: 1100px) { #rowCalExp { grid-template-columns: 1fr; } }
 .cal-mini-icon { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 27px; background: linear-gradient(160deg, #dc2626, #991b1b); color: #fff; box-shadow: var(--shadow-red); }
 .cal-mini-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .cal-mini-text b { font-family: 'Baloo 2'; font-size: 13px; font-weight: 800; color: var(--ink); letter-spacing: 0.3px; }
@@ -830,8 +829,6 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
 
 @media (max-width: 1100px) {
   .kpis { grid-template-columns: repeat(3, 1fr); }
-  .grid-main { grid-template-columns: 1fr; }
-  .grid-2 { grid-template-columns: 1fr; }
   .hud-time { font-size: 15px; }
   .hud-title { font-size: 11px; }
   .live-pill { display: none; }
@@ -939,7 +936,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     </section>
   </div>
 
-  <div class="grid-main">
+  <div class="masonry">
     <!-- ===== WALL ===== -->
     <section class="panel wall-panel">
       <div class="panel-accent"></div>
@@ -956,7 +953,6 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="person-grid" id="personGrid"></div>
     </section>
 
-    <div class="col-side">
       <!-- ===== DONUT ===== -->
       <section class="panel">
         <div class="panel-accent"></div>
@@ -1015,11 +1011,8 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
         <div class="top-mode" id="topMode"></div>
         <div id="topRank"></div>
       </section>
-    </div>
-  </div>
 
-  <div class="grid-2">
-    <!-- ===== FALTAS ===== -->
+    <!-- ===== FALTAS / OCORRÊNCIAS ===== -->
     <section class="panel">
       <div class="panel-accent"></div>
       <div class="panel-head"><div class="panel-title"><i>⚠</i> Faltas / Ocorrências do mês</div><div class="panel-tag" id="faltasCount">0 —</div></div>
@@ -1034,8 +1027,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="panel-head" style="margin-top:14px; margin-bottom:8px;"><div class="panel-title"><i>◈</i> Folgas de hoje</div></div>
       <div class="list" id="folgasList"></div>
     </section>
-  </div>
-  <div class="grid-2" style="margin-top:14px;">
+
     <!-- ===== VOLUMETRIA DO DIA ===== -->
     <section class="panel" id="volPanel">
       <div class="panel-accent"></div>
@@ -1079,10 +1071,8 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
         <div class="disp-dots" id="dispDots"></div>
       </div>
     </section>
-  </div>
 
   <!-- ===== CALENDÁRIO DE FERIADOS (compacto; abre em modal) ===== -->
-  <div class="grid-2" id="rowCalExp" style="margin-top:14px;">
     <button class="panel panel-click calendar-mini" id="calOpen" type="button" aria-haspopup="dialog" aria-controls="holidayModal">
       <div class="panel-accent"></div>
       <div class="calendar-mini-inner">
