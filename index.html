@@ -185,7 +185,10 @@ html.only-wall footer.hud,
 html.only-wall .grid-fx,
 html.only-wall .orb,
 html.only-wall .kpis,
-html.only-wall .masonry > *:not(.wall-panel) { display: none !important; }
+html.only-wall main > *:not(.masonry),
+html.only-wall .masonry > *:not(.wall-panel),
+html.only-wall .mascot-float,
+html.only-wall .mascot-panel { display: none !important; }
 html.only-wall .masonry { columns: 1; margin-top: 8px; }
 html.only-wall .wall-back-only { display: inline-flex !important; }
 html.only-wall .wall-btn-back { display: inline-flex; }
