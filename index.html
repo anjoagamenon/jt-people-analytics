@@ -189,6 +189,7 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .side-stack .donut-wrap { gap: 12px; }
 .side-stack #donutSvg { width: 108px; height: 108px; }
 .side-stack .donut-legend { font-size: 9px; gap: 4px; }
+.list-row.bday-today { background: linear-gradient(120deg, rgba(246,196,69,.28), rgba(230,57,70,.18)); border-color: #f6c445; }
 .side-stack .top-tabs { gap: 4px; margin-bottom: 8px; }
 .side-stack #topRank { max-height: 210px; overflow-y: auto; }
 .side-stack .top-tab { font-size: 8.5px; padding: 5px 9px; }
@@ -213,11 +214,16 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .bottom-grid #topRank { max-height: 230px; overflow-y: auto; }
 .side-stack .h30-chart { height: 90px; }
 
-/* Donut da distribuição dentro do painel do Destaque */
-.news-donut-head { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-family: 'Rajdhani'; font-size: 7px; font-weight: 800; letter-spacing: 2px; color: var(--gray); }
-.news-donut { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
-.news-donut #donutSvg { width: 84px; height: 84px; }
-.live-news .donut-legend { font-size: 9px; gap: 4px; }
+/* Donut da distribuição dentro do painel do Destaque — como o mock */
+.live-news .news-donut-head { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: .5px; color: var(--ink); text-transform: uppercase; }
+.live-news .news-donut-head .ndh-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 4px rgba(230, 0, 0, .15); flex: 0 0 auto; }
+.live-news .news-donut-head .ndh-tag { margin-left: auto; font-family: 'Rajdhani', sans-serif; font-size: 7px; letter-spacing: 2.5px; color: var(--gray); border: 1px solid var(--line); background: var(--bg); padding: 4px 10px; border-radius: 6px; font-weight: 800; }
+.news-donut { display: flex; align-items: center; gap: 26px; margin-top: 8px; padding: 4px 8px 2px; justify-content: center; }
+.live-news .news-donut #donutSvg { width: 150px; height: 150px; flex: 0 0 auto; }
+.live-news .donut-legend { font-size: 13px; gap: 9px; }
+.live-news .legend-item { gap: 10px; }
+.live-news .legend-dot { width: 13px; height: 13px; border-radius: 4px; }
+.live-news .legend-item b { font-size: 17px; padding-left: 26px; }
 
 @media (max-width: 1100px) {
   .main-layout { grid-template-columns: minmax(0, 1.55fr) 340px; }
@@ -1056,7 +1062,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       <div class="news-title" id="newsTitle">Carregando destaque do dia…</div>
       <div class="news-meta"><span id="newsSource">Mundo Logística • destaque do momento</span><span class="news-cta">toque para ler ↗</span></div>
       <div class="news-dots" id="newsDots"></div>
-      <div class="news-donut-head"><span>DISTRIBUIÇÃO POR TURNO</span></div>
+      <div class="news-donut-head"><span class="ndh-dot"></span>Distribuição por turno<span class="ndh-tag">Headcount</span></div>
       <div class="news-donut" id="newsDonut">
         <svg id="donutSvg" width="108" height="108" viewBox="0 0 132 132"></svg>
         <div class="donut-legend" id="donutLegend"></div>
@@ -1271,7 +1277,8 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
 <!-- ===== ANIVERSÁRIOS + FOLGAS ===== -->
     <section class="panel">
           <div class="panel-accent"></div>
-          <div class="panel-head"><div class="panel-title"><i>★</i> Aniversariantes do mês</div><div class="panel-tag" id="bdayCount">0 —</div></div>
+          <div class="panel-head"><div class="panel-title"><i>🎂</i> Aniversariantes do mês</div><div class="panel-tag" id="bdayCount">0 —</div></div>
+      <div id="bdaySpotlight"></div>
           <div class="list" id="bdayList"></div>
           <div class="panel-head" style="margin-top:14px; margin-bottom:8px;"><div class="panel-title"><i>◈</i> Folgas de hoje</div></div>
           <div class="list" id="folgasList"></div>
@@ -1280,6 +1287,118 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     </div><!-- /bottom-grid -->
   </div><!-- /main-layout -->
 </main>
+
+
+<!-- ===== CARD DE ANIVERSÁRIO (tema festivo + compartilhamento) ===== -->
+<style>
+.bdspot { margin: 8px 0 10px; padding: 10px 12px; border-radius: 16px; position: relative; overflow: hidden;
+  background: linear-gradient(130deg, #7f1d1d 0%, #b91c1c 42%, #e63946 100%); border: 1.5px solid #f6c445;
+  box-shadow: 0 8px 22px rgba(185, 28, 28, .45); }
+.bdspot::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at 15% 20%, rgba(255,255,255,.35) 0 3px, transparent 4px), radial-gradient(circle at 80% 15%, rgba(246,196,69,.6) 0 2.5px, transparent 3.5px), radial-gradient(circle at 35% 80%, rgba(255,255,255,.28) 0 2px, transparent 3px), radial-gradient(circle at 65% 70%, rgba(246,196,69,.5) 0 2px, transparent 3px), radial-gradient(circle at 90% 75%, rgba(255,255,255,.3) 0 3px, transparent 4px), radial-gradient(circle at 55% 35%, rgba(255,255,255,.22) 0 2px, transparent 3px); }
+.bdspot-inner { display: flex; gap: 12px; align-items: center; position: relative; z-index: 1; }
+.bdspot .avatar, .bdspot .list-avatar { width: 66px !important; height: 66px !important; border: 3px solid #f6c445 !important; border-radius: 50% !important; box-shadow: 0 0 14px rgba(246, 196, 69, .75) !important; font-size: 18px; }
+.bdspot .initials { background: #fff; color: #b91c1c; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.bdspot-kicker { font-family: 'Rajdhani', sans-serif; font-size: 8px; letter-spacing: 2.5px; color: #fde68a; font-weight: 800; }
+.bdspot-name { font-family: 'Baloo 2', sans-serif; font-size: 15px; font-weight: 800; color: #ffffff; line-height: 1.15; text-shadow: 0 2px 6px rgba(0,0,0,.4); }
+.bdspot-meta { font-size: 9px; color: #fecaca; margin: 3px 0 7px; text-transform: uppercase; letter-spacing: .5px; }
+.bdspot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.bdspot-btn { display: inline-flex; align-items: center; gap: 5px; background: #22c55e; color: #052e16; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 9px; letter-spacing: .6px; padding: 6px 11px; border-radius: 99px; border: 0; cursor: pointer; text-transform: uppercase; box-shadow: 0 3px 10px rgba(0,0,0,.35); }
+.bdspot-btn:hover { filter: brightness(1.08); }
+.bdspot-btn.ghost { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.45); }
+
+.person.bday { border-color: #f6c445 !important; box-shadow: 0 0 0 2px #f6c445, 0 0 18px rgba(246, 196, 69, .6) !important; }
+.pbday { display: inline-block; margin-left: 3px; font-size: 12px; }
+
+.bcard-stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; max-height: 96vh; overflow-y: auto; padding: 16px 14px 18px; }
+.bcard { position: relative; width: min(84vw, 330px); aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden;
+  background: radial-gradient(130% 110% at 50% 0%, #fff9f2 0%, #ffe4d3 42%, #f4b8ae 100%);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 0 60px rgba(230, 57, 70, .18); font-family: 'Baloo 2', sans-serif; flex: 0 0 auto; }
+.bcard-bokeh { position: absolute; border-radius: 50%; filter: blur(2px); }
+.bcard-bokeh.k1 { width: 90px; height: 90px; left: 6%; top: 14%; background: radial-gradient(circle, rgba(255,255,255,.85), transparent 70%); }
+.bcard-bokeh.k2 { width: 60px; height: 60px; right: 8%; top: 12%; background: radial-gradient(circle, rgba(255,255,255,.8), transparent 70%); }
+.bcard-bokeh.k3 { width: 110px; height: 110px; right: 4%; top: 46%; background: radial-gradient(circle, rgba(255,205,190,.9), transparent 70%); }
+.bcard-bokeh.k4 { width: 70px; height: 70px; left: 8%; top: 62%; background: radial-gradient(circle, rgba(255,255,255,.7), transparent 70%); }
+.bcard-confetti { position: absolute; inset: 0;
+  background-image:
+    linear-gradient(35deg, transparent 46%, #f6c445 46% 54%, transparent 54%),
+    linear-gradient(-28deg, transparent 45%, #e63946 45% 55%, transparent 55%),
+    linear-gradient(105deg, transparent 46%, #ffffff 46% 54%, transparent 54%),
+    linear-gradient(-64deg, transparent 47%, #b91c1c 47% 53%, transparent 53%),
+    linear-gradient(12deg, transparent 46%, #ff8fa3 46% 54%, transparent 54%),
+    linear-gradient(74deg, transparent 47%, #ffb703 47% 53%, transparent 53%);
+  background-size: 34px 34px, 28px 28px, 40px 40px, 26px 26px, 32px 32px, 30px 30px;
+  background-position: 12% 8%, 78% 12%, 8% 40%, 88% 38%, 22% 75%, 68% 82%;
+  background-repeat: no-repeat; opacity: .85; }
+.bcard-balloon { position: absolute; font-size: 56px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); z-index: 1; }
+.bcard-balloon.clb { left: -10px; top: 34%; transform: rotate(-14deg); }
+.bcard-balloon.crb { right: -10px; top: 34%; transform: rotate(12deg) scaleX(-1); }
+.bcard-crown { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font-size: 38px; filter: drop-shadow(0 3px 3px rgba(0,0,0,.35)); z-index: 2; }
+.bcard-main { position: absolute; top: 34px; left: 0; right: 0; text-align: center; font-weight: 900; font-size: 52px; line-height: .95; color: #e63946; -webkit-text-stroke: 1.6px #ffffff; text-shadow: 0 3px 0 #8f0f1d, 0 6px 14px rgba(0,0,0,.4), 0 0 26px rgba(255,70,70,.55); z-index: 2; letter-spacing: 1px; }
+.bcard-sub { position: absolute; top: 92px; left: 0; right: 0; text-align: center; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; font-size: 19px; color: #211; z-index: 2; }
+.bcard-sub::after { content: ""; position: absolute; left: 22%; right: 22%; bottom: -5px; height: 3.5px; background: #e63946; border-radius: 99px; }
+.bcard-bless { position: absolute; left: 16px; top: 150px; width: 118px; font-family: Georgia, serif; font-style: italic; font-size: 8px; line-height: 1.35; color: #2b2b2b; text-align: center; z-index: 2; }
+.bcard-bless b { display: block; color: #d90429; font-size: 9.5px; }
+.bcard-quote { position: absolute; right: 10px; top: 158px; width: 106px; background: #fff; transform: rotate(-7deg); padding: 12px 8px 10px; border-radius: 4px; box-shadow: 0 6px 14px rgba(0,0,0,.28); text-align: center; font-family: 'Arial Black', sans-serif; font-size: 9px; line-height: 1.3; color: #111; z-index: 2; }
+.bcard-quote b { color: #d90429; }
+.bcard-quote .bq-heart { font-size: 14px; display: block; margin-bottom: 3px; }
+.bcard-photo { position: absolute; top: 118px; left: 50%; transform: translateX(-50%); width: 108px; height: 108px; border-radius: 50%; padding: 5px; background: linear-gradient(145deg, #ff8fa3, #c026d3 60%, #f6c445); box-shadow: 0 0 26px rgba(192, 38, 211, .75), inset 0 0 12px rgba(255,255,255,.6); z-index: 3; }
+.bcard-photo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+.bcard-photo .bcard-initials { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff; background: linear-gradient(145deg, #f8f8f8, #ffd9e0); color: #b91c1c; display: flex; align-items: center; justify-content: center; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 30px; }
+.bcard-plate { position: absolute; top: 240px; left: 50%; transform: translateX(-50%); background: #ffffff; border-radius: 14px; box-shadow: 0 8px 22px rgba(0,0,0,.28); padding: 8px 18px 9px; text-align: center; min-width: 190px; max-width: 250px; z-index: 3; }
+.bcard-name { font-family: 'Arial Black', sans-serif; font-size: 15px; line-height: 1.15; color: #101010; text-transform: uppercase; }
+.bcard-turno { display: inline-block; margin-top: 6px; background: linear-gradient(135deg, #d946ef, #c026d3 55%, #a21caf); color: #fff; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 9px; letter-spacing: 1.5px; padding: 4px 18px; border-radius: 99px; box-shadow: 0 4px 10px rgba(192, 38, 211, .55); }
+.bcard-cake { position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%); width: 150px; z-index: 2; filter: drop-shadow(0 6px 8px rgba(0,0,0,.3)); }
+.bcard-ribbon { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; z-index: 3;
+  background: linear-gradient(180deg, #ff3b3b 0%, #e63946 35%, #b3000f 100%); padding: 8px 10px 9px; box-shadow: 0 -4px 12px rgba(0,0,0,.25); }
+.bcard-ribbon .rb-1 { display: block; font-family: Georgia, serif; font-style: italic; font-weight: 700; font-size: 14px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.bcard-ribbon .rb-2 { display: block; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 10px; color: #ffe4b3; letter-spacing: 1px; margin-top: 2px; }
+
+.bcard-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; z-index: 1; }
+.bcard-btn { display: inline-flex; align-items: center; gap: 7px; border: 0; border-radius: 14px; padding: 12px 20px; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+.bcard-btn b { font-size: 16px; }
+.bcard-wa { background: linear-gradient(135deg, #25d366, #128c4a); color: #052e16; box-shadow: 0 8px 22px rgba(18, 140, 74, .45); }
+.bcard-wa:hover { filter: brightness(1.06); }
+.bcard-close { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); }
+.bcard-status { min-height: 18px; font-family: 'Rajdhani', sans-serif; font-size: 10px; color: #fde68a; text-align: center; letter-spacing: .5px; }
+</style>
+
+<div class="pmodal" id="birthdayModal" hidden>
+  <div class="pmodal-backdrop" data-bclose></div>
+  <div class="bcard-stage" role="dialog" aria-modal="true" aria-label="Card de aniversário">
+    <div class="bcard" id="bcard">
+      <div class="bcard-bokeh k1"></div><div class="bcard-bokeh k2"></div><div class="bcard-bokeh k3"></div><div class="bcard-bokeh k4"></div>
+      <div class="bcard-confetti"></div>
+      <div class="bcard-balloon clb">🎈</div>
+      <div class="bcard-balloon crb">🎈</div>
+      <div class="bcard-crown">👑</div>
+      <div class="bcard-main">PARABÉNS!</div>
+      <div class="bcard-sub">Feliz Aniversário!</div>
+      <div class="bcard-bless">Que Deus continue abençoando sua vida, realizando seus sonhos e concedendo muita <b>saúde, alegria e sucesso!</b></div>
+      <div class="bcard-quote"><span class="bq-heart">❤️</span>Você faz<br>a <b>diferença</b><br>em nossa<br>equipe!</div>
+      <div class="bcard-photo"><img id="bcardImg" alt="Foto do aniversariante" hidden><div class="bcard-initials" id="bcardInitials" hidden>KA</div></div>
+      <div class="bcard-plate"><div class="bcard-name" id="bcardName">—</div><span class="bcard-turno" id="bcardTurno">Turno 1</span></div>
+      <svg class="bcard-cake" viewBox="0 0 200 150" aria-hidden="true">
+        <ellipse cx="100" cy="141" rx="74" ry="5.5" fill="#e2e2e6"/>
+        <rect x="28" y="100" width="144" height="38" rx="10" fill="#fdf0d5" stroke="#e8d9b8" stroke-width="1"/>
+        <path d="M28 100 h144 v8 a12 8 0 0 1 -12 8 a10 7 0 0 1 -12 -4 a11 9 0 0 1 -12 5 a9 7 0 0 1 -11 -4 a12 9 0 0 1 -12 5 a10 8 0 0 1 -11 -5 a11 9 0 0 1 -12 4 a9 7 0 0 1 -11 -4 a12 8 0 0 1 -12 -4 z" fill="#6b3f1d"/>
+        <rect x="44" y="70" width="112" height="32" rx="9" fill="#fdf0d5" stroke="#e8d9b8" stroke-width="1"/>
+        <path d="M44 70 h112 v6 a10 6 0 0 1 -10 6 a9 6 0 0 1 -10 -3 a10 7 0 0 1 -10 4 a9 6 0 0 1 -9 -3 a10 7 0 0 1 -10 4 a9 6 0 0 1 -9 -3 a10 7 0 0 1 -10 4 a9 6 0 0 1 -9 -3 a10 6 0 0 1 -10 -4 z" fill="#7a4520"/>
+        <rect x="62" y="44" width="76" height="27" rx="8" fill="#fdf0d5" stroke="#e8d9b8" stroke-width="1"/>
+        <path d="M62 44 h76 v5 a9 6 0 0 1 -9 5 a8 6 0 0 1 -9 -3 a9 6 0 0 1 -9 4 a8 6 0 0 1 -8 -3 a9 6 0 0 1 -9 4 a8 6 0 0 1 -8 -3 a9 6 0 0 1 -8 -4 z" fill="#8a4f26"/>
+        <g stroke="#e63946" stroke-width="1.6"><line x1="84" y1="44" x2="84" y2="24"/><line x1="100" y1="44" x2="100" y2="24"/><line x1="116" y1="44" x2="116" y2="24"/></g>
+        <g fill="#f59e0b"><ellipse cx="84" cy="20" rx="2.6" ry="4"/><ellipse cx="100" cy="20" rx="2.6" ry="4"/><ellipse cx="116" cy="20" rx="2.6" ry="4"/></g>
+        <g fill="#e63946"><circle cx="72" cy="41" r="4"/><circle cx="128" cy="41" r="4"/><circle cx="100" cy="39" r="4"/></g>
+        <g fill="#fff"><circle cx="72" cy="40" r=".8"/><circle cx="74" cy="42" r=".8"/><circle cx="128" cy="40" r=".8"/><circle cx="126" cy="42" r=".8"/><circle cx="100" cy="38" r=".8"/><circle cx="102" cy="40" r=".8"/></g>
+      </svg>
+      <div class="bcard-ribbon"><span class="rb-1">Parabéns pelo seu dia!</span><span class="rb-2">Muitas felicidades sempre!</span></div>
+    </div>
+    <div class="bcard-status" id="bcardStatus"></div>
+    <div class="bcard-actions">
+      <button class="bcard-btn bcard-wa" id="bcardShare" type="button"><b>💬</b><span>Compartilhar no WhatsApp</span></button>
+      <button class="bcard-btn bcard-close" id="bcardClose" type="button">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ===== MODAL: PERFIL INDIVIDUAL ===== -->
 <div class="pmodal" id="personModal" hidden>
@@ -1612,11 +1731,12 @@ const renderWall = (d) => {
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base', numeric: true }));
   grid.innerHTML = list.map(c => {
     const fer = isOnVacation(c);
+    const isBday = isTodayBday(c);
     const obsMap = (d.settings && d.settings.observacoes) || {};
     const hasObs = !!(obsMap[strip(c.matricula)] && String(obsMap[strip(c.matricula)]).trim());
-    return '<div class="person' + (hasObs ? ' obs' : '') + '" data-turno="' + esc(c.turno || 'Turno 1') + '" data-mat="' + esc(c.matricula) + '" role="button" tabindex="0">'
+    return '<div class="person' + (hasObs ? ' obs' : '') + (isBday ? ' bday' : '') + '" data-turno="' + esc(c.turno || 'Turno 1') + '" data-mat="' + esc(c.matricula) + '" role="button" tabindex="0">'
       + avatarOf(c, 64)
-      + '<div class="pname">' + esc(c.name) + (fer ? '<span class="pfer">FÉRIAS</span>' : '') + (hasObs ? '<span class="pobs" title="Contém observações">📝</span>' : '') + '</div>'
+      + '<div class="pname">' + esc(c.name) + (isBday ? '<span class="pbday" title="Aniversário hoje!">🎂</span>' : '') + (fer ? '<span class="pfer">FÉRIAS</span>' : '') + (hasObs ? '<span class="pobs" title="Contém observações">📝</span>' : '') + '</div>'
       + '<div class="pfuncao">' + esc(abbrevFuncao(c.funcao || 'COLABORADOR')) + '</div>'
       + '<span class="ptag">' + esc(c.turno || 'Turno 1') + '</span>'
       + '</div>';
@@ -1843,17 +1963,27 @@ $('#experienceList').addEventListener('click', (ev) => {
   if (c) openPerson(c);
 });
 
+const isTodayBday = (c) => {
+  const m = String((c && c.nascimento) || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  return !!m && (m[2] + '-' + m[3]) === (pad2(new Date().getMonth() + 1) + '-' + pad2(new Date().getDate()));
+};
 const renderBirthdays = (d) => {
   const mm = pad2(new Date().getMonth() + 1);
   const list = d.colabs.filter(c => {
     const m = String(c.nascimento || '').match(/(\d{4})-(\d{2})-(\d{2})/);
     return m && m[2] === mm;
-  }).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base', numeric: true })).slice(0, 8);
-  $('#bdayCount').textContent = list.length + ' NESTA DATA';
+  }).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base', numeric: true }));
+  const todays = list.filter(c => {
+    const m = String(c.nascimento || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+    return m && (m[2] + '-' + m[3]) === (pad2(new Date().getMonth() + 1) + '-' + pad2(new Date().getDate()));
+  });
+  if (window.renderBirthdaySpotlight) window.renderBirthdaySpotlight(list);
+  $('#bdayCount').textContent = list.length + ' NESTA DATA' + (todays.length ? ' · ' + todays.length + ' HOJE' : '');
   $('#bdayList').innerHTML = list.length ? list.map(c => {
     const day = String(c.nascimento).slice(8, 10);
-    return '<div class="list-row">' + avatarOf(c, 40) +
-      '<div class="list-info"><div class="list-name">' + esc(c.name) + '</div><div class="list-meta">' + esc(abbrevFuncao(c.funcao || '')) + ' • ' + esc(c.turno || '') + '</div></div>' +
+    const todayRow = isTodayBday(c);
+    return '<div class="list-row' + (todayRow ? ' bday-today' : '') + '">' + avatarOf(c, 40) +
+      '<div class="list-info"><div class="list-name">' + (todayRow ? '🎂 ' : '') + esc(c.name) + '</div><div class="list-meta">' + esc(abbrevFuncao(c.funcao || '')) + ' • ' + esc(c.turno || '') + '</div></div>' +
       '<span class="list-badge amber">DIA ' + esc(day) + '</span></div>';
   }).join('') : '<div class="empty-note">Nenhum aniversário neste mês.</div>';
 };
@@ -2473,6 +2603,18 @@ const openPerson = (c) => {
   if (sb) sb.addEventListener('click', () => { shareFichaWithPhoto(c); });
   const rb = document.getElementById('pmReadBtn');
   if (rb) rb.addEventListener('click', () => { chime(); ttsSpeak(buildFichaText(c), voicePref(), null); });
+  // Ação especial: card de aniversário (só no dia)
+  try {
+    if (isTodayBday(c) && typeof openBirthdayCard === 'function') {
+      const bdayBtn = document.createElement('button');
+      bdayBtn.type = 'button';
+      bdayBtn.className = 'pm-btn wa';
+      bdayBtn.style.cssText = 'grid-column:1 / -1; background:linear-gradient(135deg,#e63946,#b3000f); color:#fff;';
+      bdayBtn.innerHTML = '<b>🎉</b><span>Card de aniversário — enviar no WhatsApp</span>';
+      bdayBtn.addEventListener('click', () => { bdayBtn.disabled = true; openBirthdayCard(c); bdayBtn.disabled = false; });
+      $('#pmActions').appendChild(bdayBtn);
+    }
+  } catch (e) { console.error('pm bday', e); }
 
   // Indicadores (últimos 6 meses)
   const inds = (d.indicators || []).filter(i => strip(i.matricula) === matK)
@@ -3651,5 +3793,344 @@ $('#bcSend').addEventListener('click', async () => {
   }
 });
 </script>
+
+<!-- ===== SCRIPT: CARD DE ANIVERSÁRIO ===== -->
+<script>
+(function () {
+  'use strict';
+  const $bd = (sel) => document.querySelector(sel);
+  const slug = (t) => String(t || 'aniversario').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'aniversario';
+  const isBirthdayToday = (c) => {
+    const m = String((c && c.nascimento) || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return false;
+    const now = new Date();
+    return (m[2] + '-' + m[3]) === (String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0'));
+  };
+  const turnoOf = (c) => (c && c.turno) || 'Turno 1';
+  let currentBirthday = null;
+
+  const openBirthdayCard = (c) => {
+    if (!c) return;
+    currentBirthday = c;
+    const nameEl = $bd('#bcardName'); if (nameEl) nameEl.textContent = String(c.name || '—').toUpperCase();
+    const turnoEl = $bd('#bcardTurno'); if (turnoEl) turnoEl.textContent = turnoOf(c);
+    const img = $bd('#bcardImg'); const ini = $bd('#bcardInitials'); const st = $bd('#bcardStatus');
+    if (st) st.textContent = '';
+    const src = avatarSrc(c);
+    if (img && ini) {
+      if (src) {
+        img.hidden = true; ini.hidden = true;
+        img.onload = () => { img.hidden = false; ini.hidden = true; };
+        img.onerror = () => { img.hidden = true; ini.hidden = false; ini.textContent = iniciais(c.name); };
+        img.src = src;
+      } else {
+        img.removeAttribute('src'); img.hidden = true; ini.hidden = false; ini.textContent = iniciais(c.name);
+      }
+    }
+    const modal = $bd('#birthdayModal');
+    if (modal) { modal.hidden = false; document.body.style.overflow = 'hidden'; }
+  };
+  const closeBirthdayCard = () => {
+    const modal = $bd('#birthdayModal');
+    if (modal) modal.hidden = true;
+    document.body.style.overflow = '';
+  };
+  window.openBirthdayCard = openBirthdayCard;
+
+  // ---------- Canvas: renderiza o card inteiro (1080×1350) ----------
+  const loadCanvasPhoto = (src) => new Promise((resolve) => {
+    if (!src) return resolve(null);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    const done = (v) => resolve(v);
+    img.onload = () => done(img);
+    img.onerror = () => done(null);
+    img.src = src;
+  });
+  const rr = (ctx, x, y, w, h, r) => {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+  const heart = (ctx, x, y, s) => {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.beginPath();
+    ctx.moveTo(0, 0.35);
+    ctx.bezierCurveTo(-1.1, -0.45, -0.55, -1.15, 0, -0.65);
+    ctx.bezierCurveTo(0.55, -1.15, 1.1, -0.45, 0, 0.35);
+    ctx.closePath();
+    ctx.fillStyle = '#ef233c'; ctx.fill();
+    ctx.restore();
+  };
+  const mulberry = (seed) => { let t = seed >>> 0 || 1; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; };
+
+  const drawCard = async (c) => {
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080; canvas.height = 1350;
+    const ctx = canvas.getContext('2d');
+
+    // fundo: creme/rosado radial
+    const bg = ctx.createRadialGradient(540, 0, 60, 540, 700, 1100);
+    bg.addColorStop(0, '#fffaf4'); bg.addColorStop(0.42, '#ffe4d3'); bg.addColorStop(1, '#f0a89d');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1350);
+
+    // bokeh
+    const bokeh = [[130, 210, 95], [955, 185, 70], [1015, 640, 120], [95, 830, 78], [520, 60, 60], [330, 1180, 70], [770, 1120, 90]];
+    bokeh.forEach(([x, y, r], i) => {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, 'rgba(255,255,255,' + (i % 2 ? 0.75 : 0.5) + ')'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // confetes
+    const rnd = mulberry(20261119);
+    const cols = ['#f6c445', '#e63946', '#b91c1c', '#ffffff', '#ff8fa3', '#ffb703'];
+    for (let i = 0; i < 110; i++) {
+      const x = rnd() * 1080, y = rnd() * 1350, w = 8 + rnd() * 22, h = 4 + rnd() * 8, rot = rnd() * Math.PI;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+      ctx.fillStyle = cols[Math.floor(rnd() * cols.length)];
+      ctx.globalAlpha = 0.85;
+      ctx.fillRect(-w / 2, -h / 2, w, h);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+
+    // balões
+    const balloon = (x, y, flip) => {
+      ctx.save(); ctx.translate(x, y); ctx.scale(flip ? -1 : 1, 1); ctx.rotate(flip ? 0.22 : -0.22);
+      const g = ctx.createRadialGradient(-18, -18, 4, 0, 0, 78);
+      g.addColorStop(0, '#ff6b6b'); g.addColorStop(1, '#c81e3a');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, 58, 68, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#c81e3a'; ctx.beginPath(); ctx.moveTo(-8, 66); ctx.lineTo(8, 66); ctx.lineTo(0, 78); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#fff2'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 78); ctx.quadraticCurveTo(14, 118, -6, 158); ctx.stroke();
+      // patinha simples no balão
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.beginPath(); ctx.ellipse(0, 12, 13, 11, 0, 0, Math.PI * 2); ctx.fill();
+      [[-9, -6], [0, -9], [9, -6]].forEach(([px, py]) => { ctx.beginPath(); ctx.ellipse(px, py, 4.5, 4, 0, 0, Math.PI * 2); ctx.fill(); });
+      ctx.restore();
+    };
+    balloon(95, 470, false); balloon(985, 470, true);
+
+    // coroa
+    ctx.font = '86px Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('👑', 540, 96);
+
+    // "Parabéns!" — vermelho com contorno branco (efeito balão)
+    ctx.font = '900 148px "Baloo 2", "Arial Black", sans-serif';
+    ctx.lineJoin = 'round'; ctx.lineWidth = 22; ctx.strokeStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 8;
+    ctx.strokeText('PARABÉNS!', 540, 268);
+    const pg = ctx.createLinearGradient(0, 140, 0, 280);
+    pg.addColorStop(0, '#ff5a5a'); pg.addColorStop(0.5, '#e63946'); pg.addColorStop(1, '#b3000f');
+    ctx.fillStyle = pg; ctx.fillText('PARABÉNS!', 540, 268);
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+    // "Feliz Aniversário!"
+    ctx.font = 'italic 700 76px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = '#211'; ctx.fillText('Feliz Aniversário!', 540, 372);
+    ctx.strokeStyle = '#e63946'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(330, 392); ctx.lineTo(750, 392); ctx.stroke();
+
+    // bênção à esquerda
+    ctx.font = 'italic 30px Georgia, serif'; ctx.fillStyle = '#2b2b2b';
+    const bless = [['Que Deus', false], ['continue abençoando', false], ['sua vida, realizando', false], ['seus sonhos e', false], ['concedendo muita', false], ['saúde, alegria e', true], ['sucesso!', true]];
+    let by = 548;
+    bless.forEach(([t, red]) => {
+      ctx.font = red ? 'italic 700 34px Georgia, serif' : 'italic 30px Georgia, serif';
+      ctx.fillStyle = red ? '#d90429' : '#2b2b2b';
+      ctx.fillText(t, 182, by); by += 47;
+    });
+
+    // citação em papel à direita
+    ctx.save();
+    ctx.translate(880, 668); ctx.rotate(-0.12);
+    ctx.fillStyle = '#ffffff'; ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
+    rr(ctx, -118, -128, 236, 256, 10); ctx.fill();
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    heart(ctx, 0, -84, 20);
+    ctx.font = '900 26px "Arial Black", sans-serif'; ctx.fillStyle = '#111';
+    ctx.fillText('Você faz', 0, -34);
+    ctx.fillStyle = '#d90429'; ctx.fillText('a diferença', 0, 2);
+    ctx.fillStyle = '#111'; ctx.fillText('em nossa', 0, 38); ctx.fillText('equipe!', 0, 74);
+    ctx.restore();
+
+    // foto em círculo com anel dourado/magenta
+    const photo = await loadCanvasPhoto(avatarSrc(c));
+    ctx.save();
+    ctx.beginPath(); ctx.arc(540, 660, 118, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    const ring = ctx.createLinearGradient(422, 542, 658, 778);
+    ring.addColorStop(0, '#ff8fa3'); ring.addColorStop(0.5, '#c026d3'); ring.addColorStop(1, '#f6c445');
+    ctx.lineWidth = 14; ctx.strokeStyle = ring; ctx.shadowColor = 'rgba(192,38,211,.65)'; ctx.shadowBlur = 30; ctx.stroke();
+    ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(540, 660, 104, 0, Math.PI * 2); ctx.clip();
+    if (photo) {
+      const s2 = Math.max(208 / photo.width, 208 / photo.height);
+      ctx.drawImage(photo, 540 - (photo.width * s2) / 2, 660 - (photo.height * s2) / 2, photo.width * s2, photo.height * s2);
+    } else {
+      const ig = ctx.createLinearGradient(436, 556, 644, 764);
+      ig.addColorStop(0, '#fdfdfd'); ig.addColorStop(1, '#ffd9e0');
+      ctx.fillStyle = ig; ctx.fillRect(430, 550, 220, 220);
+      ctx.font = '900 74px "Baloo 2", sans-serif'; ctx.fillStyle = '#b91c1c';
+      ctx.fillText(iniciais(c.name), 540, 690);
+    }
+    ctx.restore();
+
+    // nome no cartão de papel
+    const name = String(c.name || '—').toUpperCase();
+    let size = 44; ctx.font = '900 ' + size + 'px "Arial Black", sans-serif';
+    const fit = () => ctx.measureText(name).width;
+    while (fit() > 430 && size > 24) { size -= 2; ctx.font = '900 ' + size + 'px "Arial Black", sans-serif'; }
+    ctx.fillStyle = '#ffffff'; ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6;
+    rr(ctx, 540 - 300, 812, 600, 96, 18); ctx.fill();
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    ctx.fillStyle = '#101010';
+    ctx.fillText(name, 540, 872);
+
+    // pilula do turno
+    const tg = ctx.createLinearGradient(400, 0, 680, 0);
+    tg.addColorStop(0, '#d946ef'); tg.addColorStop(0.55, '#c026d3'); tg.addColorStop(1, '#a21caf');
+    ctx.fillStyle = tg; ctx.shadowColor = 'rgba(192,38,211,.55)'; ctx.shadowBlur = 14;
+    rr(ctx, 540 - 145, 928, 290, 54, 27); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.font = '800 27px "Baloo 2", sans-serif'; ctx.fillStyle = '#ffffff';
+    ctx.fillText(String(turnoOf(c)).toUpperCase(), 540, 964);
+
+    // bolo
+    const cakeX = 540, cakeY = 1130;
+    ctx.fillStyle = '#dcdce0'; ctx.beginPath(); ctx.ellipse(cakeX, cakeY + 78, 190, 14, 0, 0, Math.PI * 2); ctx.fill();
+    const layer = (w, h, y, cream) => {
+      ctx.fillStyle = cream || '#fdf0d5'; rr(ctx, cakeX - w / 2, y, w, h, 18); ctx.fill();
+      ctx.strokeStyle = '#e8d9b8'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#6b3f1d'; rr(ctx, cakeX - w / 2, y, w, 16, 9); ctx.fill();
+      ctx.fillStyle = '#5a3315';
+      const n = Math.floor(w / 46);
+      for (let i = 0; i <= n; i++) { const x = cakeX - w / 2 + 23 + i * 46; ctx.beginPath(); ctx.arc(x, y + 22, 12, 0, Math.PI); ctx.fill(); }
+    };
+    layer(420, 88, cakeY - 10, '#fdf0d5');
+    layer(290, 66, cakeY - 74, '#fdf0d5');
+    layer(170, 54, cakeY - 126, '#fdf0d5');
+    // velas
+    const candleX = [cakeX - 44, cakeX, cakeX + 44];
+    candleX.forEach((x) => {
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 7, cakeY - 172, 14, 48);
+      ctx.fillStyle = '#e63946';
+      ctx.fillRect(x - 7, cakeY - 162, 14, 9); ctx.fillRect(x - 7, cakeY - 140, 14, 9);
+      const fg = ctx.createRadialGradient(x, cakeY - 186, 1, x, cakeY - 186, 16);
+      fg.addColorStop(0, '#fff7ae'); fg.addColorStop(0.55, '#f59e0b'); fg.addColorStop(1, 'rgba(245,158,11,0)');
+      ctx.fillStyle = fg; ctx.beginPath(); ctx.ellipse(x, cakeY - 186, 13, 18, 0, 0, Math.PI * 2); ctx.fill();
+    });
+    // morangos sobre a última camada
+    [[cakeX - 56], [cakeX + 56], [cakeX]].forEach(([x]) => {
+      ctx.fillStyle = '#e63946'; ctx.beginPath(); ctx.arc(x, cakeY - 130, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      [[-4, -3], [4, -3], [0, 3]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(x + dx, cakeY - 130 + dy, 1.5, 0, Math.PI * 2); ctx.fill(); });
+    });
+
+    // faixa vermelha inferior
+    const rib = ctx.createLinearGradient(0, 1240, 0, 1350);
+    rib.addColorStop(0, '#ff3b3b'); rib.addColorStop(0.35, '#e63946'); rib.addColorStop(1, '#b3000f');
+    ctx.fillStyle = rib; ctx.fillRect(0, 1246, 1080, 104);
+    ctx.font = 'italic 700 42px Georgia, serif'; ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+    ctx.fillText('Parabéns pelo seu dia!', 540, 1296);
+    ctx.font = '800 20px "Baloo 2", sans-serif'; ctx.fillStyle = '#ffe4b3';
+    ctx.fillText('MUITAS FELICIDADES SEMPRE!', 540, 1332);
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+    return canvas;
+  };
+
+  const shareBirthdayCard = async (c) => {
+    if (!c) return;
+    const btn = $bd('#bcardShare'); const status = $bd('#bcardStatus');
+    const setStatus = (t) => { if (status) status.textContent = t || ''; };
+    try {
+      if (btn) { btn.disabled = true; btn.dataset.prev = btn.innerHTML; btn.innerHTML = '<b>⏳</b><span>Preparando o card…</span>'; }
+      setStatus('Montando a arte do card…');
+      const canvas = await drawCard(c);
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      if (!blob) throw new Error('Falha ao gerar a imagem do card.');
+      const file = new File([blob], 'aniversario-' + slug(c.name) + '.png', { type: 'image/png' });
+      const text = '🎉 Parabéns pelo seu dia, ' + String(c.name || '') + '! 🎂❤️';
+      let shared = false;
+      try {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Feliz aniversário!', text });
+          shared = true;
+        }
+      } catch (shareErr) {
+        if (shareErr && shareErr.name === 'AbortError') { setStatus(''); return; }
+        shared = false;
+      }
+      if (!shared) {
+        // Fallback (desktop): baixa a arte e abre a conversa com a legenda
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = file.name; a.rel = 'noopener';
+        document.body.appendChild(a); a.click(); a.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 6000);
+        window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+        setStatus('Imagem baixada — anexe na conversa do WhatsApp que abriu.');
+      } else {
+        setStatus('Card compartilhado! 🎈');
+      }
+    } catch (err) {
+      console.error('birthday card share', err);
+      setStatus('Não consegui gerar o card agora. Tente novamente.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.prev || '<b>💬</b><span>Compartilhar no WhatsApp</span>'; }
+    }
+  };
+
+  // ---------- ligações ----------
+  const bind = () => {
+    const modal = $bd('#birthdayModal');
+    if (modal) {
+      modal.addEventListener('click', (ev) => { if (ev.target.matches('[data-bclose]')) closeBirthdayCard(); });
+      document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && modal && !modal.hidden) closeBirthdayCard(); });
+      const closeBtn = $bd('#bcardClose'); if (closeBtn) closeBtn.addEventListener('click', closeBirthdayCard);
+      const shareBtn = $bd('#bcardShare'); if (shareBtn) shareBtn.addEventListener('click', () => shareBirthdayCard(currentBirthday));
+    }
+    const spot = $bd('#bdaySpotlight');
+    if (spot && !spot.dataset.bound) {
+      spot.dataset.bound = '1';
+      spot.addEventListener('click', (ev) => {
+        const view = ev.target.closest('[data-bview]');
+        const share = ev.target.closest('[data-bshare]');
+        if (!view && !share) return;
+        const mat = strip((view || share).getAttribute(view ? 'data-bview' : 'data-bshare'));
+        const c = ((typeof LAST !== 'undefined' && LAST && LAST.colabs) || []).find((cc) => strip(cc.matricula) === mat);
+        if (view) openBirthdayCard(c); else shareBirthdayCard(c);
+      });
+    }
+  };
+  bind();
+
+  // Spotlight de hoje — injetado pelo renderBirthdays via hook
+  window.renderBirthdaySpotlight = (list) => {
+    const spot = $bd('#bdaySpotlight');
+    if (!spot) return;
+    const todays = (list || []).filter(isBirthdayToday);
+    spot.innerHTML = todays.map((c) =>
+      '<div class="bdspot"><div class="bdspot-inner">'
+      + avatarOf(c, 66)
+      + '<div class="bdspot-info"><div class="bdspot-kicker">🎂 ANIVERSÁRIO HOJE</div>'
+      + '<div class="bdspot-name">' + esc(c.name) + '</div>'
+      + '<div class="bdspot-meta">' + esc(abbrevFuncao(c.funcao || '')) + ' • ' + esc(turnoOf(c)) + '</div>'
+      + '<div class="bdspot-actions">'
+      + '<button type="button" class="bdspot-btn" data-bshare="' + esc(c.matricula) + '">💬 WhatsApp</button>'
+      + '<button type="button" class="bdspot-btn ghost" data-bview="' + esc(c.matricula) + '">Ver card</button>'
+      + '</div></div></div></div>'
+    ).join('');
+  };
+})();
+</script>
+
 </body>
 </html>
