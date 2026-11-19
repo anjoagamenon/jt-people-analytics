@@ -172,8 +172,8 @@ main { padding: 14px 22px 24px; max-width: 1680px; margin: 0 auto; }
 .chip.t2.active { background: #c026d3; border-color: #c026d3; box-shadow: 0 0 12px rgba(192,38,211,0.4); }
 .chip.quali.active { background: #059669; border-color: #059669; box-shadow: 0 0 12px rgba(5,150,105,0.4); }
 .chip.adm.active { background: #b45309; border-color: #b45309; box-shadow: 0 0 12px rgba(180,83,9,0.4); }
-.wall-panel { display: flex; flex-direction: column; }
-.person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; flex: 1 1 auto; align-content: space-evenly; grid-auto-rows: minmax(112px, max-content); overflow-y: auto; padding-right: 4px; }
+.wall-panel { align-self: start; }
+.person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: start; grid-auto-rows: minmax(112px, max-content); padding-right: 4px; }
 .col-side > .panel:nth-child(2), .col-side > .panel:nth-child(3) { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-evenly; }
 .person-grid::-webkit-scrollbar, .list::-webkit-scrollbar { width: 7px; }
 .person-grid::-webkit-scrollbar-thumb, .list::-webkit-scrollbar-thumb { background: rgba(230,0,0,0.25); border-radius: 4px; }
@@ -1367,6 +1367,10 @@ const playIntro = () => {
     window.clearTimeout(introTimer);
     window.removeEventListener('keydown', onKeySkip, true);
     window.setTimeout(() => { overlay.hidden = true; try { video.pause(); video.currentTime = 0; } catch (_) {} }, 500);
+    // Painel abriu: leitura do resumo do dia na voz padrão escolhida
+    if (speakEnabled()) {
+      window.setTimeout(() => { try { speakSummary(LAST); } catch (e) { console.error('speak', e); } }, 700);
+    }
   };
   const onKeySkip = (ev) => {
     if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); finish(); }
@@ -2413,7 +2417,17 @@ const exec = (cbName) => {
   s.onerror = () => { try { s.remove(); } catch {} };
   document.body.appendChild(s);
 };
-window.__dashOnData = function (data) { try { renderAll(data || { colabs: [], attendance: [], occurrences: [], indicators: [], folgas: [], epis: [], settings: {} }); } catch (e) { console.error('render', e); } };
+window.__dashOnData = function (data) { try {
+  renderAll(data || { colabs: [], attendance: [], occurrences: [], indicators: [], folgas: [], epis: [], settings: {} });
+  // Fala o resumo do dia na primeira leva de dados da sessão (voz padrão escolhida)
+  if (!window.__autoSummaryPlayed) {
+    window.__autoSummaryPlayed = true;
+    const introShowing = (() => { const o = document.getElementById('introOverlay'); return o && !o.hidden; })();
+    if (!introShowing) {
+      window.setTimeout(() => { try { if (speakEnabled()) speakSummary(LAST); } catch (e) { console.error('speak', e); } }, 1500);
+    }
+  }
+} catch (e) { console.error('render', e); } };
 // Resposta da ação IMPROVE_TEXT chega por JSONP — substitui o conteúdo da caixa de texto
 window.__improveCb_ = function (result) {
   try {
@@ -2576,6 +2590,19 @@ const buildSummaryText = (d) => {
   else if (tmrHoliday) parts.push('Atenção, amanhã é feriado nacional: ' + tmrHoliday.name + '.');
   parts.push('Hoje temos ' + ativos + ' colaboradores no efetivo.');
   parts.push(presentes + ' presentes hoje.');
+  // Dólar do dia
+  const dlr = window.__lastDolar;
+  if (dlr && Number.isFinite(dlr.bid)) {
+    parts.push('O dólar hoje está em ' + dlr.bid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' reais.');
+  }
+  // Clima e previsão do tempo de hoje (Marabá)
+  const w = window.__lastWeather;
+  if (w) {
+    if (w.temp != null) parts.push('Em Marabá agora fazem ' + w.temp + ' graus' + (w.max != null && w.min != null ? ', com máxima de ' + w.max + ' graus e mínima de ' + w.min + ' graus.' : '.'));
+    if (w.raining) parts.push('Está chovendo agora' + (w.strong ? ', com chuva forte' : '') + (w.rainChance != null ? ', com ' + w.rainChance + '% de chance de chuva no dia.' : '.'));
+    else if (w.rainChance != null && w.rainChance >= 40) parts.push('Há ' + w.rainChance + '% de chance de chuva hoje.');
+    else parts.push('Sem previsão de chuva hoje.');
+  }
   if (aniver.length) parts.push('Aniversariantes de hoje: ' + aniver.map(c => c.name).join(', ') + '.');
   else parts.push('Nenhum aniversariante hoje.');
   if (folgas.length) parts.push('Folgas de hoje: ' + folgas.map(f => f.colabName || f.matricula).join(', ') + '.');
@@ -3113,6 +3140,14 @@ const loadWeather = async () => {
       chipEl.textContent = 'SEM CHUVA' + (rainChance != null ? ' (' + (100 - rainChance) + '% sol)' : '');
       chipEl.className = 'weather-chip dry';
     }
+    window.__lastWeather = {
+      temp: temp != null ? Math.round(temp) : null,
+      max: max != null ? Math.round(max) : null,
+      min: min != null ? Math.round(min) : null,
+      rainChance: rainChance != null ? rainChance : null,
+      raining,
+      strong
+    };
   } catch {
     chipEl.textContent = 'CLIMA INDISPONÍVEL';
     chipEl.className = 'weather-chip offline';
@@ -3141,6 +3176,7 @@ const loadDollar = async () => {
     const hi = Number.isFinite(high) ? high.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--,--';
     changeEl.textContent = arrow + ' ' + pctAbs + '% • mín ' + lo + ' / máx ' + hi;
     changeEl.className = 'dollar-change ' + (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat');
+    window.__lastDolar = { bid, pctChange: pct };
   } catch {
     changeEl.textContent = 'DÓLAR INDISPONÍVEL';
     changeEl.className = 'dollar-change flat';
