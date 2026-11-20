@@ -1213,6 +1213,12 @@
     const btn = $('#btnAudioFile');
     if (btn) btn.disabled = true;
     try {
+      if (/\.github\.io$/i.test(location.hostname) && 'speechSynthesis' in window) {
+        const lang0 = data.acessibilidade.idioma;
+        falar(lang0 === 'zh-CN' ? reportTextZH() : reportTextPT(), lang0 === 'ambos' ? 'pt-BR' : (lang0 === 'zh-CN' ? 'zh-CN' : 'pt-BR'));
+        vstatus(' Narrando com a voz do navegador (hospedagem sem proxy de áudio).');
+        return;
+      }
       const lang = data.acessibilidade.idioma;
       const lista = lang === 'ambos'
         ? [['pt-BR', reportTextPT()], ['zh-CN', reportTextZH()]]
