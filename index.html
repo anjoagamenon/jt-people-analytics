@@ -1013,6 +1013,36 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
   .hud-logo { height: 30px; }
 }
 </style>
+
+<style>
+/* ===== RELATÓRIO MESTRE — integração People Analytics ===== */
+.rm-panel{grid-column:1/-1;position:relative}
+.rm-panel .rm-topline{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin:6px 0 10px}
+.rm-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(116px,1fr));gap:8px;flex:1;min-width:260px}
+.rm-kpi{background:linear-gradient(135deg,rgba(230,0,0,.08),rgba(230,0,0,.02));border:1px solid var(--line-red);border-radius:12px;padding:8px 10px}
+.rm-kpi b{display:block;font-family:'Baloo 2',sans-serif;font-size:19px;line-height:1.05;color:var(--red)}
+.rm-kpi span{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--gray);font-weight:700}
+.rm-kpi small{display:block;font-size:9px;color:var(--gray);margin-top:2px}
+.rm-actions{display:flex;gap:6px;flex-wrap:wrap}
+.rm-btn{border:1px solid var(--red);background:var(--red);color:#fff;border-radius:8px;padding:7px 10px;font:700 12px 'Rajdhani',sans-serif;letter-spacing:.4px;cursor:pointer}
+.rm-btn.ghost{background:transparent;color:var(--red)}
+.rm-btn:hover{filter:brightness(.92)}
+.rm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.rm-card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:rgba(127,127,127,.04)}
+.rm-card h4{margin:0 0 8px;font:700 11px 'Rajdhani',sans-serif;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink)}
+.rm-bar{margin-bottom:7px}
+.rm-bar-top{display:flex;justify-content:space-between;gap:8px;font:600 11px 'Rajdhani',sans-serif;color:var(--ink)}
+.rm-bar-top b{color:var(--red)}
+.rm-track{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:3px}
+.rm-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red-dark),var(--red));transition:width .6s ease}
+.rm-fill.gold{background:linear-gradient(90deg,#b8860b,#ffc000)}
+.rm-insights{margin:0;padding-left:16px;font:500 12px/1.5 'Rajdhani',sans-serif;color:var(--ink)}
+.rm-insights li{margin-bottom:4px}
+.rm-os{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;font:500 12px 'Rajdhani',sans-serif;color:var(--ink)}
+.rm-os b{color:var(--red)}
+.rm-foot{margin-top:8px;font:500 10px 'Rajdhani',sans-serif;color:var(--gray);letter-spacing:.4px}
+[data-theme="dark"] .rm-kpi,[data-theme="dark"] .rm-card{background:rgba(230,0,0,.06);border-color:rgba(230,0,0,.3)}
+</style>
 </head>
 <body>
 <div class="offline-banner" id="offlineBanner" role="status" aria-live="polite"></div>
@@ -1311,7 +1341,29 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
           <div class="list" id="folgasList"></div>
         </section>
 
-    </div><!-- /bottom-grid -->
+    
+    <!-- ===== RELATÓRIO MESTRE (integração) ===== -->
+    <section class="panel rm-panel" id="rmPanel">
+      <div class="panel-accent"></div>
+      <div class="panel-head"><div class="panel-title"><i>📋</i> Relatório Mestre — Operação do SC</div><div class="panel-tag" id="rmTag">—</div></div>
+      <div class="rm-topline">
+        <div class="rm-kpis" id="rmKpis"></div>
+        <div class="rm-actions">
+          <button class="rm-btn" id="rmOpenBtn" type="button">📄 Relatório completo ↗</button>
+          <button class="rm-btn ghost" id="rmRefreshBtn" type="button">⟳ Atualizar</button>
+        </div>
+      </div>
+      <div class="rm-grid">
+        <div class="rm-card"><h4>Eficiência operacional</h4><div id="rmEffChart"></div></div>
+        <div class="rm-card"><h4>Turnos — efetivo</h4><div id="rmTurnosChart"></div></div>
+        <div class="rm-card"><h4>Pedidos com problemas</h4><div id="rmProbChart"></div></div>
+        <div class="rm-card"><h4>Insights inteligentes</h4><ul class="rm-insights" id="rmInsights"></ul></div>
+      </div>
+      <div class="rm-os" id="rmOS"></div>
+      <div class="rm-foot" id="rmFoot">Fonte: Relatório Mestre · carregando…</div>
+    </section>
+
+</div><!-- /bottom-grid -->
   </div><!-- /main-layout -->
 </main>
 
@@ -4208,5 +4260,92 @@ $('#bcSend').addEventListener('click', async () => {
 })();
 </script>
 
+
+<script>
+/* ===== RELATÓRIO MESTRE — dashboard interativo ===== */
+(function () {
+  var RM_URL = 'data/relatorio-mestre.json';
+  var n = function (v) { return Number(v || 0); };
+  var fmt = function (v) { return n(v).toLocaleString('pt-BR'); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); };
+  function bar(host, label, value, max, gold) {
+    var pct = max > 0 ? Math.max(0, Math.min(100, (n(value) / max) * 100)) : 0;
+    return '<div class="rm-bar"><div class="rm-bar-top"><span>' + esc(label) + '</span><b>' + fmt(value) + '</b></div>' +
+      '<div class="rm-track"><div class="rm-fill' + (gold ? ' gold' : '') + '" style="width:' + pct.toFixed(1) + '%"></div></div></div>';
+  }
+  function kpi(label, value, foot) {
+    return '<div class="rm-kpi"><b>' + esc(value) + '</b><span>' + esc(label) + '</span>' + (foot ? '<small>' + esc(foot) + '</small>' : '') + '</div>';
+  }
+  function insights(d) {
+    var e = d.eficiencia || {}, p = d.problemas || {}, out = [];
+    var totalProb = n(p.naoChegou) + n(p.avaria) + n(p.triagem);
+    var taxa = n(e.processada) > 0 ? (totalProb / n(e.processada)) * 100 : 0;
+    var prod = n(e.produtividade);
+    if (prod >= 900) out.push('⭐ Produtividade alta: <b>' + fmt(prod.toFixed(1)) + '</b> pedidos/HC acima da meta de 900.');
+    else if (prod > 0) out.push('⚠ Produtividade de <b>' + fmt(prod.toFixed(1)) + '</b> pedidos/HC — abaixo da meta de 900.');
+    if (taxa > 0 && taxa < 2) out.push('✅ Ocorrências sob controle: <b>' + taxa.toFixed(2) + '%</b> do processado.');
+    else if (taxa >= 2) out.push('🚨 Atenção: <b>' + taxa.toFixed(2) + '%</b> dos pedidos com problema (' + fmt(totalProb) + ').');
+    var vazios = (d.turnos || []).filter(function (t) { return !t.nome || !n(t.clt); });
+    if (vazios.length) out.push('ℹ ' + vazios.length + ' turno(s) sem efetivo informado no relatório.');
+    if (n(e.veiculos) > 0) out.push('🚚 <b>' + fmt(e.veiculos) + '</b> veículos expedidos no dia.');
+    out.push('📦 Transferência de <b>' + fmt(e.transferencia) + '</b> representa ' +
+      (n(e.recebida) + n(e.expedida) > 0 ? ((n(e.transferencia) / (n(e.recebida) + n(e.expedida))) * 100).toFixed(1) : '0') + '% entre recebido e expedido.');
+    return out;
+  }
+  function render(d) {
+    var e = d.eficiencia || {}, p = d.problemas || {};
+    var el = function (id) { return document.getElementById(id); };
+    if (!el('rmPanel')) return;
+    el('rmTag').textContent = (d.centro || 'SC') + ' · ' + (d.dataRelatorio || '—').split('-').reverse().join('/');
+    var clt = (d.turnos || []).reduce(function (a, t) { return a + n(t.clt); }, 0);
+    el('rmKpis').innerHTML =
+      kpi('CLT em campo', fmt(clt), 'total dos turnos') +
+      kpi('Transferência', fmt(e.transferencia), 'volume de carga') +
+      kpi('Processada', fmt(e.processada), 'quantidade total') +
+      kpi('Produtividade', fmt(n(e.produtividade).toFixed(1)), 'pedidos / HC') +
+      kpi('Problemas', fmt(n(p.naoChegou) + n(p.avaria) + n(p.triagem)), 'ocorrências') +
+      kpi('Veículos', fmt(e.veiculos), 'expedidos');
+    var maxEff = Math.max(n(e.recebida), n(e.expedida), n(e.transferencia), n(e.processada), 1);
+    el('rmEffChart').innerHTML =
+      bar('', 'Recebida', e.recebida, maxEff) .replace('<span></span>', '<span>Recebida</span>') +
+      bar('', 'Expedida', e.expedida, maxEff) .replace('<span></span>', '<span>Expedida</span>') +
+      bar('', 'Transferência', e.transferencia, maxEff, true).replace('<span></span>', '<span>Transferência</span>') +
+      bar('', 'Processada', e.processada, maxEff).replace('<span></span>', '<span>Processada</span>');
+    var maxT = Math.max.apply(null, (d.turnos || []).map(function (t) { return n(t.clt); }).concat([1]));
+    el('rmTurnosChart').innerHTML = (d.turnos || []).map(function (t) {
+      return bar('', t.nome || '—', t.clt, maxT).replace('<span></span>', '<span>' + esc(t.nome || '—') + '</span>');
+    }).join('');
+    var maxP = Math.max(n(p.naoChegou), n(p.avaria), n(p.triagem), 1);
+    el('rmProbChart').innerHTML =
+      bar('', 'Não chegou', p.naoChegou, maxP).replace('<span></span>', '<span>Não chegou</span>') +
+      bar('', 'Avaria', p.avaria, maxP).replace('<span></span>', '<span>Avaria</span>') +
+      bar('', 'Triagem', p.triagem, maxP).replace('<span></span>', '<span>Triagem</span>');
+    el('rmInsights').innerHTML = insights(d).map(function (i) { return '<li>' + i + '</li>'; }).join('');
+    el('rmOS').innerHTML = (d.oss || []).filter(function (o) { return o.os; }).map(function (o) {
+      return '🗂 OS <b>' + esc(o.os) + '</b> · ' + esc(o.planejado || '—') + ' → ' + esc(o.real || '—') +
+        ' · ' + fmt(o.pacotes) + ' pacotes · rota ' + esc(o.rota || '—');
+    }).join('<br>');
+    el('rmFoot').textContent = 'Fonte: Relatório Mestre · atualizado ' +
+      (d.atualizadoEm ? new Date(d.atualizadoEm).toLocaleString('pt-BR') : '—');
+  }
+  function load() {
+    fetch(RM_URL + '?v=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(render)
+      .catch(function (e) {
+        var t = document.getElementById('rmFoot');
+        if (t) t.textContent = 'Relatório Mestre: não foi possível carregar os dados (' + e.message + ').';
+      });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    load();
+    setInterval(load, 60000);
+    var open = document.getElementById('rmOpenBtn');
+    if (open) open.addEventListener('click', function () { window.open('relatorio-mestre/index.html', '_blank'); });
+    var ref = document.getElementById('rmRefreshBtn');
+    if (ref) ref.addEventListener('click', load);
+  });
+})();
+</script>
 </body>
 </html>
