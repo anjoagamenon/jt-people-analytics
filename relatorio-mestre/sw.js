@@ -2,7 +2,7 @@
 const CACHE = 'relatorio-mestre-v1';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './layout.js',
-  './logo.js', './logo.png', './sample-photos.js',
+  './logo.js', './logo.png', './logo-512.png', './sample-photos.js',
   './vendor/html2canvas.min.js', './manifest.webmanifest',
 ];
 self.addEventListener('install', (e) => {
