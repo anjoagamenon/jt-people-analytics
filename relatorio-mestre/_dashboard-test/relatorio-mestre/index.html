@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Relatório Mestre — Relatório Diário de Operações do SC</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <img class="logo" src="logo.png" alt="Relatório Mestre">
+    <div>
+      <strong>Relatório Mestre</strong>
+      <small>Relatório Diário de Operações do SC — modelo oficial</small>
+    </div>
+  </div>
+  <div class="actions">
+    <label class="escala">Escala
+      <select id="escala">
+        <option value="2">2x</option>
+        <option value="3" selected>3x (alta)</option>
+        <option value="4">4x (máxima)</option>
+      </select>
+    </label>
+    <button id="btnPng" class="btn primary">⬇ Exportar PNG</button>
+    <button id="btnPrint" class="btn">🖨 Imprimir</button>
+    <button id="btnExemplo" class="btn">↺ Exemplo</button>
+    <button id="btnLimpar" class="btn danger">🗑 Limpar</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ FORMULÁRIO ============ -->
+  <aside class="form" id="form">
+
+    <section class="card">
+      <h2>Cabeçalho</h2>
+      <div class="grid2">
+        <label>Data do relatório
+          <input type="date" id="fData" data-key="dataRelatorio">
+        </label>
+        <label>Centro (SC)
+          <input type="text" id="fCentro" data-key="centro" placeholder="CGR" maxlength="12">
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Turnos <span class="hint">totais calculados automaticamente</span></h2>
+      <div id="turnos"></div>
+    </section>
+
+    <section class="card">
+      <h2>Eficiência Operacional</h2>
+      <div class="grid2">
+        <label>Quantidade recebida
+          <input type="number" min="0" step="1" data-key="eficiencia.recebida">
+        </label>
+        <label>Quantidade expedida
+          <input type="number" min="0" step="1" data-key="eficiencia.expedida">
+        </label>
+        <label>Quantidade processada total
+          <input type="number" min="0" step="1" data-key="eficiencia.processada">
+        </label>
+        <label>Veículos expedidos
+          <input type="number" min="0" step="1" data-key="eficiencia.veiculos">
+        </label>
+      </div>
+      <div class="chips">
+        <span class="chip">Transferência: <b id="cTransf">—</b></span>
+        <span class="chip">Produtividade: <b id="cProd">—</b></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Pedidos com Problemas</h2>
+      <div class="grid2">
+        <label>Expedido e não chegou
+          <input type="number" min="0" step="1" data-key="problemas.naoChegou">
+        </label>
+        <label>Avaria
+          <input type="number" min="0" step="1" data-key="problemas.avaria">
+        </label>
+        <label>Erro de triagem
+          <input type="number" min="0" step="1" data-key="problemas.triagem">
+        </label>
+      </div>
+      <label class="full">Observação sobre anormalidades da operação
+        <textarea rows="3" data-key="obs" placeholder="Ex.: pico de volume na triagem 2…"></textarea>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>Ordens de Serviço — chegada dos veículos BRE</h2>
+      <div id="oss"></div>
+    </section>
+
+    <section class="card">
+      <h2>Fotos da operação</h2>
+      <div class="chips" style="margin-bottom:10px">
+        <label class="chip toggle"><input type="checkbox" data-key="carimbar"> Carimbo estilo Timemark</label>
+        <label class="chip toggle"><input type="checkbox" data-key="usarGps"> GPS</label>
+        <label class="chip toggle"><input type="checkbox" data-key="usarMapa"> Mini-mapa</label>
+      </div>
+      <label class="full">Responsável <span class="hint">(linha “Nome:” no carimbo)</span>
+        <input type="text" data-key="responsavel" placeholder="Ex.: Kelto A. L Soares">
+      </label>
+      <label class="full">Local do registro <span class="hint">(preenchido pelo GPS ou à mão — entra no carimbo)</span>
+        <input type="text" id="fLocal" data-key="localCarimbo" placeholder="Ex.: BR-230, FOLHA 30 - QUADRA-15 LOTE-07 - Marabá - PA">
+      </label>
+      <div class="fotos" id="fotos"></div>
+      <p class="hint" style="margin-top:8px">
+        No celular, “Tirar foto” abre a câmera; “Enviar arquivo” abre a galeria/arquivos.
+        O carimbo é no <b>estilo Timemark</b>: selo com <b>logo + hora</b>, data, endereço,
+        mini-mapa, código de verificação e marca d’água.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>♿ Libras e áudio <span class="hint">relatório acessível e compartilhável</span></h2>
+      <div class="chips" style="margin-bottom:10px">
+        <label class="chip toggle"><input type="checkbox" data-key="acessibilidade.gerarVideo"> Gerar vídeo em Libras</label>
+        <label class="chip toggle"><input type="checkbox" data-key="acessibilidade.audio"> Incluir áudio</label>
+      </div>
+      <label>Idioma da narração
+        <select data-key="acessibilidade.idioma">
+          <option value="pt-BR">Português (pt-BR) — com Libras</option>
+          <option value="zh-CN">中文 (zh-CN) — só áudio</option>
+          <option value="ambos">Pt-BR + 中文</option>
+        </select>
+      </label>
+      <div class="chips" style="margin-top:10px">
+        <button type="button" class="btn" id="btnOuvir">▶ Ouvir</button>
+        <button type="button" class="btn" id="btnPararAudio">⏹ Parar</button>
+        <button type="button" class="btn" id="btnAudioFile">🎵 Gerar áudio MP3</button>
+        <button type="button" class="btn primary" id="btnVideo">🎬 Gerar vídeo em Libras</button>
+        <button type="button" class="btn" id="btnVideoNarrado">🎞 Vídeo narrado (sem Libras)</button>
+        <button type="button" class="btn" id="btnShare" disabled>📤 Compartilhar</button>
+      </div>
+      <div id="videoStatus" class="hint" style="margin-top:8px">Pronto. O vídeo usa o fluxo oficial do VLibras: texto → glosa → vídeo.</div>
+      <audio id="audioPreview" controls playsinline style="width:100%;display:none;margin-top:10px"></audio>
+      <video id="videoPreview" controls playsinline style="width:100%;display:none;margin-top:10px;border-radius:8px"></video>
+      <details style="margin-top:10px">
+        <summary class="hint">⚙ Configuração da API de vídeo (avançado)</summary>
+        <label class="full">URL base da API VLibras
+          <input type="text" id="fVlibrasUrl" placeholder="https://traducao2.vlibras.gov.br" spellcheck="false">
+        </label>
+        <label class="full">Token (se a API exigir)
+          <input type="password" id="fVlibrasToken" placeholder="opcional" autocomplete="off">
+        </label>
+        <p class="hint">
+          O endpoint público traduz texto → glosa, mas a geração de vídeo hoje exige uma
+          API própria/token. Com um self-host do VLibras ou um token válido, o botão gera
+          o vídeo e permite compartilhar. Sem vídeo, “Compartilhar” envia o resumo e o PNG.
+        </p>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>🗂️ Histórico <span class="hint">salve, revise e reenvie versões depois</span></h2>
+      <div class="hist-actions">
+        <button type="button" class="btn primary" id="btnSalvarVersao">💾 Salvar versão agora</button>
+        <span class="hint" id="histCount"></span>
+      </div>
+      <div class="hist-list" id="histList"></div>
+      <p class="hint" style="margin-top:8px">
+        Cada versão guarda o relatório completo (dados e fotos) no aparelho.
+        “Abrir” carrega a versão para edição; “PNG” reexporta na hora; “Excluir” apaga.
+      </p>
+
+      <h3 class="drive-title">☁️ Google Drive</h3>
+      <label class="full">Client ID do Google <span class="hint">(uma única vez, fica salvo neste aparelho)</span>
+        <input type="text" id="fGClient" placeholder="123456789-abc.apps.googleusercontent.com" spellcheck="false" autocomplete="off">
+      </label>
+      <div class="hist-actions" style="margin-top:8px">
+        <button type="button" class="btn" id="btnDrive">☁️ Conectar Drive</button>
+        <button type="button" class="btn" id="btnDriveUp" disabled>⬆ Enviar histórico p/ Drive</button>
+        <button type="button" class="btn" id="btnDriveDown" disabled>⬇ Baixar do Drive</button>
+        <span class="hint" id="driveStatus">desconectado</span>
+      </div>
+      <p class="hint">
+        Com o Drive conectado, “Salvar versão agora” grava também na nuvem
+        (pasta <b>Relatório Mestre</b> no seu Drive) — e você recupera as versões em qualquer aparelho.
+      </p>
+    </section>
+
+  </aside>
+
+  <!-- ============ PRÉ-VISUALIZAÇÃO ============ -->
+  <section class="preview">
+    <div class="preview-bar">
+      <span id="previewNote">Pré-visualização fiel à planilha modelo</span>
+      <span id="previewSize"></span>
+    </div>
+    <div class="preview-wrap" id="previewWrap">
+      <div class="preview-inner" id="previewInner">
+        <div class="preview-scale" id="previewScale"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="vendor/html2canvas.min.js"></script>
+<script src="layout.js"></script>
+<script src="logo.js"></script>
+<script src="sample-photos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

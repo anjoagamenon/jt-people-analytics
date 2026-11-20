@@ -1233,6 +1233,13 @@
       vstatus(' Áudio pronto ✓ ' + audioName + ' (' + Math.round(audioBlob.size / 1024) + ' KB).');
     } catch (e) {
       console.error(e);
+      const lang = data.acessibilidade.idioma;
+      const texto = lang === 'zh-CN' ? reportTextZH() : reportTextPT();
+      if ('speechSynthesis' in window && (String(e.message).indexOf('TTS HTTP') >= 0 || String(e.message).indexOf('Failed to fetch') >= 0)) {
+        falar(texto, lang === 'ambos' ? 'pt-BR' : lang);
+        vstatus(' Servidor de áudio indisponível nesta hospedagem — narrando com a voz do navegador.');
+        return;
+      }
       vstatus(' Erro no áudio: ' + e.message);
       toast('Não foi possível gerar o áudio: ' + e.message, 6000);
     } finally { if (btn) btn.disabled = false; }
@@ -1455,6 +1462,9 @@
     renderHist().catch((e) => console.warn('hist', e));
     driveStatus('', 'desconectado');
     if (localStorage.getItem(GCLIENT_KEY)) driveConnect(true).catch(() => {});
+    if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
     setTimeout(fitPreview, 60);
   }
 

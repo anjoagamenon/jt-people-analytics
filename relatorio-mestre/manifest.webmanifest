@@ -1,0 +1,16 @@
+{
+  "name": "Relatório Mestre — J&T Express",
+  "short_name": "Relatório Mestre",
+  "description": "Relatório Diário de Operações do SC — formulário, fotos carimbadas, histórico e exportação PNG.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#E00000",
+  "background_color": "#f7f3f3",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
