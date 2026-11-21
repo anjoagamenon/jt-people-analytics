@@ -1533,7 +1533,7 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
   <div class="mp-sec" id="mpHolidaySec" hidden><div class="mp-sec-title">🎉 Feriado</div><div id="mpHoliday"></div></div>
   <div class="mp-sec"><div class="mp-sec-title">⚠️ Ocorrências de hoje</div><div id="mpFaltas"></div></div>
   <div class="mp-sec"><div class="mp-sec-title">🎂 Aniversariantes de hoje</div><div id="mpBdays"></div></div>
-  <div class="mp-sec" style="margin-bottom:2px;"><div class="mp-sec-title">🛏️ Folgas de hoje</div><div id="mpFolgas"></div></div>
+  <div class="mp-sec" style="margin-bottom:2px;"><div class="mp-sec-title">🛏️ Folgas / DSR de hoje</div><div id="mpFolgas"></div></div>
   <div class="mp-voice" id="mpVoiceLine">Voz: <b id="mpVoiceName">automática</b> · <button id="mpVoiceCycle" type="button">trocar voz 🔊</button> · <button id="mpAutoSpeak" type="button" title="Falar o resumo automaticamente ao abrir">falar ao abrir: sim</button></div>
 </div>
 
@@ -1785,17 +1785,47 @@ const dedupeLists = (d) => {
   return d;
 };
 
+// Folgas de hoje = folgas lançadas + DSR/5x2/ciclo de domingos do APK (sem duplicar ninguém)
+function folgasDeHoje(d) {
+  const iso = todayISO();
+  const nomeDia = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][new Date(iso + 'T12:00:00').getDay()];
+  const nomes = new Map();
+  const add = (mat, nome) => { const k = strip(mat) || String(nome || '').toLowerCase(); if (!nomes.has(k)) nomes.set(k, nome || String(mat)); };
+  (d.folgas || []).filter(f => f.date === iso && String(f.ativo || 'SIM').toUpperCase() === 'SIM').forEach(f => add(f.matricula, f.colabName));
+  (d.colabs || []).forEach(c => {
+    if (String(c.status || 'Ativo').toLowerCase() === 'desligado') return;
+    if (isOnVacation(c)) return;
+    let offs = c.sundayOffDates;
+    if (typeof offs === 'string') { try { offs = JSON.parse(offs); } catch (_) { offs = []; } }
+    if (nomeDia === 'Domingo' && Array.isArray(offs) && offs.indexOf(iso) >= 0) { add(c.matricula, c.name); return; }
+    const sc = typeof c.schedule === 'string' ? (() => { try { return JSON.parse(c.schedule); } catch (_) { return {}; } })() : (c.schedule || {});
+    let folga;
+    if (sc[nomeDia] === 'Folga') folga = true;
+    else if (sc[nomeDia] === 'Trabalho' || sc[nomeDia] === 'Interjornada') folga = false;
+    else folga = String(c.dsr || '') === nomeDia;
+    if (folga) add(c.matricula, c.name);
+  });
+  return Array.from(nomes.values());
+}
+
 const renderKpis = (d) => {
   const ativos = d.colabs.filter(c => String(c.status || 'Ativo').toLowerCase() !== 'desligado' && !isOnVacation(c));
   const today = todayISO();
   const presentes = d.attendance.filter(a => a.date === today && /Presente|Cobrindo/i.test(String(a.status || ''))).length;
   const faltasMes = d.occurrences.filter(o => String(o.data || '').startsWith(monthNow()) && /falta/i.test(String(o.tipo || ''))).length;
-  const folgasHoje = d.folgas.filter(f => f.date === today && String(f.ativo || 'SIM').toUpperCase() === 'SIM').length;
-  const cobertura = ativos.length ? Math.round((presentes / ativos.length) * 100) : 0;
+  const folgasHoje = folgasDeHoje(d).length;
+  const idxHoje = (new Date().getDay() + 6) % 7;
+  const nomeVol = DAY_NAMES[idxHoje];
+  const fc = getWeeklyForecast(d);
+  const volHoje = fc && Object.prototype.hasOwnProperty.call(fc, nomeVol) ? Number(fc[nomeVol] || 0) : (WEEK_CAP[idxHoje] || 0);
+  const vrHoje = computeVol(d, volHoje, idxHoje);
+  const diaristasHoje = Number(vrHoje.diarT1 || 0) + Number(vrHoje.diarT2 || 0);
+  const escaladosHoje = Math.max(0, ativos.length - folgasHoje) + diaristasHoje;
+  const cobertura = escaladosHoje > 0 ? Math.round((presentes / escaladosHoje) * 100) : 0;
   $('#kpiEfetivo').textContent = ativos.length;
   $('#kpiPresentes').textContent = presentes;
   $('#kpiPresentesFoot').textContent = 'DE ' + ativos.length + ' ATIVOS HOJE';
-  $('#kpiCobertura').innerHTML = cobertura + '<small>%</small>';
+  $('#kpiCobertura').innerHTML = escaladosHoje + '<small>' + cobertura + '% presentes' + (diaristasHoje ? ' · +' + diaristasHoje + ' diarista(s)' : '') + '</small>';
   $('#kpiFaltas').textContent = faltasMes;
   $('#kpiFolgas').textContent = folgasHoje;
 };
@@ -3067,7 +3097,7 @@ const buildSummaryText = (d) => {
   const faltasOntem = (d.occurrences || []).filter(o => String(o.data || '') === ontem).slice().sort((a, b) => String(a.colabName || '').localeCompare(String(b.colabName || ''), 'pt-BR', { sensitivity: 'base' }));
   const mmdd = today.slice(5, 10);
   const aniver = d.colabs.filter(c => { const m = String(c.nascimento || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m && m[2] + '-' + m[3] === mmdd; }).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base' }));
-  const folgas = (d.folgas || []).filter(f => f.date === today && String(f.ativo || 'SIM').toUpperCase() === 'SIM').slice().sort((a, b) => String(a.colabName || a.matricula || '').localeCompare(String(b.colabName || b.matricula || ''), 'pt-BR', { sensitivity: 'base' }));
+  const folgas = folgasDeHoje(d).slice().sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
   const presentes = (d.attendance || []).filter(a => a.date === today && /Presente|Cobrindo/i.test(String(a.status || ''))).length;
   const ativos = d.colabs.filter(c => String(c.status || 'Ativo').toLowerCase() !== 'desligado' && !isOnVacation(c)).length;
   const parts = ['Resumo do J&T Express Marabá.'];
@@ -3091,8 +3121,8 @@ const buildSummaryText = (d) => {
   }
   if (aniver.length) parts.push('Aniversariantes de hoje: ' + aniver.map(c => c.name).join(', ') + '.');
   else parts.push('Nenhum aniversariante hoje.');
-  if (folgas.length) parts.push('Folgas de hoje: ' + folgas.map(f => f.colabName || f.matricula).join(', ') + '.');
-  else parts.push('Nenhuma folga hoje.');
+  if (folgas.length) parts.push('Folgas e DSR de hoje, ' + folgas.length + ': ' + folgas.join(', ') + '.');
+  else parts.push('Nenhuma folga ou DSR hoje.');
   const fraseOcor = (o) => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência') + (o.motivo && String(o.motivo).trim() ? ', observação: ' + String(o.motivo).trim().replace(/[.;,\s]+$/, '') : '') + (o.responsavelNome && String(o.responsavelNome).trim() ? ', registrado por ' + String(o.responsavelNome).trim() : '');
   const listaOcor = (arr) => arr.map(fraseOcor).join('; ').replace(/[.;,\s]+$/, '') + '.';
   if (faltas.length) parts.push(faltas.length + ' ocorrência' + (faltas.length > 1 ? 's' : '') + ' hoje: ' + listaOcor(faltas));
@@ -3216,7 +3246,7 @@ const renderSummary = (d) => {
   const faltas = (d.occurrences || []).filter(o => String(o.data || '') === today).slice().sort((a, b) => String(a.colabName || '').localeCompare(String(b.colabName || ''), 'pt-BR', { sensitivity: 'base' }));
   const mmdd = today.slice(5, 10);
   const aniver = d.colabs.filter(c => { const m = String(c.nascimento || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m && m[2] + '-' + m[3] === mmdd; }).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base' }));
-  const folgas = (d.folgas || []).filter(f => f.date === today && String(f.ativo || 'SIM').toUpperCase() === 'SIM').slice().sort((a, b) => String(a.colabName || a.matricula || '').localeCompare(String(b.colabName || b.matricula || ''), 'pt-BR', { sensitivity: 'base' }));
+  const folgas = folgasDeHoje(d).slice().sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base' }));
   const count = faltas.length + aniver.length + folgas.length;
   const quiet = summarySeenToday() || count === 0;
   const badge = $('#mascotBadge');
@@ -3247,7 +3277,7 @@ const renderSummary = (d) => {
     ? aniver.map(c => row('amber', c.name)).join('')
     : '<div class="mp-row"><span class="mp-dot" style="background:#c7c7cd"></span><span>Ninguém aniversariando hoje</span></div>';
   $('#mpFolgas').innerHTML = folgas.length
-    ? folgas.map(f => row('blue', String(f.colabName || f.matricula))).join('')
+    ? folgas.map(f => row('blue', String(f))).join('')
     : '<div class="mp-row"><span class="mp-dot" style="background:#c7c7cd"></span><span>Nenhuma folga hoje</span></div>';
 };
 
