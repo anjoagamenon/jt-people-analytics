@@ -2021,9 +2021,9 @@ const renderFaltas = (d) => {
     const hasObs = c && obsMap[strip(c.matricula)] && String(obsMap[strip(c.matricula)]).trim();
     return '<button type="button" class="list-row list-row-clickable" data-mat="' + esc(o.matricula) + '" data-obs="' + (hasObs ? '1' : '0') + '">' + avatarByMatricula(d, o.matricula, 40) +
     '<div class="list-info"><div class="list-name">' + esc(o.colabName || o.matricula) + ' ' + (hasObs ? '<span class="obs-mark" title="Contém observações">📝</span>' : '') + '</div>' +
-    '<div class="list-meta">' + esc(String(o.tipo || 'Ocorrência')) + ' • ' + esc(String(o.data || '').split('-').reverse().join('/')) + (o.motivo ? ' • ' + esc(o.motivo) : '') + '</div></div>' +
+    '<div class="list-meta">' + esc(String(o.tipo || 'Ocorrência')) + ' • ' + esc(String(o.data || '').split('-').reverse().join('/')) + (o.motivo ? ' • ' + esc(o.motivo) : '') + (o.responsavelNome ? ' • Resp.: ' + esc(o.responsavelNome) : '') + '</div></div>' +
     '<span class="list-badge">' + esc(String(o.tipo || '').split(' ')[0] || 'FALTA') + '</span></button>';
-  }).join('') : '<div class="empty-note">Nenhuma falta registrada no mês. 🎉</div>';
+  }).join('') : '<div class="empty-note">Nenhuma ocorrência registrada no mês. 🎉</div>';
 };
 $('#faltasList').addEventListener('click', (ev) => {
   const row = ev.target.closest('.list-row-clickable');
@@ -2784,7 +2784,7 @@ const openPerson = (c) => {
   const faltas = (d.occurrences || []).filter(o => strip(o.matricula) === matK)
     .slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 10);
   $('#pmFaltas').innerHTML = faltas.length
-    ? faltas.map(o => '<div class="plist-row"><span>' + esc(String(o.tipo || 'Ocorrência')) + (o.motivo ? ' • ' + esc(o.motivo) : '') + '</span><span style="color:var(--gray)">' + esc(fmtBR(o.data)) + '</span></div>').join('')
+    ? faltas.map(o => '<div class="plist-row"><span>' + esc(String(o.tipo || 'Ocorrência')) + (o.motivo ? ' • ' + esc(o.motivo) : '') + (o.responsavelNome ? ' • Resp.: ' + esc(o.responsavelNome) : '') + '</span><span style="color:var(--gray)">' + esc(fmtBR(o.data)) + '</span></div>').join('')
     : '<div class="empty-note">Sem ocorrências registradas 🎉</div>';
 
   // EPIs entregues (últimos 8)
@@ -3093,7 +3093,7 @@ const buildSummaryText = (d) => {
   else parts.push('Nenhum aniversariante hoje.');
   if (folgas.length) parts.push('Folgas de hoje: ' + folgas.map(f => f.colabName || f.matricula).join(', ') + '.');
   else parts.push('Nenhuma folga hoje.');
-  const fraseOcor = (o) => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência') + (o.motivo && String(o.motivo).trim() ? ', observação: ' + String(o.motivo).trim() : '');
+  const fraseOcor = (o) => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência') + (o.motivo && String(o.motivo).trim() ? ', observação: ' + String(o.motivo).trim().replace(/[.;,\s]+$/, '') : '') + (o.responsavelNome && String(o.responsavelNome).trim() ? ', registrado por ' + String(o.responsavelNome).trim() : '');
   const listaOcor = (arr) => arr.map(fraseOcor).join('; ').replace(/[.;,\s]+$/, '') + '.';
   if (faltas.length) parts.push(faltas.length + ' ocorrência' + (faltas.length > 1 ? 's' : '') + ' hoje: ' + listaOcor(faltas));
   else parts.push('Nenhuma ocorrência hoje.');
