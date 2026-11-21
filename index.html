@@ -3063,6 +3063,8 @@ const buildSummaryText = (d) => {
   const todayHoliday = (HOLIDAYS_OF(y) || []).find(h => h.date === today);
   const tmrHoliday = (HOLIDAYS_OF(y).concat(HOLIDAYS_OF(y + 1) || [])).find(h => h.date === isoOf(shiftDate(new Date(), 1)));
   const faltas = (d.occurrences || []).filter(o => String(o.data || '') === today).slice().sort((a, b) => String(a.colabName || '').localeCompare(String(b.colabName || ''), 'pt-BR', { sensitivity: 'base' }));
+  const ontem = isoOf(shiftDate(new Date(), -1));
+  const faltasOntem = (d.occurrences || []).filter(o => String(o.data || '') === ontem).slice().sort((a, b) => String(a.colabName || '').localeCompare(String(b.colabName || ''), 'pt-BR', { sensitivity: 'base' }));
   const mmdd = today.slice(5, 10);
   const aniver = d.colabs.filter(c => { const m = String(c.nascimento || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m && m[2] + '-' + m[3] === mmdd; }).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR', { sensitivity: 'base' }));
   const folgas = (d.folgas || []).filter(f => f.date === today && String(f.ativo || 'SIM').toUpperCase() === 'SIM').slice().sort((a, b) => String(a.colabName || a.matricula || '').localeCompare(String(b.colabName || b.matricula || ''), 'pt-BR', { sensitivity: 'base' }));
@@ -3093,6 +3095,9 @@ const buildSummaryText = (d) => {
   else parts.push('Nenhuma folga hoje.');
   if (faltas.length) parts.push(faltas.length + ' ocorrência' + (faltas.length > 1 ? 's' : '') + ' hoje: ' + faltas.map(o => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência')).join('; ') + '.');
   else parts.push('Nenhuma ocorrência hoje.');
+  // Dia anterior — além do dia atual (pedido do usuário)
+  if (faltasOntem.length) parts.push('Ontem, ' + ontem.split('-').reverse().join('/') + ', ' + faltasOntem.length + ' ocorrência' + (faltasOntem.length > 1 ? 's' : '') + ': ' + faltasOntem.map(o => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência')).join('; ') + '.');
+  else parts.push('Ontem, ' + ontem.split('-').reverse().join('/') + ', não houve ocorrências.');
   return parts.join(' ');
 };
 
