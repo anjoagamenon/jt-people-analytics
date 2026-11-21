@@ -83,25 +83,45 @@
     } catch (e) { console.warn('[nuvem] save', e); return false; }
   }
 
-  /* ---- Cloud Text-to-Speech ---- */
+  /* ---- Cloud Text-to-Speech via backend J&T (Qwen Flash, chave só no servidor) ---- */
+  var EXEC_URL = 'https://script.google.com/macros/s/AKfycbwXdpCBShUsGv0jFIt7rW4v4UDtKlPxto-myPpDxRUzT4hmMQ6_7yYkuIwptWfeYweU/exec';
+  function pcmBytes(b64) {
+    var bin = atob(b64), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function wavBlob(partes) {
+    var n = partes.reduce(function (s, p) { return s + p.length; }, 0);
+    var buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+    function put(o, s) { for (var i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); }
+    put(0, 'RIFF'); v.setUint32(4, 36 + n, true); put(8, 'WAVE'); put(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 24000, true); v.setUint32(28, 48000, true); v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true); put(36, 'data'); v.setUint32(40, n, true);
+    var off = 44;
+    partes.forEach(function (p) { new Uint8Array(buf, off, p.length).set(p); off += p.length; });
+    return new Blob([buf], { type: 'audio/wav' });
+  }
   async function tts(text, lang) {
-    var url = 'https://texttospeech.googleapis.com/v1/text:synthesize?key=' + FB.apiKey;
-    var parts = String(text || '').slice(0, 4500);
-    var r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        input: { text: parts },
-        voice: { languageCode: lang === 'zh-CN' ? 'cmn-CN' : 'pt-BR', name: lang === 'zh-CN' ? 'cmn-CN-Standard-A' : 'pt-BR-Neural2-A' },
-        audioConfig: { audioEncoding: 'MP3', speakingRate: 1 }
-      })
+    var cb = '__rmTts_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+    var url = EXEC_URL + '?action=TTS&callback=' + cb + '&voice=Charon&text=' + encodeURIComponent(String(text || '').slice(0, 1400));
+    return await new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      var timer = setTimeout(function () { cleanup(); reject(new Error('tempo limite na geração do áudio')); }, 180000);
+      function cleanup() {
+        clearTimeout(timer);
+        try { delete window[cb]; } catch (e) {}
+        if (s.parentNode) s.parentNode.removeChild(s);
+      }
+      window[cb] = function (r) {
+        cleanup();
+        if (r && r.ok && r.audioBase64) resolve(pcmBytes(r.audioBase64));
+        else reject(new Error('voz indisponível: ' + ((r && r.erro) || '?')));
+      };
+      s.onerror = function () { cleanup(); reject(new Error('falha de rede com a voz')); };
+      s.src = url;
+      document.head.appendChild(s);
     });
-    if (!r.ok) throw new Error('TTS ' + r.status + ' — ' + (await r.text()).slice(0, 140));
-    var j = await r.json();
-    var bin = atob(j.audioContent);
-    var bytes = new Uint8Array(bin.length);
-    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return new Blob([bytes], { type: 'audio/mpeg' });
   }
 
   /* ---- compartilhamento ---- */
@@ -128,7 +148,7 @@
   }
 
   window.RMCloud = {
-    init: init, save: save, tts: tts, share: share, download: download,
+    init: init, save: save, tts: tts, wav: wavBlob, share: share, download: download,
     get user() { return user && user.email; },
     get ok() { return !!(db && user); },
     config: FB

@@ -1335,9 +1335,9 @@
           partes.push(await r.blob());
         }
       }
-      audioBlob = new Blob(partes, { type: 'audio/mpeg' });
+      audioBlob = RMCloud.wav(partes);
       audioName = 'Relatorio-' + (lang === 'ambos' ? 'pt-zh' : lang) + '-' +
-        (data.dataRelatorio || 'sem-data').replace(/-/g, '') + '.mp3';
+        (data.dataRelatorio || 'sem-data').replace(/-/g, '') + '.wav';
       const ap = $('#audioPreview');
       if (ap) { ap.src = URL.createObjectURL(audioBlob); ap.style.display = 'block'; }
       const sh = $('#btnShare'); if (sh) sh.disabled = false;
@@ -1348,7 +1348,7 @@
       const texto = lang === 'zh-CN' ? reportTextZH() : reportTextPT();
       if ('speechSynthesis' in window) {
         falar(texto, lang === 'ambos' ? 'pt-BR' : (lang === 'zh-CN' ? 'zh-CN' : 'pt-BR'));
-        vstatus(' Narrando com a voz do navegador. Para gerar MP3/vídeo, é preciso um servidor de voz (o local funciona).');
+        vstatus(' Narrando com a voz do navegador. Para gerar o arquivo WAV, verifique a conexão com o backend J&T.');
         return;
       }
       vstatus(' Erro no áudio: ' + e.message);
