@@ -1,32 +1,105 @@
 {
-  "atualizadoEm": "2026-11-20T18:14:00-03:00",
+  "acessibilidade": {
+    "audio": true,
+    "gerarVideo": true,
+    "idioma": "pt-BR"
+  },
+  "carimbar": true,
+  "centro": "CGR-NUVEM",
+  "coords": {
+    "acc": 20000,
+    "lat": -5.6325,
+    "lon": -49.1111
+  },
   "dataRelatorio": "2026-11-19",
-  "centro": "CGR",
-  "unidade": "SC-MARABÁ",
-  "turnos": [
-    { "nome": "T1", "entrada": "20:00", "saida": "04:33", "clt": 14, "descanso": 15, "temporarios": 0, "diaristas": 0, "total": 14 },
-    { "nome": "T2", "entrada": "", "saida": "", "clt": 0, "descanso": 0, "temporarios": 0, "diaristas": 0, "total": 0 },
-    { "nome": "T3", "entrada": "", "saida": "", "clt": 0, "descanso": 0, "temporarios": 0, "diaristas": 0, "total": 0 }
-  ],
   "eficiencia": {
-    "recebida": 11736,
     "expedida": 11448,
-    "transferencia": 23184,
     "processada": 11761,
-    "produtividade": 840.0714286,
-    "veiculos": 10
+    "recebida": 11736,
+    "veiculos": 10,
+    "transferencia": 23184,
+    "produtividade": 379.38709677419354
   },
-  "problemas": {
-    "naoChegou": 211,
-    "avaria": 0,
-    "triagem": 200
-  },
-  "obs": "Pico de volume na triagem 2",
+  "localCarimbo": "Marabá, Pará",
+  "obs": "",
   "oss": [
-    { "os": "DBGX26111700052", "planejado": "19/11/2026 21:20", "real": "19/11/2026 22:02", "pacotes": 14004, "rota": "NÃO", "motivo": "" }
+    {
+      "motivo": "",
+      "os": " DBGX26111800088",
+      "pacotes": "14038",
+      "planejado": "2026-11-20T08:20",
+      "real": "2026-11-20T16:20",
+      "rota": "NÃO"
+    },
+    {
+      "motivo": "",
+      "os": " DBGX26111800282",
+      "pacotes": "12.761",
+      "planejado": "2026-11-20T15:40",
+      "real": "2026-11-20T20:25",
+      "rota": "NÃO"
+    },
+    {
+      "motivo": "",
+      "os": "",
+      "pacotes": "",
+      "planejado": "",
+      "real": "",
+      "rota": ""
+    },
+    {
+      "motivo": "",
+      "os": "",
+      "pacotes": "",
+      "planejado": "",
+      "real": "",
+      "rota": ""
+    },
+    {
+      "motivo": "",
+      "os": "",
+      "pacotes": "",
+      "planejado": "",
+      "real": "",
+      "rota": ""
+    }
   ],
-  "fotos": {
-    "inicio": { "carimbo": true, "gps": true, "w": 1600, "h": 1200 },
-    "fim": { "carimbo": true, "gps": true, "w": 1280, "h": 720 }
-  }
+  "problemas": {
+    "avaria": "3",
+    "naoChegou": "216",
+    "triagem": "0"
+  },
+  "responsavel": "",
+  "turnos": [
+    {
+      "clt": "16",
+      "desc": "2",
+      "dia": "2",
+      "ent": "16:00",
+      "nome": "T1",
+      "sai": "00:00",
+      "temp": 0
+    },
+    {
+      "clt": "15",
+      "desc": "4",
+      "dia": "0",
+      "ent": "19:00",
+      "nome": "T2",
+      "sai": "02:33",
+      "temp": "0"
+    },
+    {
+      "clt": "",
+      "desc": "",
+      "dia": "",
+      "ent": "",
+      "nome": "",
+      "sai": "",
+      "temp": ""
+    }
+  ],
+  "usarGps": true,
+  "usarMapa": true,
+  "atualizadoEm": "2026-11-21T10:46:53.913Z"
 }

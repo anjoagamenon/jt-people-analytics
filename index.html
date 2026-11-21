@@ -4362,7 +4362,6 @@ $('#bcSend').addEventListener('click', async () => {
     return out;
   }
   function render(d) {
-    window.rmRender = render;
     var e = d.eficiencia || {}, p = d.problemas || {};
     var el = function (id) { return document.getElementById(id); };
     if (!el('rmPanel')) return;
@@ -4398,7 +4397,9 @@ $('#bcSend').addEventListener('click', async () => {
     el('rmFoot').textContent = 'Fonte: Relatório Mestre · atualizado ' +
       (d.atualizadoEm ? new Date(d.atualizadoEm).toLocaleString('pt-BR') : '—');
   }
+  window.rmRender = render; // o sync do Firebase chama isto direto (não depende do JSON estático)
   function load() {
+    if (window.rmTemFirebase) return; // Firebase é a fonte principal; o arquivo é só reserva
     fetch(RM_URL + '?v=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(render)
@@ -4407,33 +4408,46 @@ $('#bcSend').addEventListener('click', async () => {
         if (t) t.textContent = 'Relatório Mestre: não foi possível carregar os dados (' + e.message + ').';
       });
   }
+  window.rmLoadStatic = load;
   document.addEventListener('DOMContentLoaded', function () {
     load();
-    setInterval(load, 60000);
     var open = document.getElementById('rmOpenBtn');
     if (open) open.addEventListener('click', function () { window.open('relatorio-mestre/index.html', '_blank'); });
     var ref = document.getElementById('rmRefreshBtn');
-    if (ref) ref.addEventListener('click', load);
+    if (ref) ref.addEventListener('click', function () { if (window.rmSyncNow) window.rmSyncNow(); else load(); });
   });
 })();
 </script>
 
-<!-- rm-firebase-sync: painel sempre sincronizado com o APK -->
+<!-- rm-firebase-sync: Firebase é a fonte única — painel sempre igual ao Relatório Mestre -->
 <script id="rm-firebase-sync">
 (function () {
   var URL = 'https://superb-firefly-515408-i3-default-rtdb.firebaseio.com/relatorio/estado/v1.json';
+  function normaliza(d, ts) {
+    if (!d) return d;
+    d = JSON.parse(JSON.stringify(d));
+    var e = d.eficiencia || {};
+    var clt = (d.turnos || []).reduce(function (a, t) { return a + Number(t.clt || 0); }, 0);
+    if (!Number(e.transferencia)) e.transferencia = Number(e.recebida || 0) + Number(e.expedida || 0);
+    if (!Number(e.produtividade) && clt > 0) e.produtividade = Number(e.processada || 0) / clt;
+    d.eficiencia = e;
+    if (!d.atualizadoEm && ts) d.atualizadoEm = new Date(Number(ts)).toISOString();
+    return d;
+  }
   function load() {
     fetch(URL + '?v=' + Date.now(), { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (j) {
-        if (j && j.data && window.rmRender) window.rmRender(j.data);
+        if (j && j.data && window.rmRender) {
+          window.rmTemFirebase = true;
+          window.rmRender(normaliza(j.data, j._ts));
+        } else if (window.rmLoadStatic) window.rmLoadStatic();
       })
-      .catch(function () {});
+      .catch(function () { if (window.rmLoadStatic) window.rmLoadStatic(); });
   }
-  document.addEventListener('DOMContentLoaded', function () {
-    load();
-    setInterval(load, 15000);
-  });
+  window.rmSyncNow = load;
+  document.addEventListener('DOMContentLoaded', load);
+  setInterval(load, 15000);
 })();
 </script>
 </body>
