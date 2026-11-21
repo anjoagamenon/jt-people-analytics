@@ -4377,18 +4377,12 @@ $('#bcSend').addEventListener('click', async () => {
   }
   function insights(d) {
     var e = d.eficiencia || {}, p = d.problemas || {}, out = [];
-    var totalProb = n(p.naoChegou) + n(p.avaria) + n(p.triagem);
-    var taxa = n(e.processada) > 0 ? (totalProb / n(e.processada)) * 100 : 0;
-    var prod = n(e.produtividade);
-    if (prod >= 900) out.push('⭐ Produtividade alta: <b>' + fmt(prod.toFixed(1)) + '</b> pedidos/HC acima da meta de 900.');
-    else if (prod > 0) out.push('⚠ Produtividade de <b>' + fmt(prod.toFixed(1)) + '</b> pedidos/HC — abaixo da meta de 900.');
-    if (taxa > 0 && taxa < 2) out.push('✅ Ocorrências sob controle: <b>' + taxa.toFixed(2) + '%</b> do processado.');
-    else if (taxa >= 2) out.push('🚨 Atenção: <b>' + taxa.toFixed(2) + '%</b> dos pedidos com problema (' + fmt(totalProb) + ').');
+    out.push('📥 Recebida <b>' + fmt(e.recebida) + '</b> · 📤 Expedida <b>' + fmt(e.expedida) + '</b> · ✅ Processada <b>' + fmt(e.processada) + '</b>');
+    out.push('⚠ Problemas informados: não chegou <b>' + fmt(p.naoChegou) + '</b>, avaria <b>' + fmt(p.avaria) + '</b>, triagem <b>' + fmt(p.triagem) + '</b>');
     var vazios = (d.turnos || []).filter(function (t) { return !t.nome || !n(t.clt); });
     if (vazios.length) out.push('ℹ ' + vazios.length + ' turno(s) sem efetivo informado no relatório.');
     if (n(e.veiculos) > 0) out.push('🚚 <b>' + fmt(e.veiculos) + '</b> veículos expedidos no dia.');
-    out.push('📦 Transferência de <b>' + fmt(e.transferencia) + '</b> representa ' +
-      (n(e.recebida) + n(e.expedida) > 0 ? ((n(e.transferencia) / (n(e.recebida) + n(e.expedida))) * 100).toFixed(1) : '0') + '% entre recebido e expedido.');
+    if (d.obs && String(d.obs).trim()) out.push('📝 Obs.: ' + esc(String(d.obs).trim()));
     return out;
   }
   function render(d) {
@@ -4399,16 +4393,15 @@ $('#bcSend').addEventListener('click', async () => {
     var clt = (d.turnos || []).reduce(function (a, t) { return a + n(t.clt); }, 0);
     el('rmKpis').innerHTML =
       kpi('CLT em campo', fmt(clt), 'total dos turnos') +
-      kpi('Transferência', fmt(e.transferencia), 'volume de carga') +
+      kpi('Não chegou', fmt(p.naoChegou), 'problema informado') +
       kpi('Processada', fmt(e.processada), 'quantidade total') +
-      kpi('Produtividade', fmt(n(e.produtividade).toFixed(1)), 'pedidos / HC') +
-      kpi('Problemas', fmt(n(p.naoChegou) + n(p.avaria) + n(p.triagem)), 'ocorrências') +
+      kpi('Avaria', fmt(p.avaria), 'problema informado') +
+      kpi('Problemas', fmt(n(p.naoChegou) + n(p.avaria) + n(p.triagem)), 'soma informada') +
       kpi('Veículos', fmt(e.veiculos), 'expedidos');
-    var maxEff = Math.max(n(e.recebida), n(e.expedida), n(e.transferencia), n(e.processada), 1);
+    var maxEff = Math.max(n(e.recebida), n(e.expedida), n(e.processada), 1);
     el('rmEffChart').innerHTML =
       bar('', 'Recebida', e.recebida, maxEff) .replace('<span></span>', '<span>Recebida</span>') +
       bar('', 'Expedida', e.expedida, maxEff) .replace('<span></span>', '<span>Expedida</span>') +
-      bar('', 'Transferência', e.transferencia, maxEff, true).replace('<span></span>', '<span>Transferência</span>') +
       bar('', 'Processada', e.processada, maxEff).replace('<span></span>', '<span>Processada</span>');
     var maxT = Math.max.apply(null, (d.turnos || []).map(function (t) { return n(t.clt); }).concat([1]));
     el('rmTurnosChart').innerHTML = (d.turnos || []).map(function (t) {
@@ -4465,11 +4458,6 @@ $('#bcSend').addEventListener('click', async () => {
   function normaliza(d, ts) {
     if (!d) return d;
     d = JSON.parse(JSON.stringify(d));
-    var e = d.eficiencia || {};
-    var clt = (d.turnos || []).reduce(function (a, t) { return a + Number(t.clt || 0); }, 0);
-    if (!Number(e.transferencia)) e.transferencia = Number(e.recebida || 0) + Number(e.expedida || 0);
-    if (!Number(e.produtividade) && clt > 0) e.produtividade = Number(e.processada || 0) / clt;
-    d.eficiencia = e;
     if (!d.atualizadoEm && ts) d.atualizadoEm = new Date(Number(ts)).toISOString();
     return d;
   }
