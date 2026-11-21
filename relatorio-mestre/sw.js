@@ -1,6 +1,6 @@
 /* Cache do app shell — funciona offline, mas prioriza rede para HTML/CSS/JS
    (evita que uma correção de CSS fique presa no cache antigo). */
-const CACHE = 'relatorio-mestre-v3';
+const CACHE = 'relatorio-mestre-v4';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './layout.js',
   './logo.js', './logo.png', './logo-512.png', './sample-photos.js',
