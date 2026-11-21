@@ -3093,10 +3093,12 @@ const buildSummaryText = (d) => {
   else parts.push('Nenhum aniversariante hoje.');
   if (folgas.length) parts.push('Folgas de hoje: ' + folgas.map(f => f.colabName || f.matricula).join(', ') + '.');
   else parts.push('Nenhuma folga hoje.');
-  if (faltas.length) parts.push(faltas.length + ' ocorrência' + (faltas.length > 1 ? 's' : '') + ' hoje: ' + faltas.map(o => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência')).join('; ') + '.');
+  const fraseOcor = (o) => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência') + (o.motivo && String(o.motivo).trim() ? ', observação: ' + String(o.motivo).trim() : '');
+  const listaOcor = (arr) => arr.map(fraseOcor).join('; ').replace(/[.;,\s]+$/, '') + '.';
+  if (faltas.length) parts.push(faltas.length + ' ocorrência' + (faltas.length > 1 ? 's' : '') + ' hoje: ' + listaOcor(faltas));
   else parts.push('Nenhuma ocorrência hoje.');
   // Dia anterior — além do dia atual (pedido do usuário)
-  if (faltasOntem.length) parts.push('Ontem, ' + ontem.split('-').reverse().join('/') + ', ' + faltasOntem.length + ' ocorrência' + (faltasOntem.length > 1 ? 's' : '') + ': ' + faltasOntem.map(o => (o.colabName || o.matricula) + ' — ' + (o.tipo || 'Ocorrência')).join('; ') + '.');
+  if (faltasOntem.length) parts.push('Ontem, ' + ontem.split('-').reverse().join('/') + ', ' + faltasOntem.length + ' ocorrência' + (faltasOntem.length > 1 ? 's' : '') + ': ' + listaOcor(faltasOntem));
   else parts.push('Ontem, ' + ontem.split('-').reverse().join('/') + ', não houve ocorrências.');
   return parts.join(' ');
 };
