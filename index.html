@@ -2588,6 +2588,75 @@ const buildFichaText = (c) => {
   ].filter(Boolean).join('\n').replace(/\uFFFD/g, '');
 };
 
+// LEITURA DA FICHA (voz): APENAS os dados exibidos no modal da ficha —
+// mesmas seções, mesmos valores e mesma ordem do modal. Não lê e-mail, telefone,
+// uniforme, "faltas da jornada" nem rodapé de envio (que não estão na ficha).
+const buildFichaSpeech = (c) => {
+  const d = LAST;
+  const matK = strip(c.matricula);
+  const fer = isOnVacation(c);
+  const fi = feriasInfo(c.admissao);
+  const parts = [];
+  const say = (label, val) => { const v = String(val == null ? '' : val).trim(); if (v && v !== '—') parts.push(label + ': ' + v + '.'); };
+  // Cabeçalho: nome, função • turno (linha pmRole) + selos de status
+  parts.push('Ficha de ' + (c.name || 'colaborador') + '.');
+  parts.push(abbrevFuncao(c.funcao || 'COLABORADOR') + ', ' + (c.turno || 'Turno 1') + '.');
+  if (fer) parts.push('De férias.');
+  parts.push(String(c.status || 'Ativo').toLowerCase() === 'ativo' ? 'Ativo.' : 'Status: ' + (c.status || '—') + '.');
+  // Chips do modal (a Função já foi dita no cabeçalho)
+  say('Matrícula', c.matricula);
+  say('Horário', formatHorario(c.horario));
+  say('DSR', c.dsr);
+  say('Admissão', fmtBR(c.admissao));
+  say('Tempo de empresa', tempoEmpresa(c.admissao));
+  if (fi.firstRightISO) parts.push('Direito a férias: ' + (fi.acquired ? 'adquirido' : 'a partir de ' + fmtBR(fi.firstRightISO)) + '.');
+  if (fi.months != null) parts.push('Período aquisitivo: ' + Math.min(fi.months, 12) + ' de 12 meses' + (fi.acquired ? '' : ', faltam ' + (12 - fi.months)) + '.');
+  say('Regime', c.regime || '6x1');
+  say('Nível', c.skillLevel);
+  say('Time', c.time);
+  // Seção "Indicadores do colaborador" (mesma tabela, até 6 meses)
+  const inds = (d.indicators || []).filter(i => strip(i.matricula) === matK)
+    .slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || ''))).slice(0, 6);
+  if (inds.length) {
+    parts.push('Indicadores do colaborador:');
+    inds.forEach(i => {
+      parts.push(String(i.month || '').split('-').reverse().join('/') +
+        ': qualidade ' + Number(i.qualidade || 0) +
+        ', produtividade ' + Number(i.produtividade || 0) +
+        ', assiduidade ' + Number(i.assiduidade || 0) +
+        ', segurança ' + Number(i.seguranca || 0) +
+        ', score ' + Number(i.score || 0) + '.');
+    });
+  } else parts.push('Indicadores do colaborador: sem indicadores registrados.');
+  // Seção "Números do mês" (os 6 mini-blocos do modal)
+  const month = monthNow();
+  const pres = (d.attendance || []).filter(a => a.date && String(a.date).startsWith(month) && strip(a.matricula) === matK);
+  const presentes = pres.filter(a => /presente/i.test(String(a.status || ''))).length;
+  const cobrindo = pres.filter(a => /cobrindo/i.test(String(a.status || ''))).length;
+  const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(month) && strip(o.matricula) === matK).length;
+  const epis = (d.epis || []).filter(e => strip(e.matricula) === matK);
+  const folgasMes = (d.folgas || []).filter(f => String(f.data || f.date || '').startsWith(month) && strip(f.matricula) === matK && String(f.ativo || 'SIM').toUpperCase() === 'SIM').length;
+  const assid = inds[0] ? Number(inds[0].assiduidade || 0) : 0;
+  parts.push('Números do mês: ' + presentes + ' presenças, ' + cobrindo + ' coberturas, ' + faltasMes + ' faltas, ' + epis.length + ' EPIs entregues, ' + folgasMes + ' folgas, assiduidade ' + assid + '.');
+  // Seção "Faltas / Ocorrências (recentes)" (até 10, como na lista do modal)
+  const faltas = (d.occurrences || []).filter(o => strip(o.matricula) === matK)
+    .slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 10);
+  if (faltas.length) {
+    parts.push('Faltas e ocorrências recentes:');
+    faltas.forEach(o => parts.push(String(o.tipo || 'Ocorrência') + (o.motivo ? ', ' + o.motivo : '') + ' — ' + fmtBR(o.data) + '.'));
+  } else parts.push('Faltas e ocorrências recentes: sem faltas registradas.');
+  // Seção "Observação privada do gestor" (visível no modal)
+  const obs = ((d.settings && d.settings.observacoes) || {})[matK];
+  if (obs && String(obs).trim()) parts.push('Observação do gestor: ' + String(obs).trim() + '.');
+  // Seção "EPIs entregues" (até 8, como na lista do modal)
+  const myEpis = epis.slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 8);
+  if (myEpis.length) {
+    parts.push('EPIs entregues:');
+    myEpis.forEach(e => parts.push(String(e.item || 'EPI') + (e.ca ? ', CA ' + e.ca : '') + ' — ' + fmtBR(e.data) + '.'));
+  } else parts.push('EPIs entregues: nenhuma entrega registrada.');
+  return parts.filter(Boolean).join(' ').replace(/\uFFFD/g, '');
+};
+
 // Baixa a foto embutida (base64) como JPG para anexar no WhatsApp Web
 const downloadDataUrl = (dataUrl, filename) => {
   const a = document.createElement('a');
@@ -2613,7 +2682,7 @@ const openPerson = (c) => {
   const d = LAST;
   const matK = strip(c.matricula);
   // Pré-gera a voz da ficha em segundo plano: o clique em "Ler ficha" sai na hora
-  try { ttsFetchCached(buildFichaText(c), voicePref()); } catch (_) {}
+  try { ttsFetchCached(buildFichaSpeech(c), voicePref()); } catch (_) {}
   $('#pmAvatar').innerHTML = avatarOf(c, 96);
   $('#pmName').textContent = c.name || '—';
   $('#pmRole').textContent = abbrevFuncao(c.funcao || 'COLABORADOR') + ' • ' + (c.turno || '');
@@ -2658,7 +2727,7 @@ const openPerson = (c) => {
   const mailto   = 'mailto:' + (c.email || '') + '?subject=' + encodeURIComponent('Ficha do colaborador — ' + (c.name || '')) + '&body=' + encoded;
   $('#pmActions').innerHTML = [
     '<a class="pm-btn wa" href="' + esc(waOpenLink(waNume, 'Olá, ' + first + '!')) + '" target="_blank" rel="noopener"><b>💬</b><span>WhatsApp</span></a>',
-    '<button id="pmReadBtn" type="button" class="pm-btn share" style="background:#0f172a;color:#fff;" title="Lê a ficha completa em voz alta com a voz do mascote" aria-label="Ler ficha completa em voz alta"><b>🔊</b><span>Ler ficha</span></button>',
+    '<button id="pmReadBtn" type="button" class="pm-btn share" style="background:#0f172a;color:#fff;" title="Lê em voz alta apenas os dados exibidos na ficha (voz do mascote)" aria-label="Ler os dados da ficha em voz alta"><b>🔊</b><span>Ler ficha</span></button>',
     '<button id="pmShareBtn" type="button" class="pm-btn share" title="Envia a ficha + foto direto no WhatsApp Web (aba do navegador)" aria-label="Enviar ficha + foto no WhatsApp Web"><b>📋</b><span>Enviar ficha + foto</span></button>',
     '<a class="pm-btn mail" href="' + esc(mailto) + '" title="Abre o cliente de e-mail com a ficha completa"><b>✉️</b><span>E-mail</span></a>'
   ].join('');
@@ -2670,7 +2739,7 @@ const openPerson = (c) => {
     rb.disabled = true;
     rb.innerHTML = '<b>⏳</b><span>Gerando…</span>';
     chime();
-    ttsSpeak(buildFichaText(c), voicePref(), () => { rb.disabled = false; rb.innerHTML = prevHTML; });
+    ttsSpeak(buildFichaSpeech(c), voicePref(), () => { rb.disabled = false; rb.innerHTML = prevHTML; });
   });
   // Ação especial: card de aniversário (só no dia)
   try {
@@ -3066,7 +3135,7 @@ const preloadAllAudios = () => {
     if (navigator.connection && navigator.connection.saveData) { console.log('[Áudio] saveData — pré-carga ignorada'); return; }
     if (!LAST || !LAST.colabs || !LAST.colabs.length) return; // só marca quando há dados
     window.__preloadAudiosDone = true;
-    const items = [{ text: buildSummaryText(LAST) }].concat(LAST.colabs.map((c) => ({ text: buildFichaText(c) })));
+    const items = [{ text: buildSummaryText(LAST) }].concat(LAST.colabs.map((c) => ({ text: buildFichaSpeech(c) })));
     let i = 0;
     const step = () => {
       if (i >= items.length) { console.log('[Áudio] pré-carga completa:', items.length, 'áudios'); return; }
