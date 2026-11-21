@@ -2999,7 +2999,7 @@ const pcmToWav = (b64) => {
 const ttsFetch = (text, voice) => new Promise((resolve, reject) => {
   const cb = '__ttsCb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
   const cleanup = () => { window.clearTimeout(toTimer); try { delete window[cb]; } catch {} const s = document.getElementById(cb); if (s) s.remove(); };
-  const toTimer = window.setTimeout(() => { cleanup(); reject(new Error('tts timeout')); }, 60000);
+  const toTimer = window.setTimeout(() => { cleanup(); reject(new Error('tts timeout')); }, 120000);
   window[cb] = (data) => { cleanup(); resolve(data); };
   const s = document.createElement('script');
   s.id = cb;
@@ -3126,8 +3126,8 @@ const trySpeakSummary = (d) => {
   waitForSummaryFeeds(() => { try { speakSummary(d); } catch (e) { console.error('speak', e); } }, 2500);
 };
 
-// PRÉ-CARREGAMENTO pós-login: gera e cacheia em segundo plano os áudios do Gemini
-// (resumo do dia + a ficha de cada colaborador) — a fala sai na hora no clique
+// PRÉ-CARREGAMENTO pós-login: gera e cacheia em segundo plano o áudio do Gemini
+// (somente o resumo do dia — as fichas são longas e ficam sob demanda no clique)
 const preloadAllAudios = () => {
   if (window.__preloadAudiosDone) return;
   try {
@@ -3135,7 +3135,7 @@ const preloadAllAudios = () => {
     if (navigator.connection && navigator.connection.saveData) { console.log('[Áudio] saveData — pré-carga ignorada'); return; }
     if (!LAST || !LAST.colabs || !LAST.colabs.length) return; // só marca quando há dados
     window.__preloadAudiosDone = true;
-    const items = [{ text: buildSummaryText(LAST) }].concat(LAST.colabs.map((c) => ({ text: buildFichaSpeech(c) })));
+    const items = [{ text: buildSummaryText(LAST) }]; // fichas: somente sob demanda (áudio longo)
     let i = 0;
     const step = () => {
       if (i >= items.length) { console.log('[Áudio] pré-carga completa:', items.length, 'áudios'); return; }
