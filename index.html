@@ -1808,6 +1808,22 @@ function folgasDeHoje(d) {
   return Array.from(nomes.values());
 }
 
+// Ausências de hoje (presença e ocorrência) — contadas por matrícula, sem duplicar
+function ausenciasDeHoje(d) {
+  const iso = todayISO();
+  const faltas = new Set(), atestados = new Set();
+  const add = (mat, nome, tipo) => {
+    const k = strip(mat) || String(nome || '').toLowerCase();
+    const t = String(tipo || '').toLowerCase();
+    if (/atestado/.test(t)) { atestados.add(k); faltas.delete(k); }
+    else if (/falta/.test(t)) { if (!atestados.has(k)) faltas.add(k); }
+  };
+  (d.attendance || []).filter(a => a.date === iso).forEach(a => add(a.matricula, a.colabName, a.status));
+  (d.occurrences || []).filter(o => String(o.data || '') === iso).forEach(o => add(o.matricula, o.colabName, o.tipo));
+  const ativas = new Set((d.colabs || []).filter(c => String(c.status || 'Ativo').toLowerCase() === 'ativo' && !isOnVacation(c)).map(c => strip(c.matricula)));
+  return { faltas: Array.from(faltas).filter(k => ativas.has(k)).length, atestados: Array.from(atestados).filter(k => ativas.has(k)).length };
+}
+
 const renderKpis = (d) => {
   const ativos = d.colabs.filter(c => String(c.status || 'Ativo').toLowerCase() !== 'desligado' && !isOnVacation(c));
   const today = todayISO();
@@ -1820,13 +1836,14 @@ const renderKpis = (d) => {
   const volHoje = fc && Object.prototype.hasOwnProperty.call(fc, nomeVol) ? Number(fc[nomeVol] || 0) : (WEEK_CAP[idxHoje] || 0);
   const vrHoje = computeVol(d, volHoje, idxHoje);
   const diaristasHoje = Number(vrHoje.diarT1 || 0) + Number(vrHoje.diarT2 || 0);
-  const emCampoHoje = Math.max(0, ativos.length - folgasHoje);
+  const aus = ausenciasDeHoje(d);
+  const emCampoHoje = Math.max(0, ativos.length - folgasHoje - aus.faltas - aus.atestados);
   const escaladosHoje = emCampoHoje + diaristasHoje;
   const cobertura = escaladosHoje > 0 ? Math.round((presentes / escaladosHoje) * 100) : 0;
   $('#kpiEfetivo').textContent = ativos.length;
   $('#kpiPresentes').textContent = presentes;
   $('#kpiPresentesFoot').textContent = 'DE ' + ativos.length + ' ATIVOS HOJE';
-  $('#kpiCobertura').innerHTML = escaladosHoje + '<small>' + emCampoHoje + ' em campo' + (diaristasHoje ? ' + ' + diaristasHoje + ' diarista(s)' : '') + ' · ' + cobertura + '% presentes</small>';
+  $('#kpiCobertura').innerHTML = escaladosHoje + '<small>' + emCampoHoje + ' em campo' + (aus.faltas ? ' −' + aus.faltas + ' falta(s)' : '') + (aus.atestados ? ' −' + aus.atestados + ' atestado(s)' : '') + (diaristasHoje ? ' +' + diaristasHoje + ' diarista(s)' : '') + ' · ' + cobertura + '% presentes</small>';
   $('#kpiFaltas').textContent = faltasMes;
   $('#kpiFolgas').textContent = folgasHoje;
 };
