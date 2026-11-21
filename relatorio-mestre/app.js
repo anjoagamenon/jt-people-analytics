@@ -124,8 +124,23 @@
     const total = (data.oss || []).reduce((s, o) => s + numeroCampo(o.pacotes), 0);
     if (!data.eficiencia) data.eficiencia = {};
     data.eficiencia.recebida = total;
+    // D10 do XLSX: processada = recebida − não chegou (C14)
+    data.eficiencia.processada = total - numeroCampo(data.problemas.naoChegou);
     const inp = document.querySelector('[data-key="eficiencia.recebida"]');
     if (inp) inp.value = String(total);
+    const inpP = document.querySelector('[data-key="eficiencia.processada"]');
+    if (inpP) inpP.value = String(data.eficiencia.processada);
+  }
+  // Fórmulas do XLSX ATUALIZADO (H4-H7, C10, D10)
+  function totalUtilizado(i) {
+    const t = (data.turnos || [])[i] || {};
+    return numeroCampo(t.clt) + numeroCampo(t.temp) + numeroCampo(t.dia);
+  }
+  function totalUtilizadoGeral() { return [0, 1, 2].reduce((s, i) => s + totalUtilizado(i), 0); }
+  function transferencia() { return numeroCampo(data.eficiencia.recebida) + numeroCampo(data.eficiencia.expedida); }
+  function produtividade() {
+    const hc = totalUtilizadoGeral(); // H7
+    return hc > 0 ? Number(((numeroCampo(data.eficiencia.recebida) + numeroCampo(data.eficiencia.expedida)) / hc).toFixed(7)) : 0;
   }
   function save() {
     try {
@@ -507,10 +522,17 @@
     TEXT_MAP['E' + r] = () => raw(data.turnos[i].desc);
     TEXT_MAP['F' + r] = () => raw(data.turnos[i].temp);
     TEXT_MAP['G' + r] = () => raw(data.turnos[i].dia);
+    TEXT_MAP['H' + r] = () => raw(totalUtilizado(i));
+  });
+  ['D', 'E', 'F', 'G', 'H'].forEach((col) => {
+    TEXT_MAP[col + '7'] = () => raw(col === 'H' ? totalUtilizadoGeral() :
+      [0, 1, 2].reduce((s, i) => s + numeroCampo(data.turnos[i][{ D: 'clt', E: 'desc', F: 'temp', G: 'dia' }[col]]), 0));
   });
   TEXT_MAP.A10 = () => raw(data.eficiencia.recebida);
   TEXT_MAP.B10 = () => raw(data.eficiencia.expedida);
+  TEXT_MAP.C10 = () => raw(transferencia());
   TEXT_MAP.D10 = () => raw(data.eficiencia.processada);
+  TEXT_MAP.E10 = () => raw(produtividade());
   TEXT_MAP.F10 = () => raw(data.eficiencia.veiculos);
   TEXT_MAP.C14 = () => raw(data.problemas.naoChegou);
   TEXT_MAP.C15 = () => raw(data.problemas.avaria);
