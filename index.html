@@ -1820,12 +1820,13 @@ const renderKpis = (d) => {
   const volHoje = fc && Object.prototype.hasOwnProperty.call(fc, nomeVol) ? Number(fc[nomeVol] || 0) : (WEEK_CAP[idxHoje] || 0);
   const vrHoje = computeVol(d, volHoje, idxHoje);
   const diaristasHoje = Number(vrHoje.diarT1 || 0) + Number(vrHoje.diarT2 || 0);
-  const escaladosHoje = Math.max(0, ativos.length - folgasHoje) + diaristasHoje;
+  const emCampoHoje = Math.max(0, ativos.length - folgasHoje);
+  const escaladosHoje = emCampoHoje + diaristasHoje;
   const cobertura = escaladosHoje > 0 ? Math.round((presentes / escaladosHoje) * 100) : 0;
   $('#kpiEfetivo').textContent = ativos.length;
   $('#kpiPresentes').textContent = presentes;
   $('#kpiPresentesFoot').textContent = 'DE ' + ativos.length + ' ATIVOS HOJE';
-  $('#kpiCobertura').innerHTML = escaladosHoje + '<small>' + cobertura + '% presentes' + (diaristasHoje ? ' · +' + diaristasHoje + ' diarista(s)' : '') + '</small>';
+  $('#kpiCobertura').innerHTML = escaladosHoje + '<small>' + emCampoHoje + ' em campo' + (diaristasHoje ? ' + ' + diaristasHoje + ' diarista(s)' : '') + ' · ' + cobertura + '% presentes</small>';
   $('#kpiFaltas').textContent = faltasMes;
   $('#kpiFolgas').textContent = folgasHoje;
 };
