@@ -612,6 +612,17 @@
       const v = vals['H' + (4 + Number(el.dataset.total))];
       el.textContent = isFinite(v) ? fmtNum(v) : '—';
     });
+    /* rótulos dinâmicos das abas */
+    document.querySelectorAll('[data-turno-label]').forEach((el) => {
+      const t = data.turnos[Number(el.dataset.turnoLabel)];
+      el.textContent = (t && t.nome) ? t.nome : `Turno ${Number(el.dataset.turnoLabel) + 1}`;
+    });
+    document.querySelectorAll('[data-os-label]').forEach((el) => {
+      const o = data.oss[Number(el.dataset.osLabel)];
+      const code = (o && o.os) ? String(o.os) : '';
+      el.textContent = code ? (code.length > 12 ? code.slice(0, 12) + '…' : code) : `OS ${Number(el.dataset.osLabel) + 1}`;
+    });
+
     setPhoto('A25', data.fotos.inicio);
     setPhoto('E25', data.fotos.fim);
     fitPreview();
@@ -619,40 +630,53 @@
 
   /* ---------------- formulário ---------------- */
   function buildForm() {
-    /* turnos */
-    $('#turnos').innerHTML = data.turnos.map((_, i) => `
-      <div class="turno">
-        <div class="tt"><b>Turno ${i + 1}</b><span class="total-line">Total: <b data-total="${i}">0</b></span></div>
-        <label>Nome do turno
-          <input type="text" data-key="turnos.${i}.nome" placeholder="T${i + 1}" maxlength="6">
-        </label>
-        <div class="grid2">
-          <label>Entrada <input type="time" data-key="turnos.${i}.ent"></label>
-          <label>Saída <input type="time" data-key="turnos.${i}.sai"></label>
-          <label>CLT em serviço <input type="number" min="0" step="1" data-key="turnos.${i}.clt"></label>
-          <label>CLT em descanso <input type="number" min="0" step="1" data-key="turnos.${i}.desc"></label>
-          <label>Temporários <input type="number" min="0" step="1" data-key="turnos.${i}.temp"></label>
-          <label>Diaristas <input type="number" min="0" step="1" data-key="turnos.${i}.dia"></label>
-        </div>
-      </div>`).join('');
+    /* turnos em abas */
+    const tabBar = (kind, labels) => `
+      <div class="tabs" data-tabs="${kind}">
+        ${labels.map((l, i) => `<button type="button" class="tab-btn${i === 0 ? ' active' : ''}" data-tab="${i}" data-tabkind="${kind}">${l}</button>`).join('')}
+      </div>`;
 
-    /* ordens de serviço */
-    $('#oss').innerHTML = data.oss.map((_, i) => `
-      <div class="os-row">
-        <div class="tt"><span>Ordem de Serviço ${i + 1}</span></div>
-        <label>OS <input type="text" data-key="oss.${i}.os" placeholder="DBGX..."></label>
-        <div class="grid2">
-          <label>Horário planejado <input type="datetime-local" data-key="oss.${i}.planejado"></label>
-          <label>Horário real <input type="datetime-local" data-key="oss.${i}.real"></label>
-          <label>Qtd. pacotes <input type="number" min="0" step="1" data-key="oss.${i}.pacotes"></label>
-          <label>Rota com backlog
-            <select data-key="oss.${i}.rota">
-              <option value="">—</option><option>SIM</option><option>NÃO</option>
-            </select>
-          </label>
-        </div>
-        <label class="full">Motivo do backlog <input type="text" data-key="oss.${i}.motivo"></label>
-      </div>`).join('');
+    $('#turnos').innerHTML =
+      tabBar('turnos', data.turnos.map((_, i) => `<span data-turno-label="${i}">Turno ${i + 1}</span>`)) +
+      data.turnos.map((_, i) => `
+        <div class="tab-panel${i === 0 ? ' active' : ''}" data-panel="${i}" data-kind="turnos">
+          <div class="turno">
+            <div class="tt"><b>Turno ${i + 1}</b><span class="total-line">Total: <b data-total="${i}">0</b></span></div>
+            <label>Nome do turno
+              <input type="text" data-key="turnos.${i}.nome" placeholder="T${i + 1}" maxlength="6">
+            </label>
+            <div class="grid2">
+              <label>Entrada <input type="time" data-key="turnos.${i}.ent"></label>
+              <label>Saída <input type="time" data-key="turnos.${i}.sai"></label>
+              <label>CLT em serviço <input type="number" min="0" step="1" data-key="turnos.${i}.clt"></label>
+              <label>CLT em descanso <input type="number" min="0" step="1" data-key="turnos.${i}.desc"></label>
+              <label>Temporários <input type="number" min="0" step="1" data-key="turnos.${i}.temp"></label>
+              <label>Diaristas <input type="number" min="0" step="1" data-key="turnos.${i}.dia"></label>
+            </div>
+          </div>
+        </div>`).join('');
+
+    /* ordens de serviço em abas */
+    $('#oss').innerHTML =
+      tabBar('oss', data.oss.map((_, i) => `<span data-os-label="${i}">OS ${i + 1}</span>`)) +
+      data.oss.map((_, i) => `
+        <div class="tab-panel${i === 0 ? ' active' : ''}" data-panel="${i}" data-kind="oss">
+          <div class="os-row">
+            <div class="tt"><span>Ordem de Serviço ${i + 1}</span></div>
+            <label>OS <input type="text" data-key="oss.${i}.os" placeholder="DBGX..."></label>
+            <div class="grid2">
+              <label>Horário planejado <input type="datetime-local" data-key="oss.${i}.planejado"></label>
+              <label>Horário real <input type="datetime-local" data-key="oss.${i}.real"></label>
+              <label>Qtd. pacotes <input type="number" min="0" step="1" data-key="oss.${i}.pacotes"></label>
+              <label>Rota com backlog
+                <select data-key="oss.${i}.rota">
+                  <option value="">—</option><option>SIM</option><option>NÃO</option>
+                </select>
+              </label>
+            </div>
+            <label class="full">Motivo do backlog <input type="text" data-key="oss.${i}.motivo"></label>
+          </div>
+        </div>`).join('');
 
     /* fotos */
     const fotoBox = (which, titulo) => `
@@ -1376,6 +1400,14 @@
       }
     });
     form.addEventListener('click', (e) => {
+      const tab = e.target.closest && e.target.closest('[data-tab]');
+      if (tab) {
+        const kind = tab.dataset.tabkind;
+        document.querySelectorAll(`[data-tabs="${kind}"] .tab-btn`).forEach((b) => b.classList.toggle('active', b === tab));
+        document.querySelectorAll(`.tab-panel[data-kind="${kind}"]`).forEach((p) => p.classList.toggle('active', p.dataset.panel === tab.dataset.tab));
+        fitPreview();
+        return;
+      }
       const b = e.target.closest && e.target.closest('[data-clearfoto]');
       if (!b) return;
       data.fotos[b.dataset.clearfoto] = null;

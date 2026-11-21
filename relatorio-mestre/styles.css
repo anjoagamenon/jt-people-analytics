@@ -82,6 +82,18 @@ input[type=datetime-local], select, textarea {
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--rm-gold); outline-offset: 0; border-color: var(--rm-red); }
 textarea { resize: vertical; }
 
+/* ---- abas (turnos / OS) ---- */
+.tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.tab-btn {
+  border: 1px solid var(--rm-line); background: #fff; color: var(--rm-red-dark);
+  border-radius: 999px; padding: 5px 10px; font-size: 11.5px; font-weight: 700;
+  cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tab-btn:hover { background: #fff5f5; }
+.tab-btn.active { background: var(--rm-red); border-color: var(--rm-red); color: #fff; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
 .turno { border: 1px solid var(--rm-line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; background: #fafbfd; }
 .turno > .tt { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .turno > .tt b { font-size: 12.5px; color: var(--rm-red-dark); }
