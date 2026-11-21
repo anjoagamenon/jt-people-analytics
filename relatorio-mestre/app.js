@@ -112,6 +112,7 @@
   })();
 
   let quotaWarned = false;
+  let cloudWarned = false;
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
@@ -123,9 +124,11 @@
       } catch (e2) { /* silencioso */ }
     }
     /* envia também para a fonte única na nuvem (sincroniza APK/PC/painel) */
-    if (window.RMCloud && RMCloud.ok) {
+    if (window.RMCloud) {
       clearTimeout(window.__rmCloudSave);
-      window.__rmCloudSave = setTimeout(() => RMCloud.save(clone(data)), 400);
+      window.__rmCloudSave = setTimeout(() => RMCloud.save(clone(data)).then((ok) => {
+        if (!ok && !cloudWarned) { cloudWarned = true; toast('⚠ Dados salvos neste aparelho, mas a nuvem não recebeu. Use "Reenviar p/ nuvem".', 6000); }
+      }).catch(() => {}), 400);
     }
   }
 
@@ -1472,6 +1475,17 @@
 
     /* ----- histórico ----- */
     $('#btnSalvarVersao').addEventListener('click', salvarVersao);
+    const cloudBtn = $('#btnCloudSync');
+    if (cloudBtn) cloudBtn.addEventListener('click', async () => {
+      const txt = cloudBtn.textContent;
+      cloudBtn.disabled = true; cloudBtn.textContent = '⏳ Enviando…';
+      try {
+        const ok = await RMCloud.save(clone(data));
+        cloudWarned = !ok;
+        toast(ok ? 'Dados do relatório enviados para a nuvem ✓' : 'Falha ao enviar — verifique a conexão e tente de novo.', 6000);
+      } catch (e) { toast('Falha ao enviar: ' + (e && e.message || e), 6000); }
+      cloudBtn.disabled = false; cloudBtn.textContent = txt;
+    });
     $('#histList').addEventListener('click', async (e) => {
       const b = e.target.closest && e.target.closest('[data-hact]');
       if (!b) return;
@@ -1556,7 +1570,7 @@
     renderHist().catch((e) => console.warn('hist', e));
     driveStatus('', 'desconectado');
     /* Drive automático: conecta com a sessão Google já logada */
-    if (!localStorage.getItem(GCLIENT_KEY)) localStorage.setItem(GCLIENT_KEY, '199118358202-8kd5vbbqkme1fg6bccmjhpkpkr5i64bi.apps.googleusercontent.com');
+    if (!localStorage.getItem(GCLIENT_KEY)) localStorage.setItem(GCLIENT_KEY, '823561383768-bhcr2s64i6f7aj8mafkcna3gi4ts6tc6.apps.googleusercontent.com');
     if ($('#fGClient')) $('#fGClient').value = localStorage.getItem(GCLIENT_KEY);
     driveConnect(true).catch(() => {});
     /* fonte única: conecta e recebe alterações de outros dispositivos */

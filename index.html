@@ -4444,7 +4444,16 @@ $('#bcSend').addEventListener('click', async () => {
     var open = document.getElementById('rmOpenBtn');
     if (open) open.addEventListener('click', function () { window.open('relatorio-mestre/index.html', '_blank'); });
     var ref = document.getElementById('rmRefreshBtn');
-    if (ref) ref.addEventListener('click', function () { if (window.rmSyncNow) window.rmSyncNow(); else load(); });
+    if (ref) ref.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      const old = ref.textContent;
+      ref.disabled = true; ref.textContent = '⟳ Atualizando…';
+      const volta = () => { ref.disabled = false; ref.textContent = old; };
+      if (window.rmSyncNow) {
+        try { const p = window.rmSyncNow(); if (p && p.then) p.then(volta, volta); else setTimeout(volta, 900); }
+        catch (_) { volta(); }
+      } else { load(); setTimeout(volta, 900); }
+    });
   });
 })();
 </script>
@@ -4465,7 +4474,7 @@ $('#bcSend').addEventListener('click', async () => {
     return d;
   }
   function load() {
-    fetch(URL + '?v=' + Date.now(), { cache: 'no-store' })
+    return fetch(URL + '?v=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (j) {
         if (j && j.data && window.rmRender) {

@@ -33,7 +33,11 @@
   }
 
   async function ensureFirebase() {
-    if (window.firebase && firebase.apps && firebase.apps.length) return true;
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      if (!auth) auth = firebase.auth();
+      if (!db) db = firebase.database();
+      return true;
+    }
     var base = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-';
     await loadScript(base + 'app-compat.js');
     await loadScript(base + 'auth-compat.js');
@@ -66,10 +70,14 @@
   }
 
   async function save(data) {
-    if (!db || !user) return false;
     var ts = Date.now();
     lastLocal = ts;
     try {
+      // tenta (re)conectar antes de gravar: se o login expirou, o painel ficaria com dados antigos
+      await ensureFirebase();
+      if (!auth.currentUser) await auth.signInWithEmailAndPassword(USER, PASS);
+      user = auth.currentUser;
+      db = firebase.database();
       await db.ref(DB_PATH).set({ _ts: ts, _por: user.email, data: data });
       return true;
     } catch (e) { console.warn('[nuvem] save', e); return false; }
