@@ -4362,6 +4362,7 @@ $('#bcSend').addEventListener('click', async () => {
     return out;
   }
   function render(d) {
+    window.rmRender = render;
     var e = d.eficiencia || {}, p = d.problemas || {};
     var el = function (id) { return document.getElementById(id); };
     if (!el('rmPanel')) return;
@@ -4413,6 +4414,25 @@ $('#bcSend').addEventListener('click', async () => {
     if (open) open.addEventListener('click', function () { window.open('relatorio-mestre/index.html', '_blank'); });
     var ref = document.getElementById('rmRefreshBtn');
     if (ref) ref.addEventListener('click', load);
+  });
+})();
+</script>
+
+<!-- rm-firebase-sync: painel sempre sincronizado com o APK -->
+<script id="rm-firebase-sync">
+(function () {
+  var URL = 'https://superb-firefly-515408-i3-default-rtdb.firebaseio.com/relatorio/estado/v1.json';
+  function load() {
+    fetch(URL + '?v=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.data && window.rmRender) window.rmRender(j.data);
+      })
+      .catch(function () {});
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    load();
+    setInterval(load, 15000);
   });
 })();
 </script>

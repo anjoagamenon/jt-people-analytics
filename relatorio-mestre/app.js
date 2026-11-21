@@ -122,6 +122,11 @@
         if (!quotaWarned) { quotaWarned = true; toast('Formulário salvo. As fotos não couberam no armazenamento do navegador (valem nesta sessão).', 5000); }
       } catch (e2) { /* silencioso */ }
     }
+    /* envia também para a fonte única na nuvem (sincroniza APK/PC/painel) */
+    if (window.RMCloud && RMCloud.ok) {
+      clearTimeout(window.__rmCloudSave);
+      window.__rmCloudSave = setTimeout(() => RMCloud.save(clone(data)), 400);
+    }
   }
 
   /* ---------------- histórico de versões ----------------
@@ -1063,39 +1068,77 @@
   }
 
   /* ---------------- exportação PNG (alta resolução) ---------------- */
+  async function renderPNG(scale) {
+    const clone = reportEl.cloneNode(true);
+    clone.style.zoom = '';
+    const holder = document.createElement('div');
+    holder.style.cssText = `position:absolute;left:0;top:0;width:${W}px;height:${H}px;background:#ffffff;z-index:-9999;`;
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
+    try {
+      const canvas = await html2canvas(clone, {
+        scale: 1, backgroundColor: '#ffffff', useCORS: true, logging: false,
+        width: W, height: H, windowWidth: Math.max(W, 1400), windowHeight: Math.max(H, 1200),
+        scrollX: 0, scrollY: 0,
+      });
+      if (scale > 1) {
+        const big = document.createElement('canvas');
+        big.width = Math.round(W * scale); big.height = Math.round(H * scale);
+        const cx = big.getContext('2d');
+        cx.imageSmoothingEnabled = true;
+        cx.imageSmoothingQuality = 'high';
+        cx.drawImage(canvas, 0, 0, big.width, big.height);
+        return big;
+      }
+      return canvas;
+    } finally { holder.remove(); }
+  }
+
+  async function exportarPDF() {
+    const btn = $('#btnPdf');
+    if (btn) btn.disabled = true;
+    toast('Gerando PDF A4 paisagem…', 30000);
+    try {
+      const canvas = await renderPNG(2);
+      const img = canvas.toDataURL('image/jpeg', 0.92);
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4', compress: true });
+      const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
+      const k = Math.min((pw - 24) / canvas.width, (ph - 24) / canvas.height);
+      const w = canvas.width * k, h = canvas.height * k;
+      pdf.addImage(img, 'JPEG', (pw - w) / 2, (ph - h) / 2, w, h);
+      const blob = pdf.output('blob');
+      const nome = `Relatorio-Operacoes-SC-${(data.dataRelatorio || 'sem-data').replace(/-/g, '')}.pdf`;
+      if (window.RMCloud) await RMCloud.share(blob, nome, 'application/pdf');
+      else pdf.save(nome);
+      toast('PDF A4 paisagem pronto ✓');
+    } catch (e) { console.error(e); toast('Falha no PDF: ' + e.message, 5000); }
+    finally { if (btn) btn.disabled = false; }
+  }
+
   async function exportPNG() {
     const btn = $('#btnPng');
     const scale = Number($('#escala').value) || 3;
     btn.disabled = true;
     toast(`Gerando PNG em ${scale}x…`, 60000);
-    const clone = reportEl.cloneNode(true);
-    clone.style.zoom = '';
-    const holder = document.createElement('div');
-    holder.style.cssText = `position:absolute;left:-30000px;top:0;width:${W}px;height:${H}px;background:#ffffff;`;
-    holder.appendChild(clone);
-    document.body.appendChild(holder);
     try {
-      const canvas = await html2canvas(clone, {
-        scale, backgroundColor: '#ffffff', useCORS: true, logging: false,
-        width: W, height: H, windowWidth: W, windowHeight: H,
-      });
-      const a = document.createElement('a');
-      a.download = `Relatorio-Operacoes-SC-${(data.dataRelatorio || 'sem-data').replace(/-/g, '')}@${scale}x.png`;
+      const canvas = await renderPNG(scale);
       const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        a.href = url;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      } else a.href = canvas.toDataURL('image/png'), a.click();
+      const nome = `Relatorio-Operacoes-SC-${(data.dataRelatorio || 'sem-data').replace(/-/g, '')}@${scale}x.png`;
+      if (blob && window.RMCloud) await RMCloud.share(blob, nome, 'image/png');
+      else if (blob) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = nome; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      } else {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png'); a.download = nome; a.click();
+      }
       toast(`PNG gerado: ${canvas.width}×${canvas.height} px`);
     } catch (e) {
       console.error(e);
       toast('Falha ao gerar o PNG: ' + e.message, 5000);
-    } finally {
-      holder.remove();
-      btn.disabled = false;
-    }
+    } finally { btn.disabled = false; }
   }
 
   /* ---------------- impressão ---------------- */
@@ -1237,12 +1280,6 @@
     const btn = $('#btnAudioFile');
     if (btn) btn.disabled = true;
     try {
-      if (/\.github\.io$/i.test(location.hostname) && 'speechSynthesis' in window) {
-        const lang0 = data.acessibilidade.idioma;
-        falar(lang0 === 'zh-CN' ? reportTextZH() : reportTextPT(), lang0 === 'ambos' ? 'pt-BR' : (lang0 === 'zh-CN' ? 'zh-CN' : 'pt-BR'));
-        vstatus(' Narrando com a voz do navegador (hospedagem sem proxy de áudio).');
-        return;
-      }
       const lang = data.acessibilidade.idioma;
       const lista = lang === 'ambos'
         ? [['pt-BR', reportTextPT()], ['zh-CN', reportTextZH()]]
@@ -1250,9 +1287,14 @@
       const partes = [];
       for (const [tl, txt] of lista) {
         vstatus('Gerando áudio em ' + tl + '…');
-        const r = await fetch('/tts?tl=' + encodeURIComponent(tl) + '&text=' + encodeURIComponent(txt));
-        if (!r.ok) throw new Error('TTS HTTP ' + r.status + ' — ' + (await r.text().catch(() => '')).slice(0, 100));
-        partes.push(await r.blob());
+        if (window.RMCloud) {
+          /* Cloud TTS funciona no Pages e no APK (sem proxy local) */
+          partes.push(await RMCloud.tts(txt, tl));
+        } else {
+          const r = await fetch('/tts?tl=' + encodeURIComponent(tl) + '&text=' + encodeURIComponent(txt));
+          if (!r.ok) throw new Error('TTS HTTP ' + r.status);
+          partes.push(await r.blob());
+        }
       }
       audioBlob = new Blob(partes, { type: 'audio/mpeg' });
       audioName = 'Relatorio-' + (lang === 'ambos' ? 'pt-zh' : lang) + '-' +
@@ -1265,9 +1307,9 @@
       console.error(e);
       const lang = data.acessibilidade.idioma;
       const texto = lang === 'zh-CN' ? reportTextZH() : reportTextPT();
-      if ('speechSynthesis' in window && (String(e.message).indexOf('TTS HTTP') >= 0 || String(e.message).indexOf('Failed to fetch') >= 0)) {
-        falar(texto, lang === 'ambos' ? 'pt-BR' : lang);
-        vstatus(' Servidor de áudio indisponível nesta hospedagem — narrando com a voz do navegador.');
+      if ('speechSynthesis' in window) {
+        falar(texto, lang === 'ambos' ? 'pt-BR' : (lang === 'zh-CN' ? 'zh-CN' : 'pt-BR'));
+        vstatus(' Narrando com a voz do navegador. Para gerar MP3/vídeo, é preciso um servidor de voz (o local funciona).');
         return;
       }
       vstatus(' Erro no áudio: ' + e.message);
@@ -1355,23 +1397,36 @@
   async function compartilhar() {
     const titulo = 'Relatório Diário de Operações do SC';
     const texto = `${titulo} — SC ${data.centro || ''} — ${fmtDia(data.dataRelatorio)}`;
+    /* prioriza vídeo → áudio → PNG (arquivo real, nunca .bin) */
     if (videoBlob) {
-      if (navigator.share && window.File) {
-        try {
-          await navigator.share({ title: titulo + ' em Libras', text: texto,
-            files: [new File([videoBlob], videoName, { type: videoBlob.type || 'video/webm' })] });
-          return;
-        } catch (e) { if (e.name === 'AbortError') return; }
-      }
-      baixarBlob(videoBlob, videoName);
-      vstatus(' Vídeo baixado para compartilhar manualmente.');
+      const r = window.RMCloud
+        ? await RMCloud.share(videoBlob, videoName, videoBlob.type || 'video/webm')
+        : (baixarBlob(videoBlob, videoName), 'baixado');
+      vstatus(r === 'compartilhado' ? ' Vídeo compartilhado ✓' : ' Vídeo salvo para compartilhar.');
       return;
     }
-    if (navigator.share) {
-      try { await navigator.share({ title: titulo, text: texto }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    if (audioBlob) {
+      const r = window.RMCloud
+        ? await RMCloud.share(audioBlob, audioName, 'audio/mpeg')
+        : (baixarBlob(audioBlob, audioName), 'baixado');
+      vstatus(r === 'compartilhado' ? ' Áudio compartilhado ✓' : ' Áudio salvo para compartilhar.');
+      return;
     }
-    if (navigator.clipboard) { await navigator.clipboard.writeText(texto); toast('Resumo copiado para compartilhar.'); }
-    else toast('Use “Exportar PNG” para compartilhar o relatório.');
+    toast('Gerando PNG para compartilhar…');
+    try {
+      const scale = Number($('#escala').value) || 2;
+      const canvas = await renderPNG(Math.min(scale, 2));
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      const nome = `Relatorio-Operacoes-SC-${(data.dataRelatorio || 'sem-data').replace(/-/g, '')}.png`;
+      if (blob && window.RMCloud) {
+        const r = await RMCloud.share(blob, nome, 'image/png');
+        toast(r === 'compartilhado' ? 'PNG compartilhado ✓' : 'PNG salvo para compartilhar.');
+      } else if (navigator.share) {
+        await navigator.share({ title: titulo, text: texto });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(texto); toast('Resumo copiado para compartilhar.');
+      }
+    } catch (e) { console.error(e); toast('Não foi possível compartilhar: ' + e.message, 5000); }
   }
 
   /* ---------------- eventos ---------------- */
@@ -1468,7 +1523,8 @@
     vt.value = localStorage.getItem(VLTOKEN_KEY) || '';
     vt.addEventListener('change', () => localStorage.setItem(VLTOKEN_KEY, vt.value.trim()));
 
-    $('#btnPng').addEventListener('click', exportPNG);    $('#btnPrint').addEventListener('click', () => { fitPrint(); window.print(); });
+    $('#btnPng').addEventListener('click', exportPNG);
+    $('#btnPdf').addEventListener('click', exportarPDF);    $('#btnPrint').addEventListener('click', () => { fitPrint(); window.print(); });
     window.addEventListener('beforeprint', fitPrint);
     window.addEventListener('afterprint', () => { if (reportEl) reportEl.style.zoom = ''; fitPreview(); });
 
@@ -1499,7 +1555,24 @@
     logoImage();
     renderHist().catch((e) => console.warn('hist', e));
     driveStatus('', 'desconectado');
-    if (localStorage.getItem(GCLIENT_KEY)) driveConnect(true).catch(() => {});
+    /* Drive automático: conecta com a sessão Google já logada */
+    if (!localStorage.getItem(GCLIENT_KEY)) localStorage.setItem(GCLIENT_KEY, '199118358202-8kd5vbbqkme1fg6bccmjhpkpkr5i64bi.apps.googleusercontent.com');
+    if ($('#fGClient')) $('#fGClient').value = localStorage.getItem(GCLIENT_KEY);
+    driveConnect(true).catch(() => {});
+    /* fonte única: conecta e recebe alterações de outros dispositivos */
+    if (window.RMCloud) {
+      RMCloud.init((remote) => {
+        if (!remote || remote.fotos === undefined) return;
+        data = mergeData(defaultData(), remote);
+        localStorage.setItem(KEY, JSON.stringify(data));
+        buildForm(); refresh();
+        toast('Dados atualizados pela nuvem ✓');
+      }).then((r) => {
+        const st = $('#driveStatus');
+        if (st) st.title = r.ok ? ('Nuvem: ' + r.user) : ('Nuvem off: ' + r.erro);
+        if (!r.ok) toast('Sem conexão com a nuvem — dados ficam neste aparelho.', 5000);
+      }).catch(() => {});
+    }
     if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
