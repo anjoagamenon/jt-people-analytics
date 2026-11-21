@@ -113,6 +113,20 @@
 
   let quotaWarned = false;
   let cloudWarned = false;
+  // Soma dos pacotes das OS → Quantidade Recebida (aceita "12.761" e "14004")
+  function numeroCampo(v) {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+    const s = String(v == null ? '' : v).trim().replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
+    const n = Number(s.replace(/[^0-9.\-]/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  }
+  function recalcRecebida() {
+    const total = (data.oss || []).reduce((s, o) => s + numeroCampo(o.pacotes), 0);
+    if (!data.eficiencia) data.eficiencia = {};
+    data.eficiencia.recebida = total;
+    const inp = document.querySelector('[data-key="eficiencia.recebida"]');
+    if (inp) inp.value = String(total);
+  }
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
@@ -1441,6 +1455,7 @@
       const k = el.dataset && el.dataset.key;
       if (!k) return;
       setPath(data, k, el.type === 'checkbox' ? el.checked : el.value);
+      if (/^oss\.\d+\.pacotes$/.test(k)) recalcRecebida();
       save(); refresh();
     });
     form.addEventListener('change', (e) => {
@@ -1565,6 +1580,7 @@
     buildForm();
     buildReport();
     bind();
+    recalcRecebida();
     refresh();
     logoImage();
     renderHist().catch((e) => console.warn('hist', e));
@@ -1579,7 +1595,7 @@
         if (!remote || remote.fotos === undefined) return;
         data = mergeData(defaultData(), remote);
         localStorage.setItem(KEY, JSON.stringify(data));
-        buildForm(); refresh();
+        buildForm(); recalcRecebida(); refresh();
         toast('Dados atualizados pela nuvem ✓');
       }).then((r) => {
         const st = $('#driveStatus');
