@@ -1789,7 +1789,7 @@ const renderKpis = (d) => {
   const ativos = d.colabs.filter(c => String(c.status || 'Ativo').toLowerCase() !== 'desligado' && !isOnVacation(c));
   const today = todayISO();
   const presentes = d.attendance.filter(a => a.date === today && /Presente|Cobrindo/i.test(String(a.status || ''))).length;
-  const faltasMes = d.occurrences.filter(o => String(o.data || '').startsWith(monthNow())).length;
+  const faltasMes = d.occurrences.filter(o => String(o.data || '').startsWith(monthNow()) && /falta/i.test(String(o.tipo || ''))).length;
   const folgasHoje = d.folgas.filter(f => f.date === today && String(f.ativo || 'SIM').toUpperCase() === 'SIM').length;
   const cobertura = ativos.length ? Math.round((presentes / ativos.length) * 100) : 0;
   $('#kpiEfetivo').textContent = ativos.length;
@@ -2244,7 +2244,7 @@ const renderH30 = (d) => {
     const dt = new Date(today); dt.setDate(today.getDate() - i);
     const iso = dt.getFullYear() + '-' + pad2(dt.getMonth() + 1) + '-' + pad2(dt.getDate());
     const pres = att.filter(a => a.date === iso && /Presente|Cobrindo/i.test(String(a.status || ''))).length;
-    const faltas = occ.filter(o => String(o.data || '') === iso).length;
+    const faltas = occ.filter(o => String(o.data || '') === iso && /falta/i.test(String(o.tipo || ''))).length;
     days.push({ iso, dd: pad2(dt.getDate()), mm: pad2(dt.getMonth() + 1), pres, faltas });
   }
   const maxPres = Math.max(1, ...days.map(x => x.pres));
@@ -2541,7 +2541,7 @@ const buildFichaText = (c) => {
   const pres = (d.attendance || []).filter(a => a.date && String(a.date).startsWith(y + '-' + mm) && stripM(a.matricula) === matK);
   const presentes = pres.filter(a => /presente/i.test(String(a.status || ''))).length;
   const cobrindo  = pres.filter(a => /cobrindo/i.test(String(a.status || ''))).length;
-  const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(y + '-' + mm) && stripM(o.matricula) === matK).length;
+  const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(y + '-' + mm) && stripM(o.matricula) === matK && /falta/i.test(String(o.tipo || ''))).length;
   const weekDays = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
   const sched = c.schedule || {};
   const ind = (d.indicators || []).filter(i => stripM(i.matricula) === matK).slice().sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')))[0];
@@ -2633,7 +2633,7 @@ const buildFichaSpeech = (c) => {
   const pres = (d.attendance || []).filter(a => a.date && String(a.date).startsWith(month) && strip(a.matricula) === matK);
   const presentes = pres.filter(a => /presente/i.test(String(a.status || ''))).length;
   const cobrindo = pres.filter(a => /cobrindo/i.test(String(a.status || ''))).length;
-  const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(month) && strip(o.matricula) === matK).length;
+  const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(month) && strip(o.matricula) === matK && /falta/i.test(String(o.tipo || ''))).length;
   const epis = (d.epis || []).filter(e => strip(e.matricula) === matK);
   const folgasMes = (d.folgas || []).filter(f => String(f.data || f.date || '').startsWith(month) && strip(f.matricula) === matK && String(f.ativo || 'SIM').toUpperCase() === 'SIM').length;
   const assid = inds[0] ? Number(inds[0].assiduidade || 0) : 0;
@@ -2644,7 +2644,7 @@ const buildFichaSpeech = (c) => {
   if (faltas.length) {
     parts.push('Faltas e ocorrências recentes:');
     faltas.forEach(o => parts.push(String(o.tipo || 'Ocorrência') + (o.motivo ? ', ' + o.motivo : '') + ' — ' + fmtBR(o.data) + '.'));
-  } else parts.push('Faltas e ocorrências recentes: sem faltas registradas.');
+  } else parts.push('Faltas e ocorrências recentes: sem ocorrências registradas.');
   // Seção "Observação privada do gestor" (visível no modal)
   const obs = ((d.settings && d.settings.observacoes) || {})[matK];
   if (obs && String(obs).trim()) parts.push('Observação do gestor: ' + String(obs).trim() + '.');
@@ -2768,7 +2768,7 @@ const openPerson = (c) => {
   const pres = (d.attendance || []).filter(a => a.date && String(a.date).startsWith(month) && strip(a.matricula) === matK);
   const presentes = pres.filter(a => /presente/i.test(String(a.status || ''))).length;
   const cobrindo = pres.filter(a => /cobrindo/i.test(String(a.status || ''))).length;
-  const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(month) && strip(o.matricula) === matK).length;
+  const faltasMes = (d.occurrences || []).filter(o => String(o.data || '').startsWith(month) && strip(o.matricula) === matK && /falta/i.test(String(o.tipo || ''))).length;
   const epis = (d.epis || []).filter(e => strip(e.matricula) === matK);
   const folgasMes = (d.folgas || []).filter(f => String(f.data || f.date || '').startsWith(month) && strip(f.matricula) === matK && String(f.ativo || 'SIM').toUpperCase() === 'SIM').length;
   const assid = inds[0] ? Number(inds[0].assiduidade || 0) : 0;
@@ -2785,7 +2785,7 @@ const openPerson = (c) => {
     .slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 10);
   $('#pmFaltas').innerHTML = faltas.length
     ? faltas.map(o => '<div class="plist-row"><span>' + esc(String(o.tipo || 'Ocorrência')) + (o.motivo ? ' • ' + esc(o.motivo) : '') + '</span><span style="color:var(--gray)">' + esc(fmtBR(o.data)) + '</span></div>').join('')
-    : '<div class="empty-note">Sem faltas registradas 🎉</div>';
+    : '<div class="empty-note">Sem ocorrências registradas 🎉</div>';
 
   // EPIs entregues (últimos 8)
   const myEpis = epis.slice().sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))).slice(0, 8);
