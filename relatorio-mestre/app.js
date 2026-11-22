@@ -619,6 +619,16 @@
       els[ref] = el;
     }
 
+    // Emblema no retângulo branco à direita da eficiência (G8:H11)
+    const eb = box(7, 8, 8, 11);
+    const emblema = document.createElement('img');
+    emblema.src = 'emblema.png';
+    emblema.alt = '';
+    emblema.style.cssText = 'position:absolute;left:' + eb.left + 'px;top:' + eb.top +
+      'px;width:' + eb.width + 'px;height:' + eb.height +
+      'px;object-fit:contain;pointer-events:none;';
+    rep.appendChild(emblema);
+
     reportEl = rep;
     $('#previewScale').appendChild(rep);
   }
@@ -669,9 +679,6 @@
 
     setPhoto('A25', data.fotos.inicio);
     setPhoto('E25', data.fotos.fim);
-    // Emblema no espaço em branco (célula mesclada A11:H11)
-    setPhoto('A11', { src: 'emblema.png', w: 1254, h: 1254 });
-    if (els.A11) els.A11.style.textAlign = 'center';
     fitPreview();
   }
 
