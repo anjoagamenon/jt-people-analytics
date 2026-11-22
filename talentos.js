@@ -1051,8 +1051,11 @@
   /* ---------------- INIT ---------------- */
   function init() {
     carregarCfgLocal(); carregarCamposCfg();
-    // Este portal é apenas de análise: o cadastro acontece em outro site.
-    if (sessionStorage.getItem(ADMIN_KEY) === '1') mostrarGestao(true);
+    // Se o painel principal já foi desbloqueado nesta sessão, não pede senha de novo
+    var sessaoOkay = sessionStorage.getItem('dsr_dash_ok') === '1' ||
+      sessionStorage.getItem('jt_funil_admin') === '1' ||
+      sessionStorage.getItem(ADMIN_KEY) === '1';
+    if (sessaoOkay) { sessionStorage.setItem(ADMIN_KEY, '1'); mostrarGestao(true); }
     else $('#gate').hidden = false;
 
     $('#btnLogin').addEventListener('click', function () { if (admin) { sessionStorage.removeItem(ADMIN_KEY); mostrarGestao(false); } else abrirGestao(); });

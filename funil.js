@@ -300,12 +300,20 @@
   function fechar() { $('#modal').classList.remove('open'); }
 
   function verificar() {
-    if ($('#gatePass').value.trim() === GATE) { $('#gate').hidden = true; admin = true; render(); }
-    else $('#gateErr').textContent = 'SENHA INCORRETA';
+    if ($('#gatePass').value.trim() === GATE) {
+      $('#gate').hidden = true; admin = true;
+      sessionStorage.setItem('jt_funil_admin', '1');
+      render();
+    } else $('#gateErr').textContent = 'SENHA INCORRETA';
   }
   function init() {
     carregar();
-    $('#gate').hidden = false;
+    // Já autenticou no painel? Entrar direto, sem segunda senha
+    if (sessionStorage.getItem('dsr_dash_ok') === '1' ||
+        sessionStorage.getItem('jt_funil_admin') === '1' ||
+        sessionStorage.getItem('jt_portal_admin') === '1') {
+      admin = true; $('#gate').hidden = true;
+    } else $('#gate').hidden = false;
     $('#gateBtn').addEventListener('click', verificar);
     $('#gatePass').addEventListener('keydown', function (e) { if (e.key === 'Enter') verificar(); });
     $('#btnLogin').addEventListener('click', function () { $('#gate').hidden = false; });
