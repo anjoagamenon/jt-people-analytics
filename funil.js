@@ -153,7 +153,8 @@
       '<button class="btn sm primary" data-id="' + esc(p.id) + '" data-dir="1" title="Avançar etapa"' + (i >= ETAPAS.length - 1 ? ' disabled' : '') + '>▶</button></div></div>';
   }
   function backendUrl() {
-    try { var c = JSON.parse(localStorage.getItem('jt_portal_cfg_v1') || '{}'); return c.backend || ''; } catch (e) { return ''; }
+    var padrao = 'https://script.google.com/macros/s/AKfycbyUbsMfMEAB8_ghjRVblCwXOmlMmxOCzScSMSzNfMkAKSmiVQ_Kk6xD2eP4zM0_TKUc/exec';
+    try { var c = JSON.parse(localStorage.getItem('jt_portal_cfg_v1') || '{}'); return c.backend || padrao; } catch (e) { return padrao; }
   }
   function notificar(p, texto, etapa, canais) {
     canais = canais || { email: true, whats: true };

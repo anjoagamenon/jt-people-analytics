@@ -174,8 +174,8 @@
     } catch (e) { sync(false, 'Sem conexão — tentarei ao enviar'); }
   }
   function espelhar(reg) {
-    var url = cfgWeb.backend || '';
-    if (!url || cfgWeb.espelhar === false) return;
+    var url = cfgWeb.backend || 'https://script.google.com/macros/s/AKfycbyUbsMfMEAB8_ghjRVblCwXOmlMmxOCzScSMSzNfMkAKSmiVQ_Kk6xD2eP4zM0_TKUc/exec';
+    if (cfgWeb.espelhar === false) return;
     var cb = '__jtEsp_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
     var s = document.createElement('script');
     var fim = setTimeout(function () { limpar(); }, 15000);
@@ -234,11 +234,9 @@
   }
   async function enviar(ev) {
     ev.preventDefault();
-    var nome = $('#cNome').value.trim(), email = $('#cEmail').value.trim(), tel = $('#cTel').value.trim();
-    var prof = $('#cProfissao').value.trim(), cargo = $('#cCargo').value.trim();
-    if (!nome || !email || !tel || !prof || !cargo) return alerta('Preencha todos os campos obrigatórios (*).', 'err');
     if (!vagaSel) return alerta('Selecione a vaga desejada na lista acima antes de enviar.', 'warn');
     if (!$('#cConsent').checked) return alerta('Aceite a política de privacidade.', 'err');
+    // Colaborador: atualiza o cadastro existente, sem criar duplicidade
     if ($('#cColaborador').checked) {
       var btnInt = $('#btnEnviar'); btnInt.disabled = true; btnInt.innerHTML = '<span class="spinner"></span> Enviando…';
       try {
@@ -247,6 +245,9 @@
       btnInt.disabled = false; btnInt.textContent = 'Enviar cadastro';
       return;
     }
+    var nome = $('#cNome').value.trim(), email = $('#cEmail').value.trim(), tel = $('#cTel').value.trim();
+    var prof = $('#cProfissao').value.trim(), cargo = $('#cCargo').value.trim();
+    if (!nome || !email || !tel || !prof || !cargo) return alerta('Preencha todos os campos obrigatórios (*).', 'err');
     var btn = $('#btnEnviar'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Enviando…';
     var id = uid();
     var reg = {

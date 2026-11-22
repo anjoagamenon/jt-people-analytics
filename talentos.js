@@ -26,7 +26,8 @@
   var QUEUE_KEY = 'jt_portal_fila_v1';
   var ADMIN_KEY = 'jt_portal_admin';
   var FOTOS_KEY = 'jt_portal_fotos_v1';
-  var DEFAULT_BACKEND = 'https://script.google.com/macros/s/AKfycbwXdpCBShUsGv0jFIt7rW4v4UDtKlPxto-myPpDxRUzT4hmMQ6_7yYkuIwptWfeYweU/exec';
+  var DASH_BACKEND = 'https://script.google.com/macros/s/AKfycbwXdpCBShUsGv0jFIt7rW4v4UDtKlPxto-myPpDxRUzT4hmMQ6_7yYkuIwptWfeYweU/exec';
+  var DEFAULT_BACKEND = 'https://script.google.com/macros/s/AKfycbyUbsMfMEAB8_ghjRVblCwXOmlMmxOCzScSMSzNfMkAKSmiVQ_Kk6xD2eP4zM0_TKUc/exec';
 
   var DEFAULT_VAGAS = [
     { id: 'V-001', titulo: 'Líder de Turno', unidade: 'SC-MRB', cargo: 'Líder de Turno', urgencia: 'Alta',
@@ -296,7 +297,7 @@
   /* ---------------- COLABORADORES DO PAINEL (SC-MRB — INTERNO) ---------------- */
   function sincronizarColaboradores() {
     var cb = '__jtColabs_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
-    var url = DEFAULT_BACKEND + (DEFAULT_BACKEND.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + cb + '&t=' + Date.now();
+    var url = DASH_BACKEND + (DASH_BACKEND.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + cb + '&t=' + Date.now();
     var btn = $('#btnSincronizar');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Sincronizando…'; }
     var s = document.createElement('script');
