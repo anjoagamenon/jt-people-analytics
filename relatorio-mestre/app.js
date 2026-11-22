@@ -669,6 +669,9 @@
 
     setPhoto('A25', data.fotos.inicio);
     setPhoto('E25', data.fotos.fim);
+    // Emblema no espaço em branco (célula mesclada A11:H11)
+    setPhoto('A11', { src: 'emblema.png', w: 1254, h: 1254 });
+    if (els.A11) els.A11.style.textAlign = 'center';
     fitPreview();
   }
 
