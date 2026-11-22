@@ -69,6 +69,13 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
 7. **Site público de cadastro** (`cadastro.html`): Banner no topo, currículo profissional
    (resumo, experiências, formação, certificações, idiomas, habilidades, LinkedIn e foto),
    seletor de 75 profissões com digitação livre, lista de vagas com resumo e candidatura.
+   - **Validações**: CPF com dígitos verificadores reais, idade mínima de 18 anos e
+     situação militar obrigatória para homens (Dispensado/reservista em dia/isento).
+   - **Anti-duplicidade**: mesmo sem marcar "sou colaborador", o CPF (ou e-mail/telefone)
+     identifica o registro existente — interno ou externo — e atualiza a candidatura em vez
+     de criar outro cadastro.
+   - **Desistência**: "Limpar seleção da vaga" antes de enviar e "Desistir da candidatura"
+     por protocolo ou matrícula depois de enviado; o status `Desistida` aparece no painel.
    Grava em `talentos/cadastros/v1` com `vagaId`/`vagaTitulo` e histórico `notificacoes`.
 8. **Funil de Talentos** (`funil.html`): colunas por etapa (Pendente → Triagem → Entrevista →
    Aprovado → Contratado, além de Não selecionado / Colaborador ativo / Desligado), arrastar
