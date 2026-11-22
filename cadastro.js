@@ -15,7 +15,7 @@
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
   var norm = function (s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); };
   var uid = function () { return 'JT-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, '0'); };
-  var db = null, fotoAtual = '', vagas = [], vagaSel = null;
+  var db = null, fotoAtual = '', vagas = [], vagaSel = null, cfgWeb = {};
 
   var VAGAS_PADRAO = [
     { id: 'V-001', titulo: 'Líder de Turno', unidade: 'SC-MRB', urgencia: 'Alta', descricao: 'Liderança de equipe operacional, gestão de indicadores e acompanhamento de D+1.', requisitos: ['Liderança', 'Indicadores', 'Hub de distribuição'], desejaveis: ['D+1', 'Gestão de equipe'] },
@@ -150,11 +150,31 @@
       db = firebase.database(); sync(true, 'Conectado');
       db.ref(PATH_CFG).on('value', function (snap) {
         var v = snap.val();
+        cfgWeb = v || {};
         vagas = (v && Array.isArray(v.vagas) && v.vagas.length) ? v.vagas : VAGAS_PADRAO;
         vagas = vagas.filter(function (x) { return !x.status || /aberta/i.test(x.status); });
         renderVagas();
       });
     } catch (e) { sync(false, 'Sem conexão — tentarei ao enviar'); }
+  }
+  function espelhar(reg) {
+    var url = cfgWeb.backend || '';
+    if (!url || cfgWeb.espelhar === false) return;
+    var cb = '__jtEsp_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+    var s = document.createElement('script');
+    var fim = setTimeout(function () { limpar(); }, 15000);
+    function limpar() { clearTimeout(fim); try { delete window[cb]; } catch (e) {} if (s.parentNode) s.parentNode.removeChild(s); }
+    window[cb] = function (r) { limpar(); console.info('[espelho]', r); };
+    s.onerror = function () { limpar(); };
+    var q = '?action=ADD_TALENTO&callback=' + cb +
+      '&aba=Talentos-MRB&origem=Portal&id=' + encodeURIComponent(reg.id) +
+      '&nome=' + encodeURIComponent(reg.nome) + '&email=' + encodeURIComponent(reg.email) +
+      '&telefone=' + encodeURIComponent(reg.telefone) + '&unidade=MRB' +
+      '&cargo=' + encodeURIComponent(reg.profissao || reg.cargo) + '&status=Pendente' +
+      '&cadastro=' + encodeURIComponent(String(reg.criadoEm).slice(0, 10)) +
+      '&curriculo=' + encodeURIComponent(reg.curriculo || '') +
+      '&notas=' + encodeURIComponent('Vaga: ' + (reg.vagaTitulo || '') + ' | ' + (reg.experiencia || ''));
+    s.src = url + q; document.head.appendChild(s);
   }
   async function enviar(ev) {
     ev.preventDefault();
@@ -190,6 +210,7 @@
         db = firebase.database(); sync(true, 'Conectado');
       }
       await db.ref(PATH + '/' + id).set(reg);
+      espelhar(reg);
       $('#cardForm').hidden = true; $('#cardSucesso').hidden = false;
       $('#protoc').textContent = id; window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
