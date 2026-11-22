@@ -242,7 +242,7 @@
     var encontrado = false;
     var alvos = [
       { ref: PATH_INT, tipo: 'interno' },
-      { ref: PATH_CAD, tipo: 'externo' }
+      { ref: PATH, tipo: 'externo' }
     ];
     for (var i = 0; i < alvos.length; i++) {
       var snap = await db.ref(alvos[i].ref).once('value');
@@ -320,7 +320,7 @@
     if (!db) return null;
     var cpfNum = String(cpf || '').replace(/\D/g, '');
     var telNum = String(tel || '').replace(/\D/g, '');
-    var alvos = [{ ref: PATH_INT, tipo: 'interno' }, { ref: PATH_CAD, tipo: 'externo' }];
+    var alvos = [{ ref: PATH_INT, tipo: 'interno' }, { ref: PATH, tipo: 'externo' }];
     for (var i = 0; i < alvos.length; i++) {
       var snap = await db.ref(alvos[i].ref).once('value');
       var dados = snap.val() || {};
@@ -346,7 +346,7 @@
       }]),
       atualizadoEm: new Date().toISOString()
     });
-    await db.ref((encontrado.tipo === 'interno' ? PATH_INT : PATH_CAD) + '/' + encontrado.id).set(copia);
+    await db.ref((encontrado.tipo === 'interno' ? PATH_INT : PATH) + '/' + encontrado.id).set(copia);
     $('#cardForm').hidden = true; $('#cardSucesso').hidden = false;
     $('#protoc').textContent = (encontrado.tipo === 'interno' ? (atual.matricula || encontrado.id) : encontrado.id) + ' / ' + titulo;
     ultimoRegistro = encontrado.tipo === 'interno' ? String(atual.matricula || encontrado.id) : encontrado.id;
