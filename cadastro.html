@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="talentos.css?v=12">
+<link rel="stylesheet" href="talentos.css?v=13">
 </head>
 <body>
 <div class="grid-fx"></div><div class="orb orb-1"></div><div class="orb orb-2"></div>
@@ -44,6 +44,7 @@
     </p>
     <div class="cards" id="vagasLista"></div>
     <div class="alert ok" id="vagaSelecionada" style="margin-top:12px"></div>
+    <button class="btn sm" id="btnLimparVaga" type="button" hidden>Limpar seleção da vaga</button>
   </div>
 
   <div class="panel" id="cardForm">
@@ -86,6 +87,27 @@
           </div>
         </div>
         <label class="full">Nome completo *<input type="text" id="cNome" required maxlength="120" placeholder="Como consta no documento"></label>
+        <label>CPF *
+          <input type="text" id="cCpf" required maxlength="14" inputmode="numeric" placeholder="000.000.000-00">
+        </label>
+        <label>Data de nascimento *
+          <input type="date" id="cNasc" required maxlength="10">
+        </label>
+        <label>Sexo *
+          <select id="cSexo" required>
+            <option value="">Selecione…</option>
+            <option>Masculino</option>
+            <option>Feminino</option>
+          </select>
+        </label>
+        <label id="lblMilitar" hidden>Situação militar *
+          <select id="cMilitar">
+            <option value="">Selecione…</option>
+            <option>Dispensado (reservista)</option>
+            <option>Reservista em dia</option>
+            <option>Isento / não possui</option>
+          </select>
+        </label>
         <label>E-mail *<input type="email" id="cEmail" required maxlength="120" placeholder="voce@email.com"></label>
         <label>WhatsApp / Telefone *<input type="tel" id="cTel" required maxlength="25" placeholder="(99) 99999-9999"></label>
         <label>Unidade<input type="text" value="MRB" readonly style="font-weight:800;color:var(--red)"></label>
@@ -148,8 +170,19 @@
       <b id="protoc" style="font-size:18px;color:var(--red)"></b>
     </p>
     <p class="hint" style="font-size:12px;margin-top:10px">A equipe de RH entrará em contato pelo e-mail informado.</p>
+    <div class="form-actions"><button class="btn danger" id="btnDesistirAqui" type="button">Desistir desta candidatura</button></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title"><i>✕</i> Já se candidatou e quer desistir?</div>
+    <p class="hint" style="font-size:12px;line-height:1.5;margin:10px 0">
+      Informe o <b>protocolo</b> (candidato externo) ou a <b>matrícula</b> (colaborador) para retirar seu interesse na vaga.
+    </p>
+    <div class="toolbar">
+      <input type="text" id="dIdentificador" placeholder="Protocolo ou matrícula" maxlength="30" style="max-width:300px">
+      <button class="btn sm danger" id="btnDesistir" type="button">Desistir da candidatura</button>
+    </div>
   </div>
 </main>
-<script src="cadastro.js?v=12"></script>
+<script src="cadastro.js?v=13"></script>
 </body>
 </html>

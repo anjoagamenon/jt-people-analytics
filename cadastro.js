@@ -15,7 +15,31 @@
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
   var norm = function (s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); };
   var uid = function () { return 'JT-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, '0'); };
-  var db = null, fotoAtual = '', fotoColab = '', vagas = [], vagaSel = null, cfgWeb = {}, internos = {};
+  var db = null, fotoAtual = '', fotoColab = '', vagas = [], vagaSel = null, cfgWeb = {}, internos = {}, ultimoRegistro = null;
+
+  function validarCPF(v) {
+    var s = String(v || '').replace(/\D/g, '');
+    if (s.length !== 11 || /^(\d)\1{10}$/.test(s)) return false;
+    var digito = function (base) {
+      var soma = 0;
+      for (var i = 0; i < base.length; i++) soma += Number(base[i]) * (base.length + 1 - i);
+      var d = (soma * 10) % 11;
+      return d === 10 ? 0 : d;
+    };
+    return digito(s.slice(0, 9)) === Number(s[9]) && digito(s.slice(0, 10)) === Number(s[10]);
+  }
+  function mascaraCPF(v) {
+    var s = String(v || '').replace(/\D/g, '').slice(0, 11);
+    return s.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+  function idadeDe(v) {
+    if (!v) return 0;
+    var d = new Date(v + 'T12:00:00'); if (isNaN(d)) return 0;
+    var hoje = new Date(), idade = hoje.getFullYear() - d.getFullYear();
+    var m = hoje.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < d.getDate())) idade--;
+    return idade;
+  }
 
   var VAGAS_PADRAO = [
     { id: 'V-001', titulo: 'Líder de Turno', unidade: 'SC-MRB', urgencia: 'Alta', descricao: 'Liderança de equipe operacional, gestão de indicadores e acompanhamento de D+1.', requisitos: ['Liderança', 'Indicadores', 'Hub de distribuição'], desejaveis: ['D+1', 'Gestão de equipe'] },
@@ -66,6 +90,7 @@
   }
   function renderVagas() {
     var box = $('#vagasLista'); if (!box) return;
+    var limpar = $('#btnLimparVaga'); if (limpar) limpar.hidden = !vagaSel;
     if (!vagas.length) {
       box.innerHTML = '<div class="empty">Nenhuma vaga aberta no momento. Você ainda pode cadastrar seu currículo para oportunidades futuras.</div>';
       return;
@@ -143,6 +168,23 @@
         this.value = '';
       });
     });
+    $('#cCpf').addEventListener('input', function () { this.value = mascaraCPF(this.value); });
+    $('#cSexo').addEventListener('change', function () {
+      var homem = this.value === 'Masculino';
+      $('#lblMilitar').hidden = !homem;
+      $('#cMilitar').required = homem;
+      if (!homem) $('#cMilitar').value = '';
+    });
+    $('#btnLimparVaga').addEventListener('click', function () {
+      vagaSel = null;
+      $('#vagaSelecionada').className = 'alert';
+      $('#vagaSelecionada').innerHTML = '';
+      renderVagas();
+    });
+    $('#btnDesistir').addEventListener('click', function () { desistir($('#dIdentificador').value); });
+    $('#btnDesistirAqui').addEventListener('click', function () {
+      if (ultimoRegistro) desistir(ultimoRegistro);
+    });
     $('#cColaborador').addEventListener('change', function () {
       var sim = this.checked;
       $('#lblMatricula').hidden = !sim;
@@ -192,6 +234,43 @@
       '&notas=' + encodeURIComponent('Vaga: ' + (reg.vagaTitulo || '') + ' | ' + (reg.experiencia || ''));
     s.src = url + q; document.head.appendChild(s);
   }
+  async function desistir(identificador) {
+    var chave = String(identificador || '').trim();
+    if (!chave) return alerta('Informe o protocolo ou a matrícula.', 'err');
+    if (!db) return alerta('Sem conexão com a base.', 'err');
+    var apenasDigitos = chave.replace(/\D/g, '');
+    var encontrado = false;
+    var alvos = [
+      { ref: PATH_INT, tipo: 'interno' },
+      { ref: PATH_CAD, tipo: 'externo' }
+    ];
+    for (var i = 0; i < alvos.length; i++) {
+      var snap = await db.ref(alvos[i].ref).once('value');
+      var dados = snap.val() || {};
+      for (var k in dados) {
+        var r = dados[k];
+        var match = String(r.id || '').toUpperCase() === chave.toUpperCase() ||
+          (apenasDigitos.length >= 6 && String(r.matricula || '').replace(/\D/g, '') === apenasDigitos) ||
+          (apenasDigitos.length >= 6 && String(r.cpf || '').replace(/\D/g, '') === apenasDigitos);
+        if (!match) continue;
+        var copia = Object.assign({}, r, {
+          candidaturaStatus: 'Desistida',
+          desistiuEm: new Date().toISOString(),
+          atualizadoEm: new Date().toISOString(),
+          candidaturas: (r.candidaturas || []).map(function (c) {
+            return /aguardando/i.test(c.status) ? Object.assign({}, c, { status: 'Desistida', desistiuEm: new Date().toISOString() }) : c;
+          })
+        });
+        await db.ref(alvos[i].ref + '/' + k).set(copia);
+        encontrado = true;
+        break;
+      }
+      if (encontrado) break;
+    }
+    if (!encontrado) return alerta('Protocolo ou matrícula não encontrado.', 'err');
+    $('#dIdentificador').value = '';
+    alerta('✅ Candidatura retirada. Você pode se candidatar novamente quando quiser.', 'ok');
+  }
   async function candidaturaInterna(matricula, vaga) {
     var chave = String(matricula || '').replace(/\D/g, '');
     if (!chave) return alerta('Informe a matrícula.', 'err');
@@ -218,6 +297,10 @@
     var idiomas = $('#cIdiomasExtra').value.trim();
     var skills = $('#cSkillsExtra').value.trim();
     var linkedin = $('#cLinkedinExtra').value.trim();
+    var cpfI = $('#cCpf').value.trim(), nascI = $('#cNasc').value, sexoI = $('#cSexo').value;
+    if (cpfI) extra.cpf = cpfI.replace(/\D/g, '');
+    if (nascI) extra.nascimento = nascI;
+    if (sexoI) { extra.sexo = sexoI; extra.situacaoMilitar = sexoI === 'Masculino' ? $('#cMilitar').value : ''; }
     if (formacao) extra.formacao = (registro.formacao || '') + (registro.formacao ? '; ' : '') + formacao;
     if (cert) extra.certificacoes = (registro.certificacoes || '') + (registro.certificacoes ? '; ' : '') + cert;
     if (idiomas) extra.idiomas = idiomas;
@@ -229,7 +312,45 @@
     await db.ref(PATH_INT + '/' + rid).set(copia);
     $('#cardForm').hidden = true; $('#cardSucesso').hidden = false;
     $('#protoc').textContent = registro.matricula + ' / ' + titulo;
+    ultimoRegistro = String(registro.matricula || rid);
     $('#formHint').textContent = 'Solicitação registrada sem duplicidade';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  async function localizarIdentidade(cpf, email, tel) {
+    if (!db) return null;
+    var cpfNum = String(cpf || '').replace(/\D/g, '');
+    var telNum = String(tel || '').replace(/\D/g, '');
+    var alvos = [{ ref: PATH_INT, tipo: 'interno' }, { ref: PATH_CAD, tipo: 'externo' }];
+    for (var i = 0; i < alvos.length; i++) {
+      var snap = await db.ref(alvos[i].ref).once('value');
+      var dados = snap.val() || {};
+      for (var k in dados) {
+        var r = dados[k];
+        var rCpf = String(r.cpf || '').replace(/\D/g, '');
+        var rTel = String(r.telefone || '').replace(/\D/g, '');
+        if ((cpfNum && rCpf === cpfNum) ||
+            (email && String(r.email || '').toLowerCase() === String(email).toLowerCase()) ||
+            (telNum && rTel === telNum)) {
+          return { tipo: alvos[i].tipo, id: k, registro: r };
+        }
+      }
+    }
+    return null;
+  }
+  async function registrarEmRegistroexistente(encontrado, dados, vaga) {
+    var titulo = vaga ? vaga.titulo : vagaSel;
+    var atual = encontrado.registro;
+    var copia = Object.assign({}, atual, dados, {
+      candidaturas: (atual.candidaturas || []).concat([{
+        vagaId: vagaSel, vagaTitulo: titulo, status: 'Aguardando análise', criadoEm: new Date().toISOString()
+      }]),
+      atualizadoEm: new Date().toISOString()
+    });
+    await db.ref((encontrado.tipo === 'interno' ? PATH_INT : PATH_CAD) + '/' + encontrado.id).set(copia);
+    $('#cardForm').hidden = true; $('#cardSucesso').hidden = false;
+    $('#protoc').textContent = (encontrado.tipo === 'interno' ? (atual.matricula || encontrado.id) : encontrado.id) + ' / ' + titulo;
+    ultimoRegistro = encontrado.tipo === 'interno' ? String(atual.matricula || encontrado.id) : encontrado.id;
+    $('#formHint').textContent = 'Cadastro identificado — sem duplicidade';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   async function enviar(ev) {
@@ -238,6 +359,10 @@
     if (!$('#cConsent').checked) return alerta('Aceite a política de privacidade.', 'err');
     // Colaborador: atualiza o cadastro existente, sem criar duplicidade
     if ($('#cColaborador').checked) {
+      var cpfI = $('#cCpf').value.trim(), nascI = $('#cNasc').value, sexoI = $('#cSexo').value;
+      if (!validarCPF(cpfI)) return alerta('CPF inválido. Confira os números digitados.', 'err');
+      if (idadeDe(nascI) < 18) return alerta('É necessário ter 18 anos ou mais.', 'err');
+      if (sexoI === 'Masculino' && !$('#cMilitar').value) return alerta('Informe a situação militar (reservista/dispensa).', 'err');
       var btnInt = $('#btnEnviar'); btnInt.disabled = true; btnInt.innerHTML = '<span class="spinner"></span> Enviando…';
       try {
         await candidaturaInterna($('#cMatricula').value, vagas.filter(function (x) { return x.id === vagaSel; })[0]);
@@ -247,11 +372,32 @@
     }
     var nome = $('#cNome').value.trim(), email = $('#cEmail').value.trim(), tel = $('#cTel').value.trim();
     var prof = $('#cProfissao').value.trim(), cargo = $('#cCargo').value.trim();
-    if (!nome || !email || !tel || !prof || !cargo) return alerta('Preencha todos os campos obrigatórios (*).', 'err');
+    var cpf = $('#cCpf').value.trim(), nasc = $('#cNasc').value, sexo = $('#cSexo').value;
+    var militar = $('#cMilitar').value;
+    if (!nome || !email || !tel || !prof || !cargo || !cpf || !nasc || !sexo)
+      return alerta('Preencha todos os campos obrigatórios (*).', 'err');
+    if (!validarCPF(cpf)) return alerta('CPF inválido. Confira os números digitados.', 'err');
+    if (idadeDe(nasc) < 18) return alerta('É necessário ter 18 anos ou mais para se candidatar.', 'err');
+    if (sexo === 'Masculino' && !militar) return alerta('Informe a situação militar (reservista/dispensa).', 'err');
     var btn = $('#btnEnviar'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Enviando…';
+    var vagaObj = vagas.filter(function (x) { return x.id === vagaSel; })[0];
+    var complementos = {
+      cpf: cpf.replace(/\D/g, ''), nascimento: nasc, sexo: sexo, situacaoMilitar: sexo === 'Masculino' ? militar : '',
+      profissao: prof,
+      formacao: $('#cFormacaoExtra').value.trim() || undefined
+    };
+    Object.keys(complementos).forEach(function (k) { if (complementos[k] === undefined) delete complementos[k]; });
+    var encontrado = await localizarIdentidade(cpf, email, tel);
+    if (encontrado) {
+      await registrarEmRegistroexistente(encontrado, complementos, vagaObj);
+      btn.disabled = false; btn.textContent = 'Enviar cadastro';
+      return;
+    }
     var id = uid();
     var reg = {
       id: id, nome: nome, email: email, telefone: tel, unidade: 'MRB',
+      cpf: cpf.replace(/\D/g, ''), nascimento: nasc, sexo: sexo,
+      situacaoMilitar: sexo === 'Masculino' ? militar : '',
       cidade: $('#cCidade').value.trim(), profissao: prof, cargo: cargo,
       foto: fotoAtual, experiencia: $('#cExp').value.trim(), disponibilidade: $('#cDisp').value,
       curriculo: $('#cCurriculo').value.trim(), observacoes: $('#cObs').value.trim(),
@@ -276,6 +422,7 @@
       }
       await db.ref(PATH + '/' + id).set(reg);
       espelhar(reg);
+      ultimoRegistro = id;
       $('#cardForm').hidden = true; $('#cardSucesso').hidden = false;
       $('#protoc').textContent = id; window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {

@@ -775,6 +775,11 @@
         (p.certificacoes ? '<span class="badge green">' + esc(p.certificacoes) + '</span>' : '') +
         (p.idiomas ? '<span class="badge">' + esc(p.idiomas) + '</span>' : '') +
         (p.habilidades ? '<span class="badge purple">' + esc(p.habilidades) + '</span>' : '') +
+        (p.cpf ? '<span class="badge">CPF: ' + esc(String(p.cpf).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2')) + '</span>' : '') +
+        (p.nascimento ? '<span class="badge">' + esc(fmtData(p.nascimento)) + '</span>' : '') +
+        (p.sexo ? '<span class="badge">' + esc(p.sexo) + '</span>' : '') +
+        (p.situacaoMilitar ? '<span class="badge amber">' + esc(p.situacaoMilitar) + '</span>' : '') +
+        (p.candidaturaStatus ? '<span class="badge ' + (/desistida/i.test(p.candidaturaStatus) ? 'red' : 'green') + '">' + esc(p.candidaturaStatus) + '</span>' : '') +
         (p.linkedin ? '<span class="badge blue">LinkedIn</span>' : '') +
         (p.candidaturas || []).map(function (c) {
           return '<span class="badge ' + (/aguardando/i.test(c.status) ? 'amber' : /autorizada/i.test(c.status) ? 'green' : 'red') + '">' +
@@ -976,6 +981,7 @@
         '<div style="min-width:140px;flex:1"><b style="font-size:12px">' + esc(nomeCurto(r.p.nome)) + '</b>' +
         '<div class="hint">' + esc(r.p.profissao || r.p.cargo || '—') + ' • ' + esc(r.p.unidade) + '</div>' +
         (r.m.faltantes.length ? '<div class="hint">Falta: ' + r.m.faltantes.map(esc).join(', ') + '</div>' : '') +
+        (/desistida/i.test(r.p.candidaturaStatus || '') ? '<span class="badge red">desistiu</span>' : '') +
         '</div><div class="match-bar"><div class="match-fill" style="width:' + r.m.score + '%"></div></div>' +
         '<div class="match-pct">' + r.m.score + '%</div></div>';
     };
