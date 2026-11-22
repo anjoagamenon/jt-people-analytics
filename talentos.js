@@ -217,7 +217,7 @@
       id: 'N-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
       em: new Date().toISOString(), texto: texto, etapa: etapa || 'mensagem',
       para: p.email || '', telefone: p.telefone || '', nome: p.nome,
-      canais: canais, estado: {}, lido: false
+      canais: canais, estado: { email: false, whats: false }, lido: false
     };
     var copia = Object.assign({}, p, {
       notificacoes: (p.notificacoes || []).concat([nota]), atualizadoEm: new Date().toISOString()
@@ -225,45 +225,40 @@
     var path = caminhoDe(p);
     if (p.origem === 'Painel') DB.internos[p.id] = copia; else DB.cadastros[p.id] = copia;
     salvarCache(); render(); renderNotify(); gravar(path, copia);
-    var url = CFG.backend || '';
-    if (!url) { alerta('Notificação registrada no painel. Configure o backend para enviar e-mail/WhatsApp.', 'warn'); return; }
+
+    // WhatsApp: envio manual — abre o app com a mensagem pronta
+    if (canais.whats) {
+      var tel = String(p.telefone || '').replace(/\D/g, '');
+      if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
+      if (tel) {
+        window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+        nota.estado.whats = 'manual';
+      }
+    }
     var finalizar = function () {
       gravar(path, Object.assign({}, copia, { notificacoes: copia.notificacoes.map(function (n) { return n.id === nota.id ? nota : n; }) }));
       render(); renderNotify();
-      var ok = Object.keys(nota.estado).filter(function (k) { return nota.estado[k]; });
-      alerta('Notificação registrada no painel. Canais confirmados: <b>' + (ok.join(', ') || 'nenhum') + '</b>.', ok.length ? 'ok' : 'warn');
+      var partes = [];
+      if (canais.email) partes.push(nota.estado.email ? 'e-mail enviado' : 'e-mail falhou');
+      if (canais.whats) partes.push(nota.estado.whats === 'manual' ? 'WhatsApp pronto para envio' : 'sem telefone');
+      alerta('Notificação registrada: <b>' + (partes.join(' • ') || 'salva no painel') + '</b>.', nota.estado.email ? 'ok' : 'warn');
     };
-    var pendente = 0;
-    function enviarCanal(canal) {
-      pendente++;
-      var cb = '__jtN_' + canal + '_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
-      var s = document.createElement('script');
-      var done = false;
-      var fim = setTimeout(function () { if (!done) { done = true; limpar(); nota.estado[canal] = false; if (--pendente === 0) finalizar(); } }, 12000);
-      function limpar() { clearTimeout(fim); try { delete window[cb]; } catch (e) {} if (s.parentNode) s.parentNode.removeChild(s); }
-      window[cb] = function (r) {
-        if (done) return; done = true; limpar();
-        nota.estado[canal] = !!(r && r.ok);
-        if (canal === 'whats' && !nota.estado.whats) {
-          var tel = String(p.telefone || '').replace(/\D/g, '');
-          if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
-          if (tel) window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank', 'noopener');
-        }
-        if (--pendente === 0) finalizar();
-      };
-      s.onerror = function () { if (done) return; done = true; limpar(); nota.estado[canal] = false; if (--pendente === 0) finalizar(); };
-      if (canal === 'email') {
-        s.src = url + '?action=NOTIFY_EMAIL&callback=' + cb + '&email=' + encodeURIComponent(p.email || '') +
-          '&assunto=' + encodeURIComponent('Atualização da sua candidatura — J&T Express') + '&texto=' + encodeURIComponent(texto);
-      } else {
-        var tel = String(p.telefone || '').replace(/\D/g, '');
-        if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
-        s.src = url + '?action=NOTIFY_WHATSAPP&callback=' + cb + '&phone=' + encodeURIComponent(tel) + '&text=' + encodeURIComponent(texto);
-      }
-      document.head.appendChild(s);
+    var url = CFG.backend || '';
+    if (!canais.email || !url || !p.email) {
+      if (canais.email) nota.estado.email = false;
+      finalizar();
+      return;
     }
-    if (canais.email) enviarCanal('email');
-    if (canais.whats) enviarCanal('whats');
+    var cb = '__jtMail_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+    var s = document.createElement('script');
+    var done = false;
+    var fim = setTimeout(function () { if (!done) { done = true; limpar(); nota.estado.email = false; finalizar(); } }, 12000);
+    function limpar() { clearTimeout(fim); try { delete window[cb]; } catch (e) {} if (s.parentNode) s.parentNode.removeChild(s); }
+    window[cb] = function (r) { if (done) return; done = true; limpar(); nota.estado.email = !!(r && r.ok); finalizar(); };
+    s.onerror = function () { if (done) return; done = true; limpar(); nota.estado.email = false; finalizar(); };
+    s.src = url + '?action=NOTIFY_EMAIL&callback=' + cb + '&email=' + encodeURIComponent(p.email) +
+      '&assunto=' + encodeURIComponent('Atualização da sua candidatura — J&T Express') + '&texto=' + encodeURIComponent(texto);
+    document.head.appendChild(s);
   }
   function todasNotificacoes() {
     return lista().reduce(function (acc, p) {
@@ -281,7 +276,12 @@
       var ch = (n.canais && Object.keys(n.canais).filter(function (k) { return n.canais[k]; })) || ['painel'];
       var est = n.estado || {};
       return '<div class="match-row"><div style="flex:1"><b style="font-size:12px">' + esc(n.nome) + '</b> ' +
-        ch.map(function (c) { return '<span class="badge ' + (est[c] ? 'green' : 'amber') + '">' + (c === 'email' ? 'e-mail' : 'WhatsApp') + (est[c] ? ' ✓' : ' ⚠') + '</span>'; }).join(' ') +
+        ch.map(function (c) {
+          var v = est[c];
+          var lbl = c === 'email' ? 'e-mail' : 'WhatsApp';
+          return '<span class="badge ' + (v === true ? 'green' : v === 'manual' ? 'purple' : 'amber') + '">' +
+            lbl + (v === true ? ' ✓ enviado' : v === 'manual' ? ' pronta (manual)' : ' ⚠') + '</span>';
+        }).join(' ') +
         '<div class="hint">' + esc(n.etapa) + ' • ' + esc(new Date(n.em).toLocaleString('pt-BR')) + '</div>' +
         '<div class="hint" style="margin-top:3px;color:var(--ink)">' + esc(n.texto).slice(0, 160) + '</div></div></div>';
     }).join('') : '<div class="empty">Nenhuma notificação registrada.</div>';

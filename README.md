@@ -67,11 +67,10 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
    cards e taxas de conversão.
 9. **Notificações (sem depender de um único canal)**: a cada mudança de etapa, ou quando o
    gestor usa "Enviar mensagem" no perfil, o sistema **registra a notificação no painel**
-   (badge 🔔 com histórico) e tenta enviar por **e-mail** (GmailApp) e/ou **WhatsApp**
-   (Cloud API), conforme os canais marcados. Se um canal falhar, o outro continua — e o
-   WhatsApp ainda abre o link `wa.me` com o texto pronto como fallback.
-   - No Apps Script, configure `NOTIFY_EMAIL` (GmailApp — autorização na primeira execução) e
-     `NOTIFY_WHATSAPP` (propriedades `WA_TOKEN` e `WA_PHONE_ID` para envio automático).
+   (badge 🔔 com histórico). O **e-mail é automático** via GmailApp. O **WhatsApp é manual**:
+   ao marcar esse canal, o portal abre o `wa.me` com a mensagem pronta para o gestor confirmar
+   o envio no celular — sem API paga. O histórico mostra "e-mail ✓ enviado" e
+   "WhatsApp pronta (manual)".
    - O badge só aparece para match ≥ 40% nos cards, evitando ruído de perfis sem aderência.
 
 ### Arquivos
@@ -93,8 +92,7 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
 - Ações: `GET_TALENTOS`, `ADD_TALENTO`, `NOTIFY_EMAIL`, `NOTIFY_WHATSAPP`
 - URL já salva no portal em Configuração (Firebase `talentos/config/v1/web.backend`).
 - **Envio de e-mail testado com sucesso** (`GmailApp`).
-- Para WhatsApp automático, definir as propriedades do script `WA_TOKEN` e `WA_PHONE_ID`;
-  sem elas o portal abre o `wa.me` com a mensagem pronta.
+- WhatsApp: **envio manual** com mensagem pré-pronta via `wa.me` (sem API e sem custo).
 
 ### Instalação do backend (caso precise refazer)
 
