@@ -42,6 +42,12 @@
   ];
 
   var STATUS = ['Pendente', 'Em Triagem', 'Entrevista', 'Aprovado', 'Banco de Talentos', 'Contratado', 'Não selecionado', 'Colaborador ativo', 'Desligado'];
+  var ETAPAS = [
+    { nome: 'Pendente', cls: 'entrada' }, { nome: 'Em Triagem', cls: 'triagem' },
+    { nome: 'Entrevista', cls: 'entrevista' }, { nome: 'Aprovado', cls: 'aprovado' },
+    { nome: 'Contratado', cls: 'contratado' }, { nome: 'Não selecionado', cls: 'fora' },
+    { nome: 'Colaborador ativo', cls: 'aprovado' }, { nome: 'Desligado', cls: 'fora' }
+  ];
   var TRILHAS = [
     { nome: 'Operações', niveis: ['Auxiliar de Operações', 'Conferente', 'Operador de Empilhadeira', 'Líder de Turno', 'Supervisor Operacional', 'Coordenador de Operações'] },
     { nome: 'Logística / Tráfego', niveis: ['Assistente de Tráfego', 'Analista de Logística', 'Supervisor de Tráfego', 'Coordenador de Logística'] },
@@ -454,7 +460,7 @@
 
   /* ---------------- RENDER ---------------- */
   function render() {
-    renderKpis(); renderCards(); renderVagas(); renderCarreira(); preencherFiltros();
+    renderKpis(); renderCards(); renderFunil(); renderVagas(); renderCarreira(); preencherFiltros();
   }
   function renderKpis() {
     var l = lista();
@@ -586,6 +592,78 @@
     }
     box.innerHTML = html;
     $$('#mResultados .match-row').forEach(function (el) { el.style.cursor = 'pointer'; el.addEventListener('click', function () { abrirPerfil(el.getAttribute('data-id')); }); });
+  }
+  /* ---------------- FUNIL INTEGRADO ---------------- */
+  function moverEtapa(id, etapa) {
+    var p = buscar(id); if (!p || (p.status || 'Pendente') === etapa) return;
+    var copia = Object.assign({}, p, { status: etapa, atualizadoEm: new Date().toISOString() });
+    if (p.origem === 'Painel') DB.internos[id] = copia; else DB.cadastros[id] = copia;
+    salvarCache(); render(); gravar(caminhoDe(p), copia);
+    var primeiro = String(p.nome || '').trim().split(/\s+/)[0];
+    var msg = 'Olá, ' + primeiro + '!\n\nSua candidatura' + (p.vagaTitulo ? ' à vaga *' + p.vagaTitulo + '*' : '') +
+      ' foi atualizada para: *' + etapa + '*.\n\n' +
+      (etapa === 'Aprovado' ? 'Parabéns! Em breve entraremos em contato com os próximos passos.' :
+       etapa === 'Contratado' ? 'Seja bem-vindo(a) ao time J&T Express! 🎉' :
+       etapa === 'Não selecionado' ? 'Agradecemos seu interesse. Desejamos sucesso na sua jornada!' :
+       'Continuamos acompanhando seu perfil. Obrigado!') +
+      '\n\n— Gestão de Pessoas J&T Express';
+    notificar(copia, msg, etapa, { email: true, whats: true });
+  }
+  function renderFunil() {
+    var box = $('#funilPortal'); if (!box) return;
+    var q = norm($('#ffBusca') ? $('#ffBusca').value : '');
+    var origem = $('#ffOrigem') ? $('#ffOrigem').value : '';
+    var l = lista().filter(function (p) {
+      return (!q || norm([p.nome, p.cargo, p.profissao, p.email].join(' ')).indexOf(q) >= 0) &&
+        (!origem || (origem === 'Painel' ? p.origem === 'Painel' : p.origem !== 'Painel'));
+    });
+    if ($('#ffContador')) $('#ffContador').textContent = l.length + ' pessoa(s)';
+    box.innerHTML = ETAPAS.map(function (et) {
+      var ps = l.filter(function (p) { return (p.status || 'Pendente') === et.nome; });
+      return '<div class="fcol ' + et.cls + '" data-etapa="' + esc(et.nome) + '">' +
+        '<div class="fcol-head"><b>' + esc(et.nome) + '</b><span>' + ps.length + '</span></div><div class="fcol-body">' +
+        ps.map(function (p) {
+          var i = ETAPAS.map(function (x) { return x.nome; }).indexOf(et.nome);
+          return '<div class="fcard" draggable="true" data-id="' + esc(p.id) + '">' +
+            '<div class="fcard-top">' + fotoAvatar(p, 34) + '<div><div class="fcard-name" title="' + esc(p.nome) + '">' +
+            esc(nomeCurto(p.nome)) + '</div><div class="fcard-role">' + esc(p.profissao || p.cargo || '—') + '</div></div></div>' +
+            '<div class="fcard-meta"><span class="badge ' + (p.origem === 'Painel' ? 'blue' : 'green') + '">' +
+            (p.origem === 'Painel' ? 'Casa' : 'Externo') + '</span>' +
+            (p.vagaTitulo ? '<span class="badge purple">' + esc(p.vagaTitulo) + '</span>' : '') + '</div>' +
+            '<div class="fcard-actions">' +
+            '<button class="btn sm" data-mover="' + esc(p.id) + '" data-dir="-1"' + (i <= 0 ? ' disabled' : '') + '>◀</button>' +
+            '<button class="btn sm primary" data-mover="' + esc(p.id) + '" data-dir="1"' + (i >= ETAPAS.length - 1 ? ' disabled' : '') + '>▶</button></div></div>';
+        }).join('') + '</div></div>';
+    }).join('');
+
+    $$('#funilPortal .fcard').forEach(function (el) {
+      el.addEventListener('click', function (e) { if (!e.target.closest('button')) abrirPerfil(el.getAttribute('data-id')); });
+      el.addEventListener('dragstart', function (e) { e.dataTransfer.setData('text/plain', el.getAttribute('data-id')); });
+    });
+    $$('#funilPortal .fcol').forEach(function (col) {
+      col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('over'); });
+      col.addEventListener('dragleave', function () { col.classList.remove('over'); });
+      col.addEventListener('drop', function (e) {
+        e.preventDefault(); col.classList.remove('over');
+        var id = e.dataTransfer.getData('text/plain'); if (id) moverEtapa(id, col.getAttribute('data-etapa'));
+      });
+    });
+    $$('#funilPortal [data-mover]').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var p = buscar(b.getAttribute('data-mover')); if (!p) return;
+        var i = ETAPAS.map(function (x) { return x.nome; }).indexOf(p.status || 'Pendente');
+        var novo = ETAPAS[Math.max(0, Math.min(ETAPAS.length - 1, i + (+b.getAttribute('data-dir'))))];
+        if (novo) moverEtapa(p.id, novo.nome);
+      });
+    });
+    var total = l.length || 1;
+    var conv = $('#conversaoPortal');
+    if (conv) conv.innerHTML = ETAPAS.slice(0, 5).map(function (et) {
+      var n = l.filter(function (p) { return (p.status || 'Pendente') === et.nome; }).length;
+      var pct = Math.round(n / total * 100);
+      return '<div class="conv"><b>' + esc(et.nome) + '</b><div class="conv-bar"><i style="width:' + pct + '%"></i></div><span>' + n + ' (' + pct + '%)</span></div>';
+    }).join('');
   }
   function renderCarreira() {
     var l = lista();
@@ -942,13 +1020,16 @@
       t.addEventListener('click', function () {
         $$('.tab').forEach(function (x) { x.classList.remove('active'); });
         t.classList.add('active');
-        ['cadastros', 'vagasconfig', 'vagas', 'carreira', 'config'].forEach(function (n) {
+        ['cadastros', 'funil', 'vagasconfig', 'vagas', 'carreira', 'config'].forEach(function (n) {
           var el = $('#tab-' + n); if (el) el.hidden = n !== t.getAttribute('data-tab');
         });
         var aba = t.getAttribute('data-tab');
         if (aba === 'vagas') renderVagas();
         if (aba === 'vagasconfig') renderVagasConfig();
       });
+    });
+    ['ffBusca', 'ffOrigem'].forEach(function (id) {
+      var el = $('#' + id); if (el) el.addEventListener('input', renderFunil);
     });
     ['fBusca', 'fUnidade', 'fOrigem', 'fStatus', 'fOrdem'].forEach(function (id) {
       var el = $('#' + id); if (el) el.addEventListener('input', renderCards);
