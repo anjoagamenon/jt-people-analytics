@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E60000">
+<title>Funil de Talentos — J&T Express</title>
+<link rel="icon" type="image/png" href="favicon-talentos.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="talentos.css?v=7">
+</head>
+<body>
+<div class="grid-fx"></div><div class="orb orb-1"></div><div class="orb orb-2"></div>
+<header class="hud">
+  <div class="hud-brand">
+    <img class="hud-logo hud-logo-talentos" src="logo-talentos.png" alt="Banco de Talentos">
+    <div><div class="hud-title">J&amp;T EXPRESS <span>FUNIL DE TALENTOS</span></div>
+      <div class="hud-sub">Gestão de candidatos • SC-MRB / MRB</div></div>
+  </div>
+  <div class="hud-right">
+    <span class="sync-pill" id="syncPill"><span class="dot"></span><span id="syncTxt">Conectando…</span></span>
+    <a class="btn ghost sm" href="index.html">← Painel</a>
+    <a class="btn sm" href="talentos.html">Portal de Talentos</a>
+    <a class="btn sm" href="cadastro.html">Cadastro público</a>
+    <button class="btn sm" id="btnNotify" type="button">🔔 Notificações <span class="badge red" id="notifyBadge" hidden>0</span></button>
+    <button class="btn sm" id="btnLogin" type="button">🔒 Gestão</button>
+  </div>
+</header>
+<main>
+  <div class="alert" id="alert"></div>
+  <section id="viewFunil">
+    <div class="panel">
+      <div class="panel-accent"></div>
+      <div class="panel-head"><div class="panel-title"><i>▤</i> Funil de Talentos</div>
+        <div class="panel-tag">Arraste os cards entre as etapas</div></div>
+      <div class="toolbar">
+        <input type="search" id="fBusca" placeholder="🔍 Buscar candidato, profissão…">
+        <select id="fOrigem"><option value="">Todas as origens</option><option value="Painel">Só colaboradores (SC-MRB)</option><option value="Portal">Só público (MRB)</option></select>
+        <select id="fUnidade"><option value="">Todas as unidades</option><option>SC-MRB</option><option>MRB</option></select>
+        <span class="hint" id="contador"></span>
+      </div>
+      <div class="kpis" id="kpisFunil"></div>
+      <div class="funil" id="funil"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><i>↘</i> Conversão entre etapas</div>
+      <div id="conversao" style="margin-top:12px"></div>
+    </div>
+  </section>
+</main>
+<div class="modal" id="notifyModal">
+  <div class="modal-box">
+    <div class="modal-head"><div class="modal-title">🔔 Notificações enviadas</div>
+      <button class="modal-x" id="notifyX" type="button">✕</button></div>
+    <div class="modal-body"><div id="notifyList"></div></div>
+  </div>
+</div>
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-head"><div class="modal-title" id="modalTitle">Candidato</div>
+      <button class="modal-x" id="modalX" type="button">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+<div id="gate">
+  <div class="gate-box">
+    <h2>Funil de Talentos</h2><p>Acesso restrito — RH / Gestão</p>
+    <input id="gatePass" type="password" placeholder="SENHA" autocomplete="off">
+    <div class="gate-err" id="gateErr"></div>
+    <button class="gate-btn" id="gateBtn" type="button">Entrar</button>
+    <a class="btn ghost sm" href="index.html" style="margin-top:8px;display:inline-block">Voltar ao painel</a>
+  </div>
+</div>
+<script src="funil.js?v=7"></script>
+</body>
+</html>

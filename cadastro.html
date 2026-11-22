@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E60000">
+<title>Cadastro de Talentos — J&T Express</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Banco de Talentos SC-Marabá — Cadastro">
+<meta property="og:description" content="Cadastre-se e entre para o Banco de Talentos da unidade MRB.">
+<meta property="og:url" content="https://anjoagamenon.github.io/jt-people-analytics/cadastro.html">
+<meta property="og:image" content="https://anjoagamenon.github.io/jt-people-analytics/banner-cadastro.jpg">
+<meta property="og:image:width" content="1400">
+<meta property="og:image:height" content="465">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://anjoagamenon.github.io/jt-people-analytics/banner-cadastro.jpg">
+<link rel="icon" type="image/png" href="favicon-talentos.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="talentos.css?v=8">
+</head>
+<body>
+<div class="grid-fx"></div><div class="orb orb-1"></div><div class="orb orb-2"></div>
+<header class="hud">
+  <div class="hud-brand">
+    <img class="hud-logo hud-logo-talentos" src="logo-talentos.png" alt="Banco de Talentos">
+    <div><div class="hud-title">J&amp;T EXPRESS <span>BANCO DE TALENTOS</span></div>
+      <div class="hud-sub">Unidade MRB • Cadastro de candidatos</div></div>
+  </div>
+  <div class="hud-right"><span class="sync-pill" id="syncPill"><span class="dot"></span><span id="syncTxt">Conectando…</span></span></div>
+</header>
+<main>
+  <div class="hero-logo"><img class="banner-cadastro" src="banner-cadastro.jpg" alt="Banco de Talentos J&T Express SC-Marabá — Venha fazer parte do nosso time"></div>
+  <div class="alert" id="alert"></div>
+
+  <div class="panel" id="cardVagas">
+    <div class="panel-accent"></div>
+    <div class="panel-head"><div class="panel-title"><i>◎</i> Vagas abertas</div>
+      <div class="panel-tag">Escolha a vaga antes de se candidatar</div></div>
+    <p class="hint" style="font-size:12px;line-height:1.5;margin-bottom:12px">
+      Veja as oportunidades disponíveis. Selecione a vaga desejada e preencha seu currículo abaixo —
+      você receberá o acompanhamento da candidatura por e-mail.
+    </p>
+    <div class="cards" id="vagasLista"></div>
+    <div class="alert ok" id="vagaSelecionada" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel" id="cardForm">
+    <div class="panel-accent"></div>
+    <div class="panel-head"><div class="panel-title"><i>★</i> Faça parte do nosso banco de talentos</div>
+      <div class="panel-tag">Cadastro • MRB</div></div>
+    <p class="hint" style="font-size:12px;line-height:1.5;margin-bottom:14px">
+      Preencha seus dados. Quando surgir uma oportunidade compatível com seu perfil, a equipe de Gestão de Pessoas entra em contato.
+    </p>
+    <form id="formCadastro">
+      <div class="grid2">
+        <label class="full">Nome completo *<input type="text" id="cNome" required maxlength="120" placeholder="Como consta no documento"></label>
+        <label>E-mail *<input type="email" id="cEmail" required maxlength="120" placeholder="voce@email.com"></label>
+        <label>WhatsApp / Telefone *<input type="tel" id="cTel" required maxlength="25" placeholder="(99) 99999-9999"></label>
+        <label>Unidade<input type="text" value="MRB" readonly style="font-weight:800;color:var(--red)"></label>
+        <label>Cidade onde reside<input type="text" id="cCidade" maxlength="80" placeholder="Ex.: Marabá - PA"></label>
+        <label class="full">Profissão / área *
+          <input type="text" id="cProfissao" list="profissoesList" required autocomplete="off" maxlength="80" placeholder="Digite ou escolha sua profissão…">
+          <datalist id="profissoesList"></datalist>
+          <span class="hint" style="text-transform:none;letter-spacing:0">Comece a digitar — aparecem as sugestões. Se a sua não estiver na lista, pode escrever à mão.</span>
+        </label>
+        <label class="full">Cargo / função desejada *<input type="text" id="cCargo" required maxlength="80" placeholder="Ex.: Conferente, Motorista…"></label>
+        <label class="full">Resumo profissional<textarea id="cExp" maxlength="800" placeholder="Resuma sua experiência, pontos fortes e objetivo profissional…"></textarea></label>
+
+        <div class="full">
+          <div class="sec-title" style="margin:6px 0 8px">Experiências profissionais</div>
+          <div id="expList"></div>
+          <button class="btn sm" id="addExp" type="button">+ Adicionar experiência</button>
+        </div>
+        <div class="full">
+          <div class="sec-title" style="margin:12px 0 8px">Formação acadêmica</div>
+          <div id="formList"></div>
+          <button class="btn sm" id="addForm" type="button">+ Adicionar formação</button>
+        </div>
+        <label class="full">Certificações <span class="hint">(CNH, NRs, cursos — separadas por vírgula)</span>
+          <input type="text" id="cCert" maxlength="300" placeholder="Ex.: CNH D, NR-11, NR-35, Excel avançado">
+        </label>
+        <label>Idiomas
+          <input type="text" id="cIdiomas" maxlength="160" placeholder="Ex.: Português nativo, Inglês intermediário">
+        </label>
+        <label>Habilidades
+          <input type="text" id="cSkills" maxlength="250" placeholder="Ex.: bipagem, conferência, liderança, TMS">
+        </label>
+        <label>LinkedIn (opcional)
+          <input type="url" id="cLinkedin" maxlength="200" placeholder="https://linkedin.com/in/…">
+        </label>
+        <label>Disponibilidade<select id="cDisp"><option>Imediata</option><option>15 dias</option><option>30 dias</option><option>A combinar</option></select></label>
+        <label>Link do currículo (opcional)<input type="url" id="cCurriculo" maxlength="300" placeholder="https://…"></label>
+        <label class="full">Foto <span class="hint">(câmera ou arquivo)</span>
+          <div class="foto-actions">
+            <button class="btn sm" id="btnCam" type="button">📷 Tirar foto</button>
+            <button class="btn sm" id="btnArq" type="button">🖼 Enviar arquivo</button>
+            <input type="file" id="cFotoCam" accept="image/*" capture="environment" hidden>
+            <input type="file" id="cFotoArq" accept="image/*" hidden>
+          </div>
+          <img id="cFotoPreview" class="foto-preview" alt="Prévia da foto" hidden>
+        </label>
+        <label class="full">Observações (opcional)<textarea id="cObs" maxlength="400" placeholder="Turno pretendido, referências…"></textarea></label>
+        <label class="check full"><input type="checkbox" id="cConsent" required>
+          <span>Li e concordo com o tratamento dos meus dados para recrutamento, conforme a
+            <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
+      </div>
+      <div class="form-actions"><button class="btn primary" id="btnEnviar" type="submit">Enviar cadastro</button>
+        <button class="btn" type="reset">Limpar</button><span class="hint" id="formHint"></span></div>
+    </form>
+  </div>
+  <div class="panel" id="cardSucesso" hidden>
+    <div class="panel-accent"></div>
+    <div class="panel-title"><i>✓</i> Cadastro enviado!</div>
+    <p style="font-size:14px;line-height:1.6;margin-top:12px">
+      Seu cadastro foi registrado no Banco de Talentos. Guarde o protocolo abaixo:<br>
+      <b id="protoc" style="font-size:18px;color:var(--red)"></b>
+    </p>
+    <p class="hint" style="font-size:12px;margin-top:10px">A equipe de RH entrará em contato pelo e-mail informado.</p>
+  </div>
+</main>
+<script src="cadastro.js?v=8"></script>
+</body>
+</html>

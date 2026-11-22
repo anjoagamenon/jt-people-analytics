@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E60000">
+<title>Banco de Talentos SC-Marabá — J&T Express</title>
+
+<!-- Preview do link no WhatsApp / redes sociais -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="J&T Express — People Analytics">
+<meta property="og:title" content="Banco de Talentos SC-Marabá — J&T Express">
+<meta property="og:description" content="Cadastre-se no Banco de Talentos da unidade MRB. Sua oportunidade pode estar aqui.">
+<meta property="og:url" content="https://anjoagamenon.github.io/jt-people-analytics/talentos.html">
+<meta property="og:image" content="https://anjoagamenon.github.io/jt-people-analytics/logo-talentos.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Banco de Talentos SC-Marabá — J&T Express">
+<meta name="twitter:description" content="Cadastre-se no Banco de Talentos da unidade MRB. Sua oportunidade pode estar aqui.">
+<meta name="twitter:image" content="https://anjoagamenon.github.io/jt-people-analytics/logo-talentos.png">
+<link rel="icon" type="image/png" href="favicon-talentos.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="talentos.css?v=15">
+</head>
+<body>
+<div class="grid-fx"></div><div class="orb orb-1"></div><div class="orb orb-2"></div>
+
+<header class="hud">
+  <div class="hud-brand">
+    <img class="hud-logo hud-logo-talentos" src="logo-talentos.png" alt="Banco de Talentos SC-Marabá">
+    <div>
+      <div class="hud-title">J&amp;T EXPRESS <span>MARABÁ — 01BG</span></div>
+      <div class="hud-sub">Portal de Talentos • SC-MRB / MRB</div>
+    </div>
+  </div>
+  <div class="hud-right">
+    <span class="sync-pill" id="syncPill"><span class="dot"></span><span id="syncTxt">Conectando…</span></span>
+    <a class="btn ghost sm" href="index.html">← Painel</a>
+    <button class="btn sm" id="btnNotify" type="button">🔔 Notificações <span class="badge red" id="notifyBadge" hidden>0</span></button>
+    <button class="btn sm" id="btnLogin" type="button">🔒 Gestão</button>
+  </div>
+</header>
+
+<main>
+  <div class="alert" id="alert"></div>
+
+  <!-- ===================== CADASTRO PÚBLICO ===================== -->
+  <!-- O cadastro é feito em outro site; esta área é apenas de análise -->
+  <section id="viewCadastro" hidden>
+    <div class="hero-logo"><img src="logo-talentos.png" alt="Banco de Talentos SC-Marabá"></div>
+    <div class="panel">
+      <div class="panel-accent"></div>
+      <div class="panel-head">
+        <div class="panel-title"><i>★</i> Quer fazer parte da J&amp;T?</div>
+        <div class="panel-tag">Cadastro • Banco de Talentos</div>
+      </div>
+      <p class="hint" style="margin-bottom:14px;font-size:12px;line-height:1.5">
+        Preencha seus dados para entrar no nosso banco de talentos. Quando surgir uma oportunidade
+        compatível com o seu perfil, a equipe de Gestão de Pessoas entra em contato.
+      </p>
+
+      <form id="formCadastro" autocomplete="on">
+        <div class="grid2">
+          <label class="full">Nome completo *
+            <input type="text" id="cNome" required maxlength="120" placeholder="Como consta no documento">
+          </label>
+          <label>E-mail *
+            <input type="email" id="cEmail" required maxlength="120" placeholder="voce@email.com">
+          </label>
+          <label>WhatsApp / Telefone *
+            <input type="tel" id="cTel" required maxlength="25" placeholder="(99) 99999-9999">
+          </label>
+          <label>Unidade
+            <input type="text" value="MRB" readonly style="font-weight:800;color:var(--red)">
+          </label>
+          <label class="full">Profissão / área *
+            <select id="cProfissao" required>
+              <option value="">Selecione…</option>
+              <optgroup label="1. Operações e logística">
+                <option>Auxiliar Operacional</option>
+                <option>Operador de Logística</option>
+                <option>Auxiliar de Expedição</option>
+                <option>Conferente de Mercadorias</option>
+                <option>Operador de Triagem</option>
+                <option>Operador de Esteira</option>
+                <option>Separador de Encomendas</option>
+                <option>Auxiliar de Carga e Descarga</option>
+                <option>Movimentador de Mercadorias</option>
+                <option>Operador de Empilhadeira</option>
+                <option>Auxiliar de Armazém</option>
+                <option>Controlador de Estoque</option>
+                <option>Assistente de Logística</option>
+                <option>Analista de Logística</option>
+                <option>Operador de Coleta</option>
+              </optgroup>
+              <optgroup label="2. Liderança e supervisão">
+                <option>Líder Operacional</option>
+                <option>Líder de Expedição</option>
+                <option>Líder de Triagem</option>
+                <option>Líder de Turno</option>
+                <option>Encarregado Operacional</option>
+                <option>Supervisor Operacional</option>
+                <option>Supervisor de Logística</option>
+                <option>Coordenador Operacional</option>
+                <option>Coordenador de Logística</option>
+                <option>Gerente Operacional</option>
+                <option>Gerente de Centro de Distribuição</option>
+              </optgroup>
+              <optgroup label="3. Transporte e distribuição">
+                <option>Motorista de Entrega</option>
+                <option>Motorista de Transferência</option>
+                <option>Motorista de Caminhão</option>
+                <option>Motorista de Carreta</option>
+                <option>Motociclista Entregador</option>
+                <option>Auxiliar de Transporte</option>
+                <option>Assistente de Transporte</option>
+                <option>Analista de Transporte</option>
+                <option>Roteirizador</option>
+                <option>Controlador de Frota</option>
+                <option>Supervisor de Transporte</option>
+                <option>Coordenador de Transportes</option>
+              </optgroup>
+              <optgroup label="4. Administrativo e recursos humanos">
+                <option>Auxiliar Administrativo</option>
+                <option>Assistente Administrativo</option>
+                <option>Analista Administrativo</option>
+                <option>Recepcionista</option>
+                <option>Assistente de Recursos Humanos</option>
+                <option>Analista de Recursos Humanos</option>
+                <option>Analista de Recrutamento e Seleção</option>
+                <option>Assistente de Departamento Pessoal</option>
+                <option>Analista de Departamento Pessoal</option>
+                <option>Coordenador de Recursos Humanos</option>
+                <option>Gerente Administrativo</option>
+              </optgroup>
+              <optgroup label="5. Tecnologia e sistemas">
+                <option>Técnico de Informática</option>
+                <option>Analista de Suporte de TI</option>
+                <option>Analista de Sistemas</option>
+                <option>Analista de Dados</option>
+                <option>Analista de BI</option>
+                <option>Desenvolvedor de Sistemas</option>
+                <option>Analista de Infraestrutura</option>
+                <option>Coordenador de TI</option>
+              </optgroup>
+              <optgroup label="6. Segurança e qualidade">
+                <option>Técnico de Segurança do Trabalho</option>
+                <option>Engenheiro de Segurança do Trabalho</option>
+                <option>Assistente de Qualidade</option>
+                <option>Analista de Qualidade</option>
+                <option>Analista de Prevenção de Perdas</option>
+                <option>Assistente de Monitoramento</option>
+                <option>Controlador de Acesso</option>
+                <option>Supervisor de Segurança Patrimonial</option>
+              </optgroup>
+              <optgroup label="7. Atendimento, comercial e financeiro">
+                <option>Atendente de SAC</option>
+                <option>Assistente de Atendimento</option>
+                <option>Analista de Atendimento</option>
+                <option>Assistente Comercial</option>
+                <option>Executivo de Contas</option>
+                <option>Analista Comercial</option>
+                <option>Assistente Financeiro</option>
+                <option>Analista Financeiro</option>
+                <option>Assistente de Faturamento</option>
+                <option>Analista de Custos</option>
+              </optgroup>
+              <option value="__outro__">Outros (digitar manualmente)</option>
+            </select>
+          </label>
+          <label class="full" id="lblProfissaoOutra" hidden>Qual é a sua profissão?
+            <input type="text" id="cProfissaoOutra" maxlength="80" placeholder="Digite sua profissão">
+          </label>
+          <label class="full">Cargo / função desejada *
+            <input type="text" id="cCargo" required maxlength="80" placeholder="Ex.: Conferente, Motorista, Auxiliar de Operações…">
+          </label>
+          <label class="full">Foto do candidato <span class="hint">(câmera ou arquivo)</span>
+            <div class="foto-actions">
+              <button class="btn sm" id="btnCam" type="button">📷 Tirar foto</button>
+              <button class="btn sm" id="btnArq" type="button">🖼 Enviar arquivo</button>
+              <input type="file" id="cFotoCam" accept="image/*" capture="environment" hidden>
+              <input type="file" id="cFotoArq" accept="image/*" hidden>
+            </div>
+            <img id="cFotoPreview" class="foto-preview" alt="Prévia da foto" hidden>
+          </label>
+          <label class="full">Experiência e competências
+            <textarea id="cExp" maxlength="600" placeholder="Conte sua experiência, cursos, certificações (CNH, NRs), sistemas que domina…"></textarea>
+          </label>
+          <label>Disponibilidade
+            <select id="cDisp">
+              <option value="Imediata">Imediata</option>
+              <option value="15 dias">Em até 15 dias</option>
+              <option value="30 dias">Em até 30 dias</option>
+              <option value="A combinar">A combinar</option>
+            </select>
+          </label>
+          <label>Link do currículo (opcional)
+            <input type="url" id="cCurriculo" maxlength="300" placeholder="https://…">
+          </label>
+          <label class="full">Observações (opcional)
+            <textarea id="cObs" maxlength="400" placeholder="Turno pretendido, restrições, referências…"></textarea>
+          </label>
+          <label class="check full">
+            <input type="checkbox" id="cConsent" required>
+            <span>Li e concordo com o tratamento dos meus dados para fins de recrutamento e seleção, conforme a
+              <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.
+            </span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="btn primary" id="btnEnviar" type="submit">Enviar cadastro</button>
+          <button class="btn" type="reset">Limpar</button>
+          <span class="hint" id="formHint"></span>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel" style="background:linear-gradient(135deg,rgba(230,0,0,.06),transparent)">
+      <div class="panel-title"><i>✓</i> Como funciona</div>
+      <p class="hint" style="font-size:12px;line-height:1.7;margin-top:8px">
+        1º — Seu cadastro fica no <b>Banco de Talentos — MRB</b>, aberto ao público.<br>
+        2º — O painel cruza seu perfil com as oportunidades abertas e calcula o <b>match</b>.<br>
+        3º — Se houver aderência, a equipe de RH faz o contato pelo WhatsApp informado.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== GESTÃO ===================== -->
+  <section id="viewGestao" hidden>
+    <div class="tabs">
+      <button class="tab active" data-tab="cadastros">Cadastros</button>
+      <button class="tab" data-tab="vagasconfig">Gerenciar Vagas</button>
+      <button class="tab" data-tab="vagas">Vagas &amp; Match</button>
+      <button class="tab" data-tab="carreira">Plano de Carreira</button>
+      <button class="tab" data-tab="config">Configuração</button>
+    </div>
+
+    <!-- Cadastros -->
+    <div id="tab-cadastros">
+      <div class="kpis" id="kpisGestao"></div>
+      <div class="panel">
+        <div class="panel-accent"></div>
+        <div class="panel-head">
+          <div class="panel-title"><i>◉</i> Banco de Talentos</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn sm" id="btnSincronizar" type="button">⇩ Trazer colaboradores do painel</button>
+            <button class="btn sm" id="btnEspelhar" type="button">⇪ Espelhar SC-MRB na planilha</button>
+            <button class="btn sm" id="btnRecarregar" type="button">↻ Recarregar</button>
+            <button class="btn sm" id="btnExportar" type="button">⬇ Exportar CSV</button>
+          </div>
+        </div>
+        <div class="toolbar" style="border-bottom:1px dashed var(--line);padding-bottom:10px;margin-bottom:10px">
+          <input type="text" id="fMatricula" placeholder="Digite a matrícula para abrir o pré-cadastro" maxlength="20" style="max-width:340px">
+          <button class="btn sm primary" id="btnMatricula" type="button">Abrir pré-cadastro</button>
+          <span class="hint">Colaboradores da casa já vêm com cadastro pronto do painel.</span>
+        </div>
+        <div class="toolbar">
+          <input type="search" id="fBusca" placeholder="🔍 Buscar nome, cargo, competência, e-mail…">
+          <select id="fUnidade"><option value="">Todas as unidades</option><option>SC-MRB</option><option>MRB</option></select>
+          <select id="fOrigem"><option value="">Todas as origens</option><option value="Painel">Só colaboradores (SC-MRB)</option><option value="Portal">Só público (MRB)</option></select>
+          <select id="fStatus"><option value="">Todos os status</option></select>
+          <select id="fOrdem">
+            <option value="recentes">Mais recentes</option>
+            <option value="nome">Nome (A→Z)</option>
+            <option value="match">Maior match</option>
+          </select>
+          <span class="hint" id="contador"></span>
+        </div>
+        <div class="cards" id="cardsCadastros"></div>
+      </div>
+    </div>
+
+    <!-- Gerenciar Vagas -->
+    <div id="tab-vagasconfig" hidden>
+      <div class="panel">
+        <div class="panel-accent"></div>
+        <div class="panel-head">
+          <div class="panel-title"><i>＋</i> Gerenciar Vagas</div>
+          <button class="btn primary sm" id="btnNovaVaga" type="button">+ Nova vaga</button>
+        </div>
+        <p class="hint" style="font-size:12px;line-height:1.5;margin-bottom:12px">
+          As vagas cadastradas aqui ficam disponíveis no <b>site público de cadastro</b> e entram no cálculo de match do portal e do funil.
+          Save e publique — a atualização é imediata em todos os sites.
+        </p>
+        <div id="listaVagas"></div>
+        <div class="alert warn" id="vagaAviso" style="margin-top:12px"></div>
+      </div>
+      <div class="panel" id="formVagaPanel" hidden>
+        <div class="panel-title"><i>✎</i> <span id="vagaFormTitulo">Nova vaga</span></div>
+        <div class="grid2" style="margin-top:14px">
+          <label class="full">Título da vaga *<input type="text" id="vTitulo" maxlength="90" placeholder="Ex.: Analista de Logística"></label>
+          <label>Unidade *<select id="vUnidade"><option>SC-MRB</option><option>MRB</option></select></label>
+          <label>Urgência<select id="vUrgencia"><option>Alta</option><option>Média</option><option>Baixa</option></select></label>
+          <label class="full">Resumo da vaga<textarea id="vDescricao" maxlength="500" placeholder="Responsabilidades, benefícios, horário, local…"></textarea></label>
+          <label class="full">Requisitos <span class="hint">(separados por vírgula)</span><input type="text" id="vRequisitos" maxlength="300" placeholder="Ex.: Liderança, Indicadores, CNH D"></label>
+          <label class="full">Desejáveis <span class="hint">(separados por vírgula)</span><input type="text" id="vDesejaveis" maxlength="300" placeholder="Ex.: Excel avançado, Experiência em hub"></label>
+          <label>Status<select id="vStatus"><option>Aberta</option><option>Fechada</option></select></label>
+        </div>
+        <div class="form-actions">
+          <button class="btn primary" id="btnSalvarVaga" type="button">Salvar vaga</button>
+          <button class="btn" id="btnCancelarVaga" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vagas & Match -->
+    <div id="tab-vagas" hidden>
+      <div class="panel">
+        <div class="panel-accent"></div>
+        <div class="panel-head">
+          <div class="panel-title"><i>◎</i> Busca por oportunidade</div>
+          <div class="panel-tag">Match de perfil</div>
+        </div>
+        <div class="toolbar">
+          <input type="search" id="mVagaBusca" list="vagasList" autocomplete="off"
+                 placeholder="🔍 Digite o nome da vaga (ex.: Líder de Turno)"
+                 style="max-width:440px;font-size:15px;padding:11px 12px">
+          <datalist id="vagasList"></datalist>
+          <button class="btn sm" id="mLimparBusca" type="button">Limpar</button>
+        </div>
+        <div class="card-meta" id="mVagaSugestoes" style="margin-bottom:10px"></div>
+        <div class="hint" id="mVagaInfo" style="margin-bottom:10px"></div>
+        <div id="mResultados"></div>
+      </div>
+    </div>
+
+    <!-- Plano de Carreira -->
+    <div id="tab-carreira" hidden>
+      <div class="panel">
+        <div class="panel-accent"></div>
+        <div class="panel-head">
+          <div class="panel-title"><i>◆</i> Matriz de Potencial × Prontidão (9-box)</div>
+          <div class="panel-tag">Clique em um nome para o PDI</div>
+        </div>
+        <div class="nb-axis">↑ POTENCIAL</div>
+        <div class="ninebox" id="ninebox"></div>
+        <div class="nb-axis">PRONTIDÃO →</div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i>↗</i> Trilhas de carreira</div>
+        <div id="trilhas" style="margin-top:12px"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i>♛</i> Mapa de sucessão</div>
+        <div id="sucessao" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- Config -->
+    <div id="tab-config" hidden>
+      <div class="panel">
+        <div class="panel-accent"></div>
+        <div class="panel-title"><i>⚙</i> Integrações</div>
+        <div class="grid2" style="margin-top:14px">
+          <label class="full">URL do backend (Apps Script — espelhamento na planilha)
+            <input type="url" id="cfgBackend" placeholder="https://script.google.com/macros/s/.../exec">
+          </label>
+          <label class="full">Chat/grupo para alerta de novo cadastro (opcional)
+            <input type="text" id="cfgAlert" placeholder="Ex.: link do grupo ou e-mail de RH">
+          </label>
+          <label class="check full"><input type="checkbox" id="cfgEspelhar" checked>
+            <span>Espelhar novos cadastros nas abas <b>Talentos-SC-MRB</b> e <b>Talentos-MRB</b> da planilha</span>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="btn primary" id="btnSalvarCfg" type="button">Salvar configuração</button>
+          <button class="btn" id="btnTestarCfg" type="button">Testar conexão</button>
+        </div>
+        <p class="hint" style="margin-top:14px;font-size:11px;line-height:1.6">
+          O Firebase é a fonte viva dos cadastros (sincroniza entre gestores em tempo real).
+          O espelhamento na planilha depende do Apps Script publicado — veja
+          <code>backend/talentos-backend.gs</code> no repositório.
+        </p>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i>⇢</i> De onde vêm os candidatos</div>
+        <p class="hint" style="font-size:12px;line-height:1.7;margin-top:10px">
+          O cadastro é feito em <b>outro site</b>. Cada novo cadastro deve ser gravado no Firebase,
+          no caminho <code>talentos/cadastros/v1/{id}</code>, com os campos:
+          <code>nome</code>, <code>email</code>, <code>telefone</code>, <code>unidade</code> (MRB),
+          <code>profissao</code> (seletor da logística), <code>cargo</code>,
+          <code>foto</code> (data URL da câmera ou arquivo), <code>experiencia</code>,
+          <code>status</code> (Pendente), <code>criadoEm</code> e <code>origem: "Portal"</code>.<br>
+          Esta tela escuta esse caminho em <b>tempo real</b>: assim que o outro site salva,
+          o candidato aparece aqui para análise — sem precisar recarregar.<br>
+          Os colaboradores da casa vêm de <code>talentos/internos/v1</code> (botão "Trazer colaboradores do painel").
+        </p>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i>⛨</i> Privacidade e segurança</div>
+        <p class="hint" style="font-size:12px;line-height:1.7;margin-top:10px">
+          Os dados são de uso interno de Recursos Humanos. O formulário público exige consentimento
+          LGPD e vincula-se à política de privacidade do projeto. A área de gestão exige a senha
+          institucional. Não compartilhe a URL do Apps Script publicamente.
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===================== NOTIFICAÇÕES ===================== -->
+<div class="modal" id="notifyModal">
+  <div class="modal-box">
+    <div class="modal-head"><div class="modal-title">🔔 Notificações enviadas</div>
+      <button class="modal-x" id="notifyX" type="button">✕</button></div>
+    <div class="modal-body"><div id="notifyList"></div></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL ===================== -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Perfil</div>
+      <button class="modal-x" id="modalX" type="button">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<!-- ===================== GATE ===================== -->
+<div id="gate" hidden>
+  <div class="gate-box">
+    <h2>Área de Gestão</h2>
+    <p>Acesso restrito — RH / Gestão</p>
+    <input id="gatePass" type="password" placeholder="SENHA" autocomplete="off">
+    <div class="gate-err" id="gateErr"></div>
+    <button class="gate-btn" id="gateBtn" type="button">Entrar</button>
+    <a class="btn ghost sm" href="index.html" style="margin-top:8px;display:inline-block">Voltar ao painel</a>
+  </div>
+</div>
+
+<script src="talentos.js?v=15"></script>
+</body>
+</html>

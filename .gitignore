@@ -1,0 +1,7 @@
+# Backup local dos registros fictícios removidos — não publicar
+data/talentos-ficticios-backup.json
+
+# Arquivos temporários / sistema
+*.tmp
+Thumbs.db
+desktop.ini

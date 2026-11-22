@@ -1,0 +1,19 @@
+{
+  "_comentario": "Estrutura de referência do Portal de Talentos. Os cadastros reais vivem no Firebase (talentos/cadastros/v1) e são espelhados na planilha Google. Os dados fictícios de demonstração foram movidos para talentos-ficticios-backup.json e NÃO devem ser usados.",
+  "fonteOficial": "Firebase Realtime Database — talentos/cadastros/v1",
+  "planilhaId": "1myXTFVRY-Nq5JEoovbQrWs9ajgkgKUylVcPHhyflBDo",
+  "abas": ["Banco Geral", "Talentos-SC-MRB", "Talentos-MRB"],
+  "gids": {
+    "Banco Geral": "0",
+    "Talentos-SC-MRB": "773970149",
+    "Talentos-MRB": "857179685"
+  },
+  "cadastros": [],
+  "vagas": [
+    { "id": "V-001", "titulo": "Líder de Turno", "unidade": "SC-MRB", "cargo": "Líder de Turno", "urgencia": "Alta", "requisitos": ["Liderança", "Indicadores", "Hub de distribuição"], "desejaveis": ["D+1", "Gestão de equipe"] },
+    { "id": "V-002", "titulo": "Supervisor Operacional", "unidade": "MRB", "cargo": "Supervisor Operacional", "urgencia": "Alta", "requisitos": ["Liderança", "SLA", "Gestão de equipe"], "desejaveis": ["Expedição", "Indicadores"] },
+    { "id": "V-003", "titulo": "Analista de Logística", "unidade": "SC-MRB", "cargo": "Analista de Logística", "urgencia": "Média", "requisitos": ["Excel avançado", "KPIs", "Superior em Logística"], "desejaveis": ["Entrega", "Indicadores"] },
+    { "id": "V-004", "titulo": "Motorista Carreteiro", "unidade": "SC-MRB", "cargo": "Motorista Carreteiro", "urgencia": "Média", "requisitos": ["CNH E", "MOPP", "Viagens intermunicipais"], "desejaveis": ["Disponibilidade imediata", "Rota regional"] },
+    { "id": "V-005", "titulo": "Conferente", "unidade": "MRB", "cargo": "Conferente", "urgencia": "Baixa", "requisitos": ["Conferência de NF", "Auditoria de pesagem"], "desejaveis": ["Leitor óptico", "Bipagem"] }
+  ]
+}
