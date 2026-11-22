@@ -98,7 +98,9 @@ function handleTalentos(e) {
       var dados = sheet.getRange(h.linha + 1, 1, ultima - h.linha, h.colunas.length || 26).getValues();
       dados.forEach(function (linha) {
         var obj = _linhaParaObjeto(h.colunas, linha);
-        if (obj.id || obj.nome) candidatos.push(obj);
+        // ignora o texto que a fórmula FILTER exibe quando não há candidatos
+        if (/^nenhum candidato/i.test(obj.id) || !obj.nome) return;
+        candidatos.push(obj);
       });
     });
     var payload = {
