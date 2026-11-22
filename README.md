@@ -85,7 +85,18 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
 | `data/talentos.json` | Estrutura de referência (vagas, IDs das abas) |
 | `data/talentos-ficticios-backup.json` | Backup dos 14 registros fictícios removidos — **não usar** |
 
-### Instalação do backend (uma vez)
+### Backend já implantado (nov/2026)
+
+- **Projeto Apps Script:** `Banco de Talentos J&T` (ID `11egVJR4_NrHEkTKUoQ8oqSdC6Ihlsuhaqhum74228n6Iingt12_Wd9fy`)
+- **URL Web App:** `https://script.google.com/macros/s/AKfycbyUbsMfMEAB8_ghjRVblCwXOmlMmxOCzScSMSzNfMkAKSmiVQ_Kk6xD2eP4zM0_TKUc/exec`
+- Acesso: **Qualquer pessoa** · Executar como: `anjoagamenon@gmail.com`
+- Ações: `GET_TALENTOS`, `ADD_TALENTO`, `NOTIFY_EMAIL`, `NOTIFY_WHATSAPP`
+- URL já salva no portal em Configuração (Firebase `talentos/config/v1/web.backend`).
+- **Envio de e-mail testado com sucesso** (`GmailApp`).
+- Para WhatsApp automático, definir as propriedades do script `WA_TOKEN` e `WA_PHONE_ID`;
+  sem elas o portal abre o `wa.me` com a mensagem pronta.
+
+### Instalação do backend (caso precise refazer)
 
 1. Abra a planilha **Banco de Dados de Talentos - SC-MRB e MRB**
    (ID `1myXTFVRY-Nq5JEoovbQrWs9ajgkgKUylVcPHhyflBDo`).
