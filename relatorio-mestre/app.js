@@ -1579,12 +1579,6 @@
     window.addEventListener('beforeprint', fitPrint);
     window.addEventListener('afterprint', () => { if (reportEl) reportEl.style.zoom = ''; fitPreview(); });
 
-    $('#btnExemplo').addEventListener('click', () => {
-      if (!confirm('Carregar os dados de exemplo da planilha modelo?')) return;
-      data = defaultData();
-      save(); buildForm(); refresh();
-      toast('Exemplo da planilha carregado.');
-    });
     $('#btnLimpar').addEventListener('click', () => {
       if (!confirm('Limpar todos os dados e fotos do formulário?')) return;
       data = clearData();
