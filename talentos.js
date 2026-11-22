@@ -510,6 +510,8 @@
         (p.origem === 'Painel' ? 'Colaborador' : 'Público') + '</span>' +
         '<span class="badge ' + statusCls(p.status) + '">' + esc(p.status || '—') + '</span>' +
         '<span class="badge">' + esc(p.unidade) + '</span>' +
+        ((p.candidaturas || []).filter(function (c) { return /aguardando/i.test(c.status); }).length ?
+          '<span class="badge amber">interesse: ' + esc(p.candidaturas.filter(function (c) { return /aguardando/i.test(c.status); }).map(function (c) { return c.vagaTitulo; }).join(', ')) + '</span>' : '') +
         (m.vaga && m.score >= 40 ? '<span class="badge purple">match ' + m.score + '% · ' + esc(m.vaga.titulo) + '</span>' : '') + '</div>' +
         (skills.length ? '<div class="card-meta">' + skills.map(function (s) { return '<span class="badge blue">' + esc(s) + '</span>'; }).join('') + '</div>' : '') +
         '<div class="card-notes">' + esc(p.experiencia || p.observacoes || 'Sem observações') + '</div></div>';
@@ -765,6 +767,18 @@
       '<div class="toolbar" style="margin-top:8px"><input id="pdiNova" placeholder="Nova meta de desenvolvimento" maxlength="140" style="max-width:340px">' +
       '<input id="pdiPrazo" placeholder="Prazo" maxlength="30" style="max-width:130px">' +
       '<button class="btn sm primary" id="pdiAdd" type="button">+ Meta</button></div>' +
+      ((p.candidaturas || p.formacao || p.certificacoes || p.habilidades) ?
+        '<div class="sec-title" style="margin-top:14px">Complementos e candidaturas</div>' +
+        '<div class="card-meta">' +
+        (p.formacao ? '<span class="badge blue">Formação: ' + esc(p.formacao) + '</span>' : '') +
+        (p.certificacoes ? '<span class="badge green">' + esc(p.certificacoes) + '</span>' : '') +
+        (p.idiomas ? '<span class="badge">' + esc(p.idiomas) + '</span>' : '') +
+        (p.habilidades ? '<span class="badge purple">' + esc(p.habilidades) + '</span>' : '') +
+        (p.linkedin ? '<span class="badge blue">LinkedIn</span>' : '') +
+        (p.candidaturas || []).map(function (c) {
+          return '<span class="badge ' + (/aguardando/i.test(c.status) ? 'amber' : /autorizada/i.test(c.status) ? 'green' : 'red') + '">' +
+            esc(c.vagaTitulo) + ' — ' + esc(c.status) + '</span>';
+        }).join('') + '</div>' : '') +
       '<div class="sec-title">Enviar mensagem específica</div>' +
       '<textarea id="msgCustom" rows="3" placeholder="Escreva a mensagem para este candidato…" style="width:100%;box-sizing:border-box"></textarea>' +
       '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">' +
@@ -927,6 +941,26 @@
     });
   }
   /* ---------------- CANDIDATOS PARA A VAGA (CASA PRIMEIRO) ---------------- */
+  function decidirCandidatura(id, vagaId, decisao) {
+    var p = buscar(id); if (!p) return;
+    var titulo = vagaId;
+    (p.candidaturas || []).forEach(function (c) { if (c.vagaId === vagaId) titulo = c.vagaTitulo; });
+    var copia = Object.assign({}, p, {
+      candidaturas: (p.candidaturas || []).map(function (c) {
+        return c.vagaId === vagaId ? Object.assign({}, c, { status: decisao, decididoEm: new Date().toISOString() }) : c;
+      }),
+      atualizadoEm: new Date().toISOString()
+    });
+    if (p.origem === 'Painel') DB.internos[id] = copia; else DB.cadastros[id] = copia;
+    salvarCache(); render(); gravar(caminhoDe(p), copia);
+    var msg = decisao === 'Autorizada'
+      ? 'Olá! Sua solicitação para concorrer à vaga *' + titulo + '* foi **AUTORIZADA**. A gestão entrará em contato com os próximos passos.'
+      : 'Olá! Sua solicitação para concorrer à vaga *' + titulo + '* não foi autorizada neste momento. Agradecemos o interesse.';
+    notificar(copia, msg, 'candidatura', { email: true, whats: true });
+    var vagas = DB.cfg.vagas || [];
+    var v = vagas.filter(function (x) { return x.id === vagaId; })[0];
+    if (v) mostrarCandidatosVaga(v);
+  }
   function mostrarCandidatosVaga(v) {
     var box = $('#matchVaga'); if (!box) return;
     var ranking = lista().map(function (p) { return { p: p, m: matchVaga(p, v) }; })
@@ -945,9 +979,31 @@
         '<div class="match-pct">' + r.m.score + '%</div></div>';
     };
 
+    var solicitantes = lista().filter(function (p) {
+      return p.origem === 'Painel' && (p.candidaturas || []).some(function (c) {
+        return c.vagaId === v.id && /aguardando/i.test(c.status);
+      });
+    });
+    var solicitHtml = solicitantes.length ? solicitantes.map(function (p) {
+      return '<div class="fcard" style="margin-bottom:8px">' +
+        '<div class="fcard-top">' + fotoAvatar(p, 40) + '<div><div class="fcard-name">' + esc(p.nome) + '</div>' +
+        '<div class="fcard-role">' + esc(p.cargo || '—') + ' • matrícula ' + esc(p.matricula || '—') + '</div></div></div>' +
+        '<div class="card-meta"><span class="badge amber">solicitou esta vaga</span>' +
+        (p.perfilAtualizadoEm ? '<span class="badge green">ficha atualizada</span>' : '') + '</div>' +
+        ((p.formacao || p.certificacoes || p.idiomas || p.habilidades) ?
+          '<div class="hint" style="margin-top:6px;color:var(--ink)">' +
+          [p.formacao ? 'Formação: ' + p.formacao : '', p.certificacoes ? 'Certificações: ' + p.certificacoes : '',
+           p.idiomas ? 'Idiomas: ' + p.idiomas : '', p.habilidades ? 'Habilidades: ' + p.habilidades : ''].filter(Boolean).join(' • ') + '</div>' : '') +
+        '<div class="fcard-actions"><button class="btn sm primary" data-decisao="Autorizada" data-id="' + esc(p.id) + '">✓ Autorizar</button>' +
+        '<button class="btn sm danger" data-decisao="Não autorizada" data-id="' + esc(p.id) + '">✕ Recusar</button>' +
+        '<button class="btn sm" data-perfil="' + esc(p.id) + '">Ver ficha</button></div></div>';
+    }).join('') : '<div class="hint">Nenhum colaborador solicitou esta vaga até agora.</div>';
+
     box.innerHTML = '<div class="panel" style="margin-top:14px">' +
       '<div class="panel-head"><div class="panel-title"><i>◎</i> Perfis para <span style="color:var(--red)">' + esc(v.titulo) + '</span></div>' +
       '<div class="panel-tag">' + esc(v.unidade) + ' • ' + esc(v.urgencia || '—') + '</div></div>' +
+
+      '<div class="curri-sec"><h4><i>✋</i> Solicitações internas — decisão do gestor</h4>' + solicitHtml + '</div>' +
 
       '<div class="curri-sec"><h4><i>▣</i> 1º Prioridade — talentos da casa (' + bonsInt.length + ' com match ≥ 40%)</h4>' +
       (bonsInt.length ? bonsInt.slice(0, 10).map(linha).join('') :
@@ -964,6 +1020,14 @@
 
     $$('#matchVaga .match-row').forEach(function (el) {
       el.addEventListener('click', function () { abrirPerfil(el.getAttribute('data-id')); });
+    });
+    $$('#matchVaga [data-decisao]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        decidirCandidatura(b.getAttribute('data-id'), v.id, b.getAttribute('data-decisao'));
+      });
+    });
+    $$('#matchVaga [data-perfil]').forEach(function (b) {
+      b.addEventListener('click', function () { abrirPerfil(b.getAttribute('data-perfil')); });
     });
   }
   function persistirVagas() {

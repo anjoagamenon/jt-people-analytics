@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="talentos.css?v=9">
+<link rel="stylesheet" href="talentos.css?v=10">
 </head>
 <body>
 <div class="grid-fx"></div><div class="orb orb-1"></div><div class="orb orb-2"></div>
@@ -55,6 +55,36 @@
     </p>
     <form id="formCadastro">
       <div class="grid2">
+        <label class="check full"><input type="checkbox" id="cColaborador">
+          <span><b>Já sou colaborador da empresa</b> — vou informar minha matrícula para me candidatar sem criar outro cadastro.</span>
+        </label>
+        <label class="full" id="lblMatricula" hidden>Matrícula *
+          <input type="text" id="cMatricula" maxlength="20" placeholder="Ex.: 000140" inputmode="numeric">
+          <span class="hint" style="text-transform:none;letter-spacing:0">Seus dados do painel serão usados — você só precisa informar a matrícula.</span>
+        </label>
+        <div class="full" id="complementoColab" hidden>
+          <div class="sec-title" style="margin:6px 0 8px">Complementar minha ficha <span class="hint">(opcional — deixa seu perfil mais completo)</span></div>
+          <div class="grid2">
+            <label class="full">Formação e cursos extras
+              <textarea id="cFormacaoExtra" maxlength="500" placeholder="Ex.: Técnico em Logística — SENAI (2023); Curso de Liderança — 40h"></textarea>
+            </label>
+            <label class="full">Certificações
+              <input type="text" id="cCertExtra" maxlength="250" placeholder="Ex.: NR-11, NR-35, CNH D">
+            </label>
+            <label>Idiomas<input type="text" id="cIdiomasExtra" maxlength="160" placeholder="Ex.: Inglês intermediário"></label>
+            <label>Habilidades<input type="text" id="cSkillsExtra" maxlength="250" placeholder="Ex.: bipagem, Excel, liderança"></label>
+            <label class="full">LinkedIn (opcional)<input type="url" id="cLinkedinExtra" maxlength="200" placeholder="https://linkedin.com/in/…"></label>
+            <label class="full">Atualizar minha foto
+              <div class="foto-actions">
+                <button class="btn sm" id="btnCamColab" type="button">📷 Tirar foto</button>
+                <button class="btn sm" id="btnArqColab" type="button">🖼 Enviar arquivo</button>
+                <input type="file" id="cFotoColabCam" accept="image/*" capture="environment" hidden>
+                <input type="file" id="cFotoColabArq" accept="image/*" hidden>
+              </div>
+              <img id="cFotoColabPreview" class="foto-preview" alt="Prévia da foto" hidden>
+            </label>
+          </div>
+        </div>
         <label class="full">Nome completo *<input type="text" id="cNome" required maxlength="120" placeholder="Como consta no documento"></label>
         <label>E-mail *<input type="email" id="cEmail" required maxlength="120" placeholder="voce@email.com"></label>
         <label>WhatsApp / Telefone *<input type="tel" id="cTel" required maxlength="25" placeholder="(99) 99999-9999"></label>
@@ -120,6 +150,6 @@
     <p class="hint" style="font-size:12px;margin-top:10px">A equipe de RH entrará em contato pelo e-mail informado.</p>
   </div>
 </main>
-<script src="cadastro.js?v=9"></script>
+<script src="cadastro.js?v=10"></script>
 </body>
 </html>

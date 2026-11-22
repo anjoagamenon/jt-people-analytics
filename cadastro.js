@@ -9,13 +9,13 @@
     appId: '1:823561383768:web:6400e5b250287c2e287f2d'
   };
   var USER = 'salvadosjetmrb@gmail.com', PASS = 'jetexpress10';
-  var PATH = 'talentos/cadastros/v1', PATH_CFG = 'talentos/config/v1/web';
+  var PATH = 'talentos/cadastros/v1', PATH_CFG = 'talentos/config/v1/web', PATH_INT = 'talentos/internos/v1';
   var $ = function (s) { return document.querySelector(s); };
   var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
   var norm = function (s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); };
   var uid = function () { return 'JT-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, '0'); };
-  var db = null, fotoAtual = '', vagas = [], vagaSel = null, cfgWeb = {};
+  var db = null, fotoAtual = '', fotoColab = '', vagas = [], vagaSel = null, cfgWeb = {}, internos = {};
 
   var VAGAS_PADRAO = [
     { id: 'V-001', titulo: 'Líder de Turno', unidade: 'SC-MRB', urgencia: 'Alta', descricao: 'Liderança de equipe operacional, gestão de indicadores e acompanhamento de D+1.', requisitos: ['Liderança', 'Indicadores', 'Hub de distribuição'], desejaveis: ['D+1', 'Gestão de equipe'] },
@@ -135,6 +135,21 @@
         this.value = '';
       });
     });
+    $('#btnCamColab').addEventListener('click', function () { $('#cFotoColabCam').click(); });
+    $('#btnArqColab').addEventListener('click', function () { $('#cFotoColabArq').click(); });
+    ['#cFotoColabCam', '#cFotoColabArq'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        lerFoto(this.files && this.files[0], function (d) { fotoColab = d; $('#cFotoColabPreview').src = d; $('#cFotoColabPreview').hidden = false; });
+        this.value = '';
+      });
+    });
+    $('#cColaborador').addEventListener('change', function () {
+      var sim = this.checked;
+      $('#lblMatricula').hidden = !sim;
+      $('#complementoColab').hidden = !sim;
+      ['#cNome', '#cEmail', '#cTel', '#cCargo'].forEach(function (id) { $(id).required = !sim; });
+      if (sim) $('#cMatricula').focus();
+    });
     $('#addExp').addEventListener('click', adicionarExp);
     $('#addForm').addEventListener('click', adicionarForm);
     renderVagas();
@@ -148,6 +163,7 @@
       var auth = firebase.auth();
       try { await auth.signInWithEmailAndPassword(USER, PASS); } catch (e) { if (!auth.currentUser) throw e; }
       db = firebase.database(); sync(true, 'Conectado');
+      db.ref(PATH_INT).on('value', function (snap) { internos = snap.val() || {}; });
       db.ref(PATH_CFG).on('value', function (snap) {
         var v = snap.val();
         cfgWeb = v || {};
@@ -176,6 +192,46 @@
       '&notas=' + encodeURIComponent('Vaga: ' + (reg.vagaTitulo || '') + ' | ' + (reg.experiencia || ''));
     s.src = url + q; document.head.appendChild(s);
   }
+  async function candidaturaInterna(matricula, vaga) {
+    var chave = String(matricula || '').replace(/\D/g, '');
+    if (!chave) return alerta('Informe a matrícula.', 'err');
+    if (!db) return alerta('Sem conexão com a base. Tente novamente.', 'err');
+    var snap = await db.ref(PATH_INT).once('value');
+    internos = snap.val() || {};
+    var registro = null, rid = '';
+    Object.keys(internos).forEach(function (k) {
+      if (String(internos[k].matricula || '').replace(/\D/g, '') === chave) { registro = internos[k]; rid = k; }
+    });
+    if (!registro) return alerta('Matrícula não encontrada no efetivo. Confira o número digitado.', 'err');
+    var titulo = vaga ? vaga.titulo : vagaSel;
+    var ja = (registro.candidaturas || []).filter(function (c) { return c.vagaId === vagaSel && /aguardando/i.test(c.status); })[0];
+    if (ja) return alerta('Você já tem uma solicitação pendente para esta vaga. Aguarde a análise da gestão.', 'warn');
+    var extra = {
+      candidaturas: (registro.candidaturas || []).concat([{
+        vagaId: vagaSel, vagaTitulo: titulo, status: 'Aguardando análise', criadoEm: new Date().toISOString()
+      }]),
+      atualizadoEm: new Date().toISOString()
+    };
+    // Complementos opcionais do colaborador enriquecem o cadastro existente (sem duplicar)
+    var formacao = $('#cFormacaoExtra').value.trim();
+    var cert = $('#cCertExtra').value.trim();
+    var idiomas = $('#cIdiomasExtra').value.trim();
+    var skills = $('#cSkillsExtra').value.trim();
+    var linkedin = $('#cLinkedinExtra').value.trim();
+    if (formacao) extra.formacao = (registro.formacao || '') + (registro.formacao ? '; ' : '') + formacao;
+    if (cert) extra.certificacoes = (registro.certificacoes || '') + (registro.certificacoes ? '; ' : '') + cert;
+    if (idiomas) extra.idiomas = idiomas;
+    if (skills) extra.habilidades = (registro.habilidades || '') + (registro.habilidades ? '; ' : '') + skills;
+    if (linkedin) extra.linkedin = linkedin;
+    if (fotoColab) extra.foto = fotoColab;
+    extra.perfilAtualizadoEm = new Date().toISOString();
+    var copia = Object.assign({}, registro, extra);
+    await db.ref(PATH_INT + '/' + rid).set(copia);
+    $('#cardForm').hidden = true; $('#cardSucesso').hidden = false;
+    $('#protoc').textContent = registro.matricula + ' / ' + titulo;
+    $('#formHint').textContent = 'Solicitação registrada sem duplicidade';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   async function enviar(ev) {
     ev.preventDefault();
     var nome = $('#cNome').value.trim(), email = $('#cEmail').value.trim(), tel = $('#cTel').value.trim();
@@ -183,6 +239,14 @@
     if (!nome || !email || !tel || !prof || !cargo) return alerta('Preencha todos os campos obrigatórios (*).', 'err');
     if (!vagaSel) return alerta('Selecione a vaga desejada na lista acima antes de enviar.', 'warn');
     if (!$('#cConsent').checked) return alerta('Aceite a política de privacidade.', 'err');
+    if ($('#cColaborador').checked) {
+      var btnInt = $('#btnEnviar'); btnInt.disabled = true; btnInt.innerHTML = '<span class="spinner"></span> Enviando…';
+      try {
+        await candidaturaInterna($('#cMatricula').value, vagas.filter(function (x) { return x.id === vagaSel; })[0]);
+      } catch (e) { alerta('Não foi possível registrar a candidatura. Tente novamente.', 'err'); }
+      btnInt.disabled = false; btnInt.textContent = 'Enviar cadastro';
+      return;
+    }
     var btn = $('#btnEnviar'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Enviando…';
     var id = uid();
     var reg = {
