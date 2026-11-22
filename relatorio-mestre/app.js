@@ -1568,6 +1568,8 @@
     $('#btnVideoNarrado').addEventListener('click', gerarVideoNarrado);
     $('#btnVideo').addEventListener('click', gerarVideo);
     $('#btnShare').addEventListener('click', compartilhar);
+    const topShare = $('#btnShareTop');
+    if (topShare) topShare.addEventListener('click', compartilhar);
     const vu = $('#fVlibrasUrl'), vt = $('#fVlibrasToken');
     vu.value = localStorage.getItem(VLURL_KEY) || 'https://traducao2.vlibras.gov.br';
     vu.addEventListener('change', () => localStorage.setItem(VLURL_KEY, vu.value.trim()));
