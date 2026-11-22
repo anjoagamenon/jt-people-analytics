@@ -337,6 +337,9 @@
   }
 
   async function driveConnect(quiet) {
+    // Na abertura não tentamos login silencioso: sem concessão prévia o GIS always
+    // chama error_callback e o painel aparecia vermelho "falha no login" à toa.
+    if (quiet && !gToken) { driveStatus('', 'desconectado — clique em Conectar Drive'); return false; }
     const id = ($('#fGClient') && $('#fGClient').value.trim()) || localStorage.getItem(GCLIENT_KEY) || '';
     if (!id) {
       if (!quiet) toast('Cole o Client ID do Google antes de conectar.', 4500);
@@ -359,7 +362,9 @@
               finish(true, 'conectado ✓', 'ok');
             } else finish(false, 'erro: ' + ((r && r.error) || '?'), 'err');
           },
-          error_callback: (e) => finish(false, (e && e.type === 'popup_closed') ? 'login cancelado' : 'falha no login', 'err'),
+          error_callback: (e) => finish(false,
+            (e && e.type === 'popup_closed') ? 'login cancelado'
+              : ((e && e.type) ? 'falha no login (' + e.type + ')' : 'falha no login'), 'err'),
         });
         client.requestAccessToken({ prompt: (gToken || quiet) ? '' : 'consent' });
       } catch (e) { finish(false, 'falha: ' + e.message, 'err'); }
@@ -1614,9 +1619,11 @@
     renderHist().catch((e) => console.warn('hist', e));
     driveStatus('', 'desconectado');
     /* Drive automático: conecta com a sessão Google já logada */
-    if (!localStorage.getItem(GCLIENT_KEY)) localStorage.setItem(GCLIENT_KEY, '823561383768-bhcr2s64i6f7aj8mafkcna3gi4ts6tc6.apps.googleusercontent.com');
-    if ($('#fGClient')) $('#fGClient').value = localStorage.getItem(GCLIENT_KEY);
-    driveConnect(true).catch(() => {});
+    // Client ID correto (público) — substitui qualquer ID antigo salvo no aparelho
+    const CID = '823561383768-bhcr2s64i6f7aj8mafkcna3gi4ts6tc6.apps.googleusercontent.com';
+    localStorage.setItem(GCLIENT_KEY, CID);
+    if ($('#fGClient')) $('#fGClient').value = CID;
+    loadGis().catch(() => {}); // pré-carrega o GIS; o login só acontece no clique do usuário
     /* fonte única: conecta e recebe alterações de outros dispositivos */
     if (window.RMCloud) {
       RMCloud.init((remote) => {
