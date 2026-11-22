@@ -52,6 +52,8 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
 6. **Área de gestão** (senha `jetexpress10`):
    - busca por nome/cargo/competência/e-mail, filtros por origem, unidade e status;
    - **busca por nome de vaga** → mostra quem é candidato, ordenado por match;
+   - ao criar uma vaga (botão 👥 em "Gerenciar Vagas"), aparece o ranking **1º talentos da casa**
+     e, se não houver match ≥ 40%, **2º talentos de fora** com o link do cadastro público;
    - campo **Matrícula** → abre o pré-cadastro do colaborador da casa;
    - cards com **foto** e modal de **currículo** no estilo da ficha do painel;
    - triagem (Pendente → Triagem → Entrevista → Aprovado → Banco/Contratado);
