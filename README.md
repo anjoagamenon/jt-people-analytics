@@ -55,6 +55,8 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
    - ao criar uma vaga (botão 👥 em "Gerenciar Vagas"), aparece o ranking **1º talentos da casa**
      e, se não houver match ≥ 40%, **2º talentos de fora** com o link do cadastro público;
    - campo **Matrícula** → abre o pré-cadastro do colaborador da casa;
+   - **sem segunda senha**: ao desbloquear o painel principal, portal e funil entram direto
+     (a sessão `dsr_dash_ok` do painel é reaproveitada);
    - cards com **foto** e modal de **currículo** no estilo da ficha do painel;
    - triagem (Pendente → Triagem → Entrevista → Aprovado → Banco/Contratado);
    - match com vagas (0–100%) e destaque de **talento escondido**;
