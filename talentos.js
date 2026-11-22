@@ -905,9 +905,16 @@
         '<span class="badge ' + (/fechada/i.test(v.status || '') ? 'red' : 'green') + '">' + esc(v.status || 'Aberta') + '</span></div>' +
         (v.descricao ? '<div class="hint" style="margin-top:5px">' + esc(v.descricao) + '</div>' : '') +
         '<div class="hint" style="margin-top:4px">Requisitos: ' + (v.requisitos || []).map(esc).join(', ') + '</div></div>' +
-        '<div style="display:flex;gap:4px"><button class="btn sm" data-edit="' + esc(v.id) + '">✎</button>' +
+        '<div style="display:flex;gap:4px"><button class="btn sm" data-ver="' + esc(v.id) + '" title="Ver quem tem o perfil">👥</button>' +
+        '<button class="btn sm" data-edit="' + esc(v.id) + '">✎</button>' +
         '<button class="btn sm danger" data-del="' + esc(v.id) + '">🗑</button></div></div>';
     }).join('');
+    $$('#listaVagas [data-ver]').forEach(function (b) {
+      b.onclick = function () {
+        var v = (DB.cfg.vagas || []).filter(function (x) { return x.id === b.getAttribute('data-ver'); })[0];
+        if (v) { mostrarCandidatosVaga(v); $('#matchVaga').scrollIntoView({ behavior: 'smooth' }); }
+      };
+    });
     $$('#listaVagas [data-edit]').forEach(function (b) { b.onclick = function () { editarVaga(b.getAttribute('data-edit')); }; });
     $$('#listaVagas [data-del]').forEach(function (b) {
       b.onclick = function () {
@@ -917,6 +924,46 @@
         DB.cfg.vagas = (DB.cfg.vagas || []).filter(function (x) { return x.id !== id; });
         persistirVagas(); renderVagasConfig(); renderVagas();
       };
+    });
+  }
+  /* ---------------- CANDIDATOS PARA A VAGA (CASA PRIMEIRO) ---------------- */
+  function mostrarCandidatosVaga(v) {
+    var box = $('#matchVaga'); if (!box) return;
+    var ranking = lista().map(function (p) { return { p: p, m: matchVaga(p, v) }; })
+      .sort(function (a, b) { return b.m.score - a.m.score; });
+    var internos = ranking.filter(function (r) { return r.p.origem === 'Painel'; });
+    var externos = ranking.filter(function (r) { return r.p.origem !== 'Painel'; });
+    var bonsInt = internos.filter(function (r) { return r.m.score >= 40; });
+
+    var linha = function (r) {
+      return '<div class="match-row" data-id="' + esc(r.p.id) + '" style="cursor:pointer">' +
+        fotoAvatar(r.p, 32) +
+        '<div style="min-width:140px;flex:1"><b style="font-size:12px">' + esc(nomeCurto(r.p.nome)) + '</b>' +
+        '<div class="hint">' + esc(r.p.profissao || r.p.cargo || '—') + ' • ' + esc(r.p.unidade) + '</div>' +
+        (r.m.faltantes.length ? '<div class="hint">Falta: ' + r.m.faltantes.map(esc).join(', ') + '</div>' : '') +
+        '</div><div class="match-bar"><div class="match-fill" style="width:' + r.m.score + '%"></div></div>' +
+        '<div class="match-pct">' + r.m.score + '%</div></div>';
+    };
+
+    box.innerHTML = '<div class="panel" style="margin-top:14px">' +
+      '<div class="panel-head"><div class="panel-title"><i>◎</i> Perfis para <span style="color:var(--red)">' + esc(v.titulo) + '</span></div>' +
+      '<div class="panel-tag">' + esc(v.unidade) + ' • ' + esc(v.urgencia || '—') + '</div></div>' +
+
+      '<div class="curri-sec"><h4><i>▣</i> 1º Prioridade — talentos da casa (' + bonsInt.length + ' com match ≥ 40%)</h4>' +
+      (bonsInt.length ? bonsInt.slice(0, 10).map(linha).join('') :
+        '<div class="sug"><b>Nenhum colaborador com aderência para esta vaga.</b><br>' +
+        'Antes de buscar fora, vale capacitar alguém da equipe — veja os perfis mais próximos abaixo.</div>') + '</div>' +
+
+      (internos.length && !bonsInt.length ? '<div class="curri-sec"><h4><i>↗</i> Mais próximos na casa</h4>' + internos.slice(0, 5).map(linha).join('') + '</div>' : '') +
+
+      '<div class="curri-sec"><h4><i>⇢</i> 2º Talentos de fora (banco de talentos)</h4>' +
+      (externos.length ? externos.slice(0, 10).map(linha).join('') :
+        '<div class="sug">Ainda não há candidatos externos cadastrados para esta vaga.</div>') +
+      '<div class="hint" style="margin-top:10px">Compartilhe o link público: <code>' + esc(location.origin + location.pathname.replace(/talentos\.html.*/, 'cadastro.html')) + '</code></div>' +
+      '</div></div>';
+
+    $$('#matchVaga .match-row').forEach(function (el) {
+      el.addEventListener('click', function () { abrirPerfil(el.getAttribute('data-id')); });
     });
   }
   function persistirVagas() {
@@ -965,6 +1012,8 @@
     if (i >= 0) DB.cfg.vagas[i] = obj; else DB.cfg.vagas.push(obj);
     $('#formVagaPanel').hidden = true;
     persistirVagas(); renderVagasConfig(); renderVagas(); render();
+    mostrarCandidatosVaga(obj);
+    $('#matchVaga').scrollIntoView({ behavior: 'smooth' });
   }
   function salvarCfg() {
     CFG.backend = $('#cfgBackend').value.trim();
