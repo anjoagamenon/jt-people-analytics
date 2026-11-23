@@ -14,6 +14,8 @@ Painel público de assiduidade, DSR e presença — J&T Express Marabá 01BG.
 - Destaque do dia (aniversários, folgas)
 - Indicadores e assiduidade do mês
 - Decisões futuras de volumetria por dia da semana
+- Ficha do colaborador com fonte legível, **foto → botões → texto** e foto ampliável em tela cheia
+  (clique na foto; mostra nome e matrícula; fecha com ✕, clique fora ou Esc)
 - Envio de alerta por WhatsApp para todos os celulares com o app
 - **★ Portal de Talentos** — botão na área **Destaque da equipe** do painel, ao lado dos filtros
   Todos / Turno 1 / Turno 2 / Qualidade / ADM, e também por acesso direto:

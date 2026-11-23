@@ -1440,6 +1440,59 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
 .bcard-wa:hover { filter: brightness(1.06); }
 .bcard-close { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); }
 .bcard-status { min-height: 18px; font-family: 'Rajdhani', sans-serif; font-size: 10px; color: #fde68a; text-align: center; letter-spacing: .5px; }
+
+/* ===== FOTO AMPLIADA ===== */
+.photoview { position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center;
+  background:rgba(8,10,16,.92); backdrop-filter:blur(8px); padding:24px; }
+.photoview[hidden] { display:none !important; }
+.photoview-inner { display:flex; flex-direction:column; align-items:center; gap:16px; max-width:min(92vw,620px); }
+.photoview-foto img { display:block; max-width:min(86vw,560px); max-height:72vh; width:auto; height:auto;
+  border-radius:18px; border:3px solid var(--red); box-shadow:0 24px 70px rgba(0,0,0,.6); object-fit:contain; }
+.photoview-foto .avatar { width:280px !important; height:280px !important; border-radius:22px !important; font-size:80px !important; }
+.photoview-info { text-align:center; color:#fff; }
+.photoview-nome { font-size:22px; font-weight:800; }
+.photoview-mat { font-size:14px; color:#cbd5e1; letter-spacing:1px; margin-top:4px; }
+.photoview-x { position:fixed; top:18px; right:20px; width:44px; height:44px; border-radius:50%;
+  border:2px solid rgba(255,255,255,.4); background:rgba(255,255,255,.12); color:#fff;
+  font-size:20px; font-weight:800; cursor:pointer; }
+.photoview-x:hover { background:var(--red); border-color:var(--red); }
+#pmAvatar { cursor:zoom-in; position:relative; }
+#pmAvatar::after { content:'🔍 ampliar'; position:absolute; bottom:-2px; left:50%; transform:translateX(-50%);
+  font-size:9px; color:#fff; background:rgba(0,0,0,.55); padding:2px 7px; border-radius:99px; white-space:nowrap; }
+#pmAvatar:hover .avatar { box-shadow:0 0 0 3px var(--red); }
+
+/* ===== FICHA: foto → botões → texto ===== */
+.pm-top { display:flex; flex-direction:column; align-items:center; gap:8px; padding:4px 0 12px; border-bottom:2px solid var(--red); }
+.pm-top .pmodal-avatar { flex:none; }
+.pm-top .pm-actions { width:min(100%,520px); margin:0 !important; grid-template-columns:repeat(4,1fr); }
+.pmodal-head { border-bottom:1px solid var(--line) !important; padding:14px 6px !important; text-align:center; justify-content:center; }
+.pmodal-badges { justify-content:center; }
+@media (max-width:640px) { .pm-top .pm-actions { grid-template-columns:repeat(2,1fr); } }
+
+/* ===== LEGIBILIDADE: o texto da ficha importa mais que os botões ===== */
+.pmodal-card, .pmodal-card * { font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif !important; letter-spacing: 0 !important; }
+.pmodal-name { font-size: 24px !important; }
+.pmodal-role { font-size: 13px !important; }
+.pmodal-sec-title { font-size: 14px !important; }
+.pchip { font-size: 13px !important; padding: 8px 11px !important; line-height: 1.4 !important; }
+.pchip b { font-size: 10px !important; }
+.ind-table { font-size: 13px !important; }
+.ind-table th { font-size: 11px !important; padding: 8px 10px !important; }
+.ind-table td { padding: 8px 10px !important; }
+.plist-row { font-size: 12px !important; padding: 7px 2px !important; }
+.pmini span { font-size: 10px !important; }
+.pmini b { font-size: 22px !important; }
+#pmObsText { font-size: 14px !important; }
+/* Botões discretos dentro da ficha */
+.pm-actions { gap: 6px !important; }
+.pm-btn { padding: 6px 8px !important; font-size: 11px !important; font-weight: 600 !important;
+  text-transform: none !important; border: 1px solid var(--line) !important; border-radius: 9px !important;
+  background: var(--white) !important; color: var(--gray) !important; }
+.pm-btn b { font-size: 13px !important; }
+.pm-btn:hover { background: var(--bg) !important; color: var(--red) !important; border-color: var(--line-red) !important; }
+#pmObsAI, #pmObsSave { padding: 7px 12px !important; font-size: 11px !important; font-weight: 600 !important;
+  text-transform: none !important; letter-spacing: 0 !important; }
+#pmObsSave { background: var(--red) !important; color: #fff !important; }
 </style>
 
 <div class="pmodal" id="birthdayModal" hidden>
@@ -1485,8 +1538,11 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
   <div class="pmodal-backdrop" data-pclose></div>
   <div class="pmodal-card">
     <button class="pmodal-close" data-pclose>✕</button>
-    <div class="pmodal-head">
+    <div class="pm-top">
       <div class="pmodal-avatar" id="pmAvatar"></div>
+      <div class="pm-actions" id="pmActions"></div>
+    </div>
+    <div class="pmodal-head">
       <div style="min-width:0;">
         <div class="pmodal-name" id="pmName">—</div>
         <div class="pmodal-role" id="pmRole">—</div>
@@ -1494,7 +1550,6 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
       </div>
     </div>
     <div class="pmodal-chips" id="pmChips"></div>
-    <div class="pm-actions" id="pmActions"></div>
 
     <div class="pmodal-section">
       <div class="pmodal-sec-title"><i>▲</i> Indicadores do colaborador</div>
@@ -1524,6 +1579,18 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
     <div class="pmodal-section" style="margin-top:12px;">
       <div class="pmodal-sec-title"><i>▣</i> EPIs entregues</div>
       <div class="plist" id="pmEpis"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FOTO AMPLIADA (tela cheia) ===== -->
+<div class="photoview" id="photoView" hidden>
+  <button class="photoview-x" id="photoViewX" type="button" aria-label="Fechar">✕</button>
+  <div class="photoview-inner" id="photoViewInner">
+    <div class="photoview-foto" id="photoViewFoto"></div>
+    <div class="photoview-info">
+      <div class="photoview-nome" id="photoViewNome">—</div>
+      <div class="photoview-mat" id="photoViewMat">—</div>
     </div>
   </div>
 </div>
@@ -2704,12 +2771,34 @@ const shareFichaWaWeb = (c) => {
   window.open(waOpenLink('', text + extra), 'escala-wapp', 'noopener');
   return true;
 };
+const fecharFoto = () => { const v = document.getElementById('photoView'); if (v) v.hidden = true; };
+const abrirFoto = (c) => {
+  const v = document.getElementById('photoView'); if (!v) return;
+  const foto = String(c && (c.avatar || c.fotoBase64) || '').trim();
+  document.getElementById('photoViewFoto').innerHTML =
+    (foto && /^(data:image|https?:\/\/)/.test(foto))
+      ? '<img src="' + esc(foto) + '" alt="Foto de ' + esc(c.name || '') + '">'
+      : avatarOf(c, 280);
+  document.getElementById('photoViewNome').textContent = c.name || '—';
+  document.getElementById('photoViewMat').textContent = 'Matrícula ' + (c.matricula || '—');
+  v.hidden = false;
+};
+document.addEventListener('DOMContentLoaded', () => {
+  const x = document.getElementById('photoViewX');
+  if (x) x.addEventListener('click', fecharFoto);
+  const v = document.getElementById('photoView');
+  if (v) v.addEventListener('click', (e) => { if (e.target === v || e.target.closest('.photoview-inner') === null) fecharFoto(); });
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharFoto(); });
+
 const openPerson = (c) => {
   const d = LAST;
   const matK = strip(c.matricula);
   // Pré-gera a voz da ficha em segundo plano: o clique em "Ler ficha" sai na hora
   try { ttsFetchCached(buildFichaSpeech(c), voicePref()); } catch (_) {}
   $('#pmAvatar').innerHTML = avatarOf(c, 96);
+  $('#pmAvatar').title = 'Clique para ampliar a foto';
+  $('#pmAvatar').onclick = function () { abrirFoto(c); };
   $('#pmName').textContent = c.name || '—';
   $('#pmRole').textContent = abbrevFuncao(c.funcao || 'COLABORADOR') + ' • ' + (c.turno || '');
   const fer = isOnVacation(c);

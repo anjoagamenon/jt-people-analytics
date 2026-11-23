@@ -17,7 +17,8 @@ html[data-theme="dark"]{
 html,body{height:100%}
 body{
   background:var(--bg); color:var(--ink);
-  font-family:'Rajdhani',system-ui,sans-serif; overflow-x:hidden;
+  font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  font-size:15px; line-height:1.55; overflow-x:hidden;
 }
 .grid-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:linear-gradient(rgba(230,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(230,0,0,.05) 1px,transparent 1px);
