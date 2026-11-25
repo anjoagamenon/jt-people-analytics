@@ -110,7 +110,9 @@ textarea{resize:vertical;min-height:70px}
 #colabMatches { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 #colabMatches .sec-title { width:100%; }
 #colabFotoGrande[hidden] { display:none; }
-#colabFotoGrande { align-self:stretch; min-height:180px; display:flex; align-items:stretch; }
+#dadosPainel { grid-column:1/-1 !important; }
+#colabFotoGrande { grid-column:1 !important; align-self:stretch; min-height:180px; display:flex; align-items:stretch; }
+#complementoColab { grid-column:2 !important; }
 #colabFotoGrande img { width:100%; height:100%; max-height:320px; object-fit:cover; object-position:center 20%;
   border-radius:14px; border:2px solid var(--red); box-shadow:var(--shadow); display:block; }
 #colabFotoGrande .avatar { width:100%; height:100%; min-height:180px; border-radius:14px;
