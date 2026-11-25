@@ -182,8 +182,14 @@
       renderVagas();
     });
     $('#btnDesistir').addEventListener('click', function () { desistir($('#dIdentificador').value); });
+    var timerBusca = null;
+    $('#cMatricula').addEventListener('input', function () {
+      var valor = this.value; clearTimeout(timerBusca);
+      timerBusca = setTimeout(function () { buscarColaborador(valor); }, 400);
+    });
     $('#cMatricula').addEventListener('change', function () { buscarColaborador(this.value); });
     $('#cMatricula').addEventListener('blur', function () { buscarColaborador(this.value); });
+    $('#btnBuscarColab').addEventListener('click', function () { buscarColaborador($('#cMatricula').value); });
     $('#btnDesistirAqui').addEventListener('click', function () {
       if (ultimoRegistro) desistir(ultimoRegistro);
     });
@@ -207,7 +213,10 @@
       var auth = firebase.auth();
       try { await auth.signInWithEmailAndPassword(USER, PASS); } catch (e) { if (!auth.currentUser) throw e; }
       db = firebase.database(); sync(true, 'Conectado');
-      db.ref(PATH_INT).on('value', function (snap) { internos = snap.val() || {}; });
+      db.ref(PATH_INT).on('value', function (snap) {
+        internos = snap.val() || {};
+        atualizarDatalist(Object.keys(internos).map(function (k) { return Object.assign({ _k: k }, internos[k]); }));
+      });
       db.ref(PATH_CFG).on('value', function (snap) {
         var v = snap.val();
         cfgWeb = v || {};
@@ -273,28 +282,14 @@
     $('#dIdentificador').value = '';
     alerta('✅ Candidatura retirada. Você pode se candidatar novamente quando quiser.', 'ok');
   }
-  async function buscarColaborador(matricula) {
-    var chave = String(matricula || '').replace(/\D/g, '');
-    if (chave.length < 4) { colabEncontrado = null; return; }
-    if (!db) return;
-    var snap = await db.ref(PATH_INT).once('value');
-    internos = snap.val() || {};
-    var registro = null, rid = '';
-    Object.keys(internos).forEach(function (k) {
-      if (String(internos[k].matricula || '').replace(/\D/g, '') === chave) { registro = internos[k]; rid = k; }
-    });
-    if (!registro) {
-      colabEncontrado = null;
-      alerta('Matrícula não encontrada no efetivo. Confira o número.', 'warn');
-      return;
-    }
-    colabEncontrado = { id: rid, registro: registro };
+  function aplicarColaborador(registro) {
+    colabEncontrado = { id: registro._k, registro: registro };
     var preencher = function (id, valor) { var el = document.getElementById(id); if (el && valor) el.value = valor; };
     preencher('cNome', registro.name || registro.nome);
     preencher('cEmail', registro.email);
     preencher('cTel', registro.telefone);
     preencher('cCpf', registro.cpf ? mascaraCPF(registro.cpf) : '');
-    preencher('cNasc', registro.nascimento || registro.admissao);
+    preencher('cNasc', registro.nascimento);
     preencher('cCargo', registro.cargo || registro.funcao);
     preencher('cProfissao', registro.profissao || registro.cargo || registro.funcao);
     preencher('cCidade', registro.cidade);
@@ -311,8 +306,61 @@
     var aviso = document.getElementById('dadosPainel');
     if (aviso) {
       aviso.hidden = false; aviso.className = 'alert ok show';
-      aviso.innerHTML = '✅ Dados encontrados para <b>' + esc(registro.name || registro.nome || '') + '</b>. Confira e complete apenas o que falta.';
+      aviso.innerHTML = '✅ Dados de <b>' + esc(registro.name || registro.nome || '') + '</b> (matrícula ' +
+        esc(registro.matricula || '') + ') carregados. Confira e complete só o que falta.';
     }
+    var matches = document.getElementById('colabMatches'); if (matches) matches.hidden = true;
+    $('#cMatricula').value = String(registro.matricula || $('#cMatricula').value);
+    atualizarDatalist(Object.keys(internos).map(function (k) { return Object.assign({ _k: k }, internos[k]); }));
+  }
+  function atualizarDatalist(todos) {
+    var dl = document.getElementById('colaboradoresList'); if (!dl) return;
+    dl.innerHTML = todos.slice(0, 80).map(function (x) {
+      return '<option value="' + esc(String(x.matricula || '')) + '">' + esc(x.name || x.nome || '') + '</option>';
+    }).join('');
+  }
+  async function buscarColaborador(termo) {
+    var q = String(termo || '').trim();
+    if (q.length < 3) { colabEncontrado = null; return; }
+    if (!db) return;
+    var snap = await db.ref(PATH_INT).once('value');
+    internos = snap.val() || {};
+    var todos = Object.keys(internos).map(function (k) { return Object.assign({ _k: k }, internos[k]); });
+    atualizarDatalist(todos);
+    var digits = q.replace(/\D/g, ''), qq = norm(q);
+    var exatos = digits ? todos.filter(function (x) {
+      return String(x.matricula || '').replace(/\D/g, '') === digits;
+    }) : [];
+    var encontrados = exatos.length ? exatos : todos.filter(function (x) {
+      var mat = String(x.matricula || '').replace(/\D/g, '');
+      return (digits.length >= 3 && mat.indexOf(digits) >= 0) ||
+        (qq.length >= 3 && (norm(x.name || x.nome).indexOf(qq) >= 0 || norm(x.email).indexOf(qq) >= 0));
+    });
+    if (!encontrados.length) {
+      colabEncontrado = null;
+      var aviso = document.getElementById('dadosPainel');
+      if (aviso) { aviso.hidden = true; }
+      alerta('Nenhum colaborador encontrado para "' + esc(q) + '". Tente matrícula, nome ou e-mail.', 'warn');
+      return;
+    }
+    if (encontrados.length > 1 && !exatos.length) {
+      var box = document.getElementById('colabMatches');
+      if (box) {
+        box.hidden = false;
+        box.innerHTML = '<div class="sec-title">Vários colaboradores encontrados — escolha:</div>' +
+          encontrados.slice(0, 8).map(function (x) {
+            return '<button class="btn sm" type="button" data-colab="' + esc(x._k) + '">' +
+              esc(x.name || x.nome) + ' — ' + esc(x.matricula || '') + '</button>';
+          }).join(' ');
+        $$('#colabMatches [data-colab]').forEach(function (b) {
+          b.onclick = function () {
+            aplicarColaborador(encontrados.filter(function (x) { return x._k === b.getAttribute('data-colab'); })[0]);
+          };
+        });
+      }
+      return;
+    }
+    aplicarColaborador(encontrados[0]);
   }
   async function candidaturaInterna(matricula, vaga) {
     var chave = String(matricula || '').replace(/\D/g, '');
