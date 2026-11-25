@@ -223,7 +223,6 @@
       db = firebase.database(); sync(true, 'Conectado');
       db.ref(PATH_INT).on('value', function (snap) {
         internos = snap.val() || {};
-        atualizarDatalist(Object.keys(internos).map(function (k) { return Object.assign({ _k: k }, internos[k]); }));
       });
       db.ref(PATH_CFG).on('value', function (snap) {
         var v = snap.val();
@@ -329,61 +328,31 @@
     }
     var matches = document.getElementById('colabMatches'); if (matches) matches.hidden = true;
     $('#cMatricula').value = String(registro.matricula || $('#cMatricula').value);
-    atualizarDatalist(Object.keys(internos).map(function (k) { return Object.assign({ _k: k }, internos[k]); }));
-  }
-  function atualizarDatalist(todos) {
-    var dl = document.getElementById('colaboradoresList'); if (!dl) return;
-    dl.innerHTML = todos.slice(0, 80).map(function (x) {
-      return '<option value="' + esc(String(x.matricula || '')) + '">' + esc(x.name || x.nome || '') + '</option>';
-    }).join('');
   }
   async function buscarColaborador(termo) {
     var q = String(termo || '').trim();
-    if (q.length < 3) {
+    var digits = q.replace(/\D/g, '');
+    var limpar = function () {
       colabEncontrado = null;
-      var fg = document.getElementById('colabFotoGrande'); if (fg) fg.hidden = true;
-      return;
-    }
+      var aviso = document.getElementById('dadosPainel'); if (aviso) aviso.hidden = true;
+      var fg = document.getElementById('colabFotoGrande'); if (fg) { fg.hidden = true; fg.innerHTML = ''; }
+      var box = document.getElementById('colabMatches'); if (box) { box.hidden = true; box.innerHTML = ''; }
+    };
+    // Só aceita a matrícula completa — nunca mostra nomes de outros colaboradores
+    if (digits.length < 6) { limpar(); return; }
     if (!db) return;
     var snap = await db.ref(PATH_INT).once('value');
     internos = snap.val() || {};
-    var todos = Object.keys(internos).map(function (k) { return Object.assign({ _k: k }, internos[k]); });
-    atualizarDatalist(todos);
-    var digits = q.replace(/\D/g, ''), qq = norm(q);
-    var exatos = digits ? todos.filter(function (x) {
-      return String(x.matricula || '').replace(/\D/g, '') === digits;
-    }) : [];
-    var encontrados = exatos.length ? exatos : todos.filter(function (x) {
-      var mat = String(x.matricula || '').replace(/\D/g, '');
-      return (digits.length >= 3 && mat.indexOf(digits) >= 0) ||
-        (qq.length >= 3 && (norm(x.name || x.nome).indexOf(qq) >= 0 || norm(x.email).indexOf(qq) >= 0));
+    var registro = null, rid = '';
+    Object.keys(internos).forEach(function (k) {
+      if (String(internos[k].matricula || '').replace(/\D/g, '') === digits) { registro = internos[k]; rid = k; }
     });
-    if (!encontrados.length) {
-      colabEncontrado = null;
-      var aviso = document.getElementById('dadosPainel');
-      if (aviso) { aviso.hidden = true; }
-      var fg = document.getElementById('colabFotoGrande'); if (fg) { fg.hidden = true; fg.innerHTML = ''; }
-      alerta('Nenhum colaborador encontrado para "' + esc(q) + '". Tente matrícula, nome ou e-mail.', 'warn');
+    if (!registro) {
+      limpar();
+      alerta('Matrícula não encontrada. Confira os números digitados.', 'warn');
       return;
     }
-    if (encontrados.length > 1 && !exatos.length) {
-      var box = document.getElementById('colabMatches');
-      if (box) {
-        box.hidden = false;
-        box.innerHTML = '<div class="sec-title">Vários colaboradores encontrados — escolha:</div>' +
-          encontrados.slice(0, 8).map(function (x) {
-            return '<button class="btn sm" type="button" data-colab="' + esc(x._k) + '">' +
-              esc(x.name || x.nome) + ' — ' + esc(x.matricula || '') + '</button>';
-          }).join(' ');
-        $$('#colabMatches [data-colab]').forEach(function (b) {
-          b.onclick = function () {
-            aplicarColaborador(encontrados.filter(function (x) { return x._k === b.getAttribute('data-colab'); })[0]);
-          };
-        });
-      }
-      return;
-    }
-    aplicarColaborador(encontrados[0]);
+    aplicarColaborador(Object.assign({ _k: rid }, registro));
   }
   async function candidaturaInterna(matricula, vaga) {
     var chave = String(matricula || '').replace(/\D/g, '');

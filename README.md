@@ -58,7 +58,7 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
      e, se não houver match ≥ 40%, **2º talentos de fora** com o link do cadastro público;
    - campo **Matrícula** → abre o pré-cadastro do colaborador da casa;
    - candidatura interna sem duplicidade: no site público, o colaborador marca "Já sou colaborador",
-     informa matrícula (exata ou parcial), nome ou e-mail — com sugestões e botão Buscar — e tem os dados existentes preenchidos automaticamente (nome, e-mail,
+     informa a matrícula completa (sem lista de nomes: os dados só aparecem após a matrícula exata) e tem os existentes preenchidos automaticamente (nome, e-mail,
       telefone, CPF, nascimento, cargo, formação, certificações etc.), completando só o que falta — isso
      **atualiza o cadastro existente** em `talentos/internos/v1`; o gestor vê o interesse na vaga
      em **Gerenciar Vagas → 👥** e decide **Autorizar / Recusar** (com aviso por e-mail + WhatsApp pronto);

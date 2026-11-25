@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="talentos.css?v=18">
+<link rel="stylesheet" href="talentos.css?v=19">
 </head>
 <body>
 <div class="grid-fx"></div><div class="orb orb-1"></div><div class="orb orb-2"></div>
@@ -61,11 +61,10 @@
         </label>
         <label class="full" id="lblMatricula" hidden>Buscar colaborador
           <div class="toolbar" style="margin:4px 0 6px">
-            <input type="text" id="cMatricula" list="colaboradoresList" maxlength="80" placeholder="Matrícula, nome ou e-mail…" autocomplete="off">
-            <datalist id="colaboradoresList"></datalist>
+            <input type="text" id="cMatricula" maxlength="20" inputmode="numeric" placeholder="Digite sua matrícula completa" autocomplete="off">
             <button class="btn sm primary" id="btnBuscarColab" type="button">🔍 Buscar</button>
           </div>
-          <span class="hint" style="text-transform:none;letter-spacing:0">Comece a digitar: aparece a sugestão com matrícula e nome. Ou busque só pelo nome.</span>
+          <span class="hint" style="text-transform:none;letter-spacing:0">Seus dados só aparecem quando a matrícula exata for digitada.</span>
         </label>
         <div class="alert ok full" id="dadosPainel" hidden style="margin-bottom:10px">
           <span class="colab-foto" id="colabFoto"></span>
@@ -193,6 +192,6 @@
     </div>
   </div>
 </main>
-<script src="cadastro.js?v=18"></script>
+<script src="cadastro.js?v=19"></script>
 </body>
 </html>
