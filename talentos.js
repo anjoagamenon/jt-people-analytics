@@ -44,11 +44,25 @@
 
   var STATUS = ['Pendente', 'Em Triagem', 'Entrevista', 'Aprovado', 'Banco de Talentos', 'Contratado', 'Não selecionado', 'Colaborador ativo', 'Desligado'];
   var ETAPAS = [
-    { nome: 'Pendente', cls: 'entrada' }, { nome: 'Em Triagem', cls: 'triagem' },
-    { nome: 'Entrevista', cls: 'entrevista' }, { nome: 'Aprovado', cls: 'aprovado' },
-    { nome: 'Contratado', cls: 'contratado' }, { nome: 'Não selecionado', cls: 'fora' },
-    { nome: 'Colaborador ativo', cls: 'aprovado' }, { nome: 'Desligado', cls: 'fora' }
+    { nome: 'Pendente', cls: 'entrada', sla: 3 }, { nome: 'Em Triagem', cls: 'triagem', sla: 5 },
+    { nome: 'Entrevista', cls: 'entrevista', sla: 7 }, { nome: 'Aprovado', cls: 'aprovado', sla: 3 },
+    { nome: 'Contratado', cls: 'contratado', sla: 2 }, { nome: 'Não selecionado', cls: 'fora', sla: 0 },
+    { nome: 'Colaborador ativo', cls: 'aprovado', sla: 0 }, { nome: 'Desligado', cls: 'fora', sla: 0 }
   ];
+  function slaDaEtapa(nome) {
+    var e = ETAPAS.filter(function (x) { return x.nome === nome; })[0];
+    return e ? e.sla : 0;
+  }
+  function diasNaEtapa(p) {
+    var inicio = p.etapaEm || p.atualizadoEm || p.candidaturaEm || p.criadoEm;
+    if (!inicio) return 0;
+    var d = new Date(inicio); if (isNaN(d)) return 0;
+    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  }
+  function atrasado(p) {
+    var sla = slaDaEtapa(p.status || 'Pendente');
+    return sla > 0 && diasNaEtapa(p) > sla;
+  }
   var TRILHAS = [
     { nome: 'Operações', niveis: ['Auxiliar de Operações', 'Conferente', 'Operador de Empilhadeira', 'Líder de Turno', 'Supervisor Operacional', 'Coordenador de Operações'] },
     { nome: 'Logística / Tráfego', niveis: ['Assistente de Tráfego', 'Analista de Logística', 'Supervisor de Tráfego', 'Coordenador de Logística'] },
@@ -599,7 +613,7 @@
   /* ---------------- FUNIL INTEGRADO ---------------- */
   function moverEtapa(id, etapa) {
     var p = buscar(id); if (!p || (p.status || 'Pendente') === etapa) return;
-    var copia = Object.assign({}, p, { status: etapa, atualizadoEm: new Date().toISOString() });
+    var copia = Object.assign({}, p, { status: etapa, etapaEm: new Date().toISOString(), atualizadoEm: new Date().toISOString() });
     if (p.origem === 'Painel') DB.internos[id] = copia; else DB.cadastros[id] = copia;
     salvarCache(); render(); gravar(caminhoDe(p), copia);
     var primeiro = String(p.nome || '').trim().split(/\s+/)[0];
@@ -616,11 +630,28 @@
     var box = $('#funilPortal'); if (!box) return;
     var q = norm($('#ffBusca') ? $('#ffBusca').value : '');
     var origem = $('#ffOrigem') ? $('#ffOrigem').value : '';
+    var funcao = $('#ffFuncao') ? $('#ffFuncao').value : '';
+    var prazo = $('#ffPrazo') ? $('#ffPrazo').value : '';
+    var selFuncao = $('#ffFuncao');
+    if (selFuncao) {
+      var atual = selFuncao.value;
+      var funcoes = {};
+      lista().forEach(function (p) { var f = p.profissao || p.cargo; if (f) funcoes[f] = 1; });
+      var nomesF = Object.keys(funcoes).sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
+      selFuncao.innerHTML = '<option value="">Todas as funções</option>' + nomesF.map(function (f) {
+        return '<option value="' + esc(f) + '">' + esc(f) + '</option>';
+      }).join('');
+      selFuncao.value = atual;
+    }
     var l = lista().filter(function (p) {
-      return (!q || norm([p.nome, p.cargo, p.profissao, p.email].join(' ')).indexOf(q) >= 0) &&
-        (!origem || (origem === 'Painel' ? p.origem === 'Painel' : p.origem !== 'Painel'));
+      var f = p.profissao || p.cargo;
+      return (!q || norm([p.nome, f, p.email].join(' ')).indexOf(q) >= 0) &&
+        (!origem || (origem === 'Painel' ? p.origem === 'Painel' : p.origem !== 'Painel')) &&
+        (!funcao || f === funcao) &&
+        (!prazo || (prazo === 'atrasados' ? atrasado(p) : !atrasado(p)));
     });
-    if ($('#ffContador')) $('#ffContador').textContent = l.length + ' pessoa(s)';
+    var atrasados = l.filter(atrasado).length;
+    if ($('#ffContador')) $('#ffContador').textContent = l.length + ' pessoa(s)' + (atrasados ? ' • ' + atrasados + ' atrasado(s)' : '');
     box.innerHTML = ETAPAS.map(function (et) {
       var ps = l.filter(function (p) { return (p.status || 'Pendente') === et.nome; });
       return '<div class="fcol ' + et.cls + '" data-etapa="' + esc(et.nome) + '">' +
@@ -632,7 +663,9 @@
             esc(nomeCurto(p.nome)) + '</div><div class="fcard-role">' + esc(p.profissao || p.cargo || '—') + '</div></div></div>' +
             '<div class="fcard-meta"><span class="badge ' + (p.origem === 'Painel' ? 'blue' : 'green') + '">' +
             (p.origem === 'Painel' ? 'Casa' : 'Externo') + '</span>' +
-            (p.vagaTitulo ? '<span class="badge purple">' + esc(p.vagaTitulo) + '</span>' : '') + '</div>' +
+            (p.vagaTitulo ? '<span class="badge purple">' + esc(p.vagaTitulo) + '</span>' : '') +
+            (slaDaEtapa(et.nome) > 0 ? '<span class="badge ' + (atrasado(p) ? 'red' : diasNaEtapa(p) >= slaDaEtapa(et.nome) * 0.7 ? 'amber' : '') + '">' +
+              diasNaEtapa(p) + 'd / ' + slaDaEtapa(et.nome) + 'd' + (atrasado(p) ? ' ⚠' : '') + '</span>' : '') + '</div>' +
             '<div class="fcard-actions">' +
             '<button class="btn sm" data-mover="' + esc(p.id) + '" data-dir="-1"' + (i <= 0 ? ' disabled' : '') + '>◀</button>' +
             '<button class="btn sm primary" data-mover="' + esc(p.id) + '" data-dir="1"' + (i >= ETAPAS.length - 1 ? ' disabled' : '') + '>▶</button></div></div>';
@@ -665,8 +698,12 @@
     if (conv) conv.innerHTML = ETAPAS.slice(0, 5).map(function (et) {
       var n = l.filter(function (p) { return (p.status || 'Pendente') === et.nome; }).length;
       var pct = Math.round(n / total * 100);
-      return '<div class="conv"><b>' + esc(et.nome) + '</b><div class="conv-bar"><i style="width:' + pct + '%"></i></div><span>' + n + ' (' + pct + '%)</span></div>';
-    }).join('');
+      var media = n ? Math.round(l.filter(function (p) { return (p.status || 'Pendente') === et.nome; })
+        .reduce(function (s, p) { return s + diasNaEtapa(p); }, 0) / n) : 0;
+      return '<div class="conv"><b>' + esc(et.nome) + '</b><div class="conv-bar"><i style="width:' + pct + '%"></i></div>' +
+        '<span>' + n + ' (' + pct + '%)' + (et.sla ? ' • ' + media + 'd / ' + et.sla + 'd' : '') + '</span></div>';
+    }).join('') + '<div class="hint" style="margin-top:8px">Prazo por etapa: ' +
+      ETAPAS.filter(function (e) { return e.sla; }).map(function (e) { return esc(e.nome) + ' ' + e.sla + 'd'; }).join(' • ') + '</div>';
   }
   function renderCarreira() {
     var l = lista();
@@ -1151,7 +1188,7 @@
         if (aba === 'vagasconfig') renderVagasConfig();
       });
     });
-    ['ffBusca', 'ffOrigem'].forEach(function (id) {
+    ['ffBusca', 'ffOrigem', 'ffFuncao', 'ffPrazo'].forEach(function (id) {
       var el = $('#' + id); if (el) el.addEventListener('input', renderFunil);
     });
     ['fBusca', 'fUnidade', 'fOrigem', 'fStatus', 'fOrdem'].forEach(function (id) {

@@ -15,7 +15,7 @@
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
   var norm = function (s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); };
   var uid = function () { return 'JT-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, '0'); };
-  var db = null, fotoAtual = '', fotoColab = '', vagas = [], vagaSel = null, cfgWeb = {}, internos = {}, ultimoRegistro = null;
+  var db = null, fotoAtual = '', fotoColab = '', vagas = [], vagaSel = null, cfgWeb = {}, internos = {}, ultimoRegistro = null, colabEncontrado = null;
 
   function validarCPF(v) {
     var s = String(v || '').replace(/\D/g, '');
@@ -182,6 +182,8 @@
       renderVagas();
     });
     $('#btnDesistir').addEventListener('click', function () { desistir($('#dIdentificador').value); });
+    $('#cMatricula').addEventListener('change', function () { buscarColaborador(this.value); });
+    $('#cMatricula').addEventListener('blur', function () { buscarColaborador(this.value); });
     $('#btnDesistirAqui').addEventListener('click', function () {
       if (ultimoRegistro) desistir(ultimoRegistro);
     });
@@ -271,16 +273,59 @@
     $('#dIdentificador').value = '';
     alerta('✅ Candidatura retirada. Você pode se candidatar novamente quando quiser.', 'ok');
   }
-  async function candidaturaInterna(matricula, vaga) {
+  async function buscarColaborador(matricula) {
     var chave = String(matricula || '').replace(/\D/g, '');
-    if (!chave) return alerta('Informe a matrícula.', 'err');
-    if (!db) return alerta('Sem conexão com a base. Tente novamente.', 'err');
+    if (chave.length < 4) { colabEncontrado = null; return; }
+    if (!db) return;
     var snap = await db.ref(PATH_INT).once('value');
     internos = snap.val() || {};
     var registro = null, rid = '';
     Object.keys(internos).forEach(function (k) {
       if (String(internos[k].matricula || '').replace(/\D/g, '') === chave) { registro = internos[k]; rid = k; }
     });
+    if (!registro) {
+      colabEncontrado = null;
+      alerta('Matrícula não encontrada no efetivo. Confira o número.', 'warn');
+      return;
+    }
+    colabEncontrado = { id: rid, registro: registro };
+    var preencher = function (id, valor) { var el = document.getElementById(id); if (el && valor) el.value = valor; };
+    preencher('cNome', registro.name || registro.nome);
+    preencher('cEmail', registro.email);
+    preencher('cTel', registro.telefone);
+    preencher('cCpf', registro.cpf ? mascaraCPF(registro.cpf) : '');
+    preencher('cNasc', registro.nascimento || registro.admissao);
+    preencher('cCargo', registro.cargo || registro.funcao);
+    preencher('cProfissao', registro.profissao || registro.cargo || registro.funcao);
+    preencher('cCidade', registro.cidade);
+    preencher('cFormacaoExtra', typeof registro.formacao === 'string' ? registro.formacao : '');
+    preencher('cCertExtra', registro.certificacoes);
+    preencher('cIdiomasExtra', registro.idiomas);
+    preencher('cSkillsExtra', registro.habilidades);
+    preencher('cLinkedinExtra', registro.linkedin);
+    if (registro.sexo) {
+      var sx = document.getElementById('cSexo'); sx.value = registro.sexo;
+      sx.dispatchEvent(new Event('change', { bubbles: true }));
+      preencher('cMilitar', registro.situacaoMilitar);
+    }
+    var aviso = document.getElementById('dadosPainel');
+    if (aviso) {
+      aviso.hidden = false; aviso.className = 'alert ok show';
+      aviso.innerHTML = '✅ Dados encontrados para <b>' + esc(registro.name || registro.nome || '') + '</b>. Confira e complete apenas o que falta.';
+    }
+  }
+  async function candidaturaInterna(matricula, vaga) {
+    var chave = String(matricula || '').replace(/\D/g, '');
+    if (!chave) return alerta('Informe a matrícula.', 'err');
+    if (!db) return alerta('Sem conexão com a base. Tente novamente.', 'err');
+    var registro = colabEncontrado ? colabEncontrado.registro : null, rid = colabEncontrado ? colabEncontrado.id : '';
+    if (!registro) {
+      var snap = await db.ref(PATH_INT).once('value');
+      internos = snap.val() || {};
+      Object.keys(internos).forEach(function (k) {
+        if (String(internos[k].matricula || '').replace(/\D/g, '') === chave) { registro = internos[k]; rid = k; }
+      });
+    }
     if (!registro) return alerta('Matrícula não encontrada no efetivo. Confira o número digitado.', 'err');
     var titulo = vaga ? vaga.titulo : vagaSel;
     var ja = (registro.candidaturas || []).filter(function (c) { return c.vagaId === vagaSel && /aguardando/i.test(c.status); })[0];

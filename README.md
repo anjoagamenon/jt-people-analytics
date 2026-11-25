@@ -58,7 +58,8 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
      e, se não houver match ≥ 40%, **2º talentos de fora** com o link do cadastro público;
    - campo **Matrícula** → abre o pré-cadastro do colaborador da casa;
    - candidatura interna sem duplicidade: no site público, o colaborador marca "Já sou colaborador",
-     informa a matrícula e pode complementar formação/certos/idiomas/habilidades/foto — isso
+     informa a matrícula e tem os dados existentes preenchidos automaticamente (nome, e-mail,
+      telefone, CPF, nascimento, cargo, formação, certificações etc.), completando só o que falta — isso
      **atualiza o cadastro existente** em `talentos/internos/v1`; o gestor vê o interesse na vaga
      em **Gerenciar Vagas → 👥** e decide **Autorizar / Recusar** (com aviso por e-mail + WhatsApp pronto);
    - **sem segunda senha**: ao desbloquear o painel principal, portal e funil entram direto
@@ -81,7 +82,9 @@ em **outro site**, e os dados chegam a esta tela em tempo real via Firebase.
    Grava em `talentos/cadastros/v1` com `vagaId`/`vagaTitulo` e histórico `notificacoes`.
 8. **Funil de Talentos** (`funil.html`): colunas por etapa (Pendente → Triagem → Entrevista →
    Aprovado → Contratado, além de Não selecionado / Colaborador ativo / Desligado), arrastar
-   cards e taxas de conversão.
+   cards, prazo por etapa (Pendente 3d, Triagem 5d, Entrevista 7d, Aprovado 3d, Contratado 2d),
+   badge "dias / prazo" com alerta de atraso, filtro **Só atrasados** e filtro por **função/cargo**;
+   taxas de conversão e tempo médio por etapa.
 9. **Notificações (sem depender de um único canal)**: a cada mudança de etapa, ou quando o
    gestor usa "Enviar mensagem" no perfil, o sistema **registra a notificação no painel**
    (badge 🔔 com histórico). O **e-mail é automático** via GmailApp. O **WhatsApp é manual**:

@@ -11,11 +11,19 @@
   var USER = 'salvadosjetmrb@gmail.com', PASS = 'jetexpress10', GATE = 'jetexpress10';
   var PATH_CAD = 'talentos/cadastros/v1', PATH_INT = 'talentos/internos/v1';
   var ETAPAS = [
-    { nome: 'Pendente', cls: 'entrada' }, { nome: 'Em Triagem', cls: 'triagem' },
-    { nome: 'Entrevista', cls: 'entrevista' }, { nome: 'Aprovado', cls: 'aprovado' },
-    { nome: 'Contratado', cls: 'contratado' }, { nome: 'Não selecionado', cls: 'fora' },
-    { nome: 'Colaborador ativo', cls: 'aprovado' }, { nome: 'Desligado', cls: 'fora' }
+    { nome: 'Pendente', cls: 'entrada', sla: 3 }, { nome: 'Em Triagem', cls: 'triagem', sla: 5 },
+    { nome: 'Entrevista', cls: 'entrevista', sla: 7 }, { nome: 'Aprovado', cls: 'aprovado', sla: 3 },
+    { nome: 'Contratado', cls: 'contratado', sla: 2 }, { nome: 'Não selecionado', cls: 'fora', sla: 0 },
+    { nome: 'Colaborador ativo', cls: 'aprovado', sla: 0 }, { nome: 'Desligado', cls: 'fora', sla: 0 }
   ];
+  function slaDaEtapa(nome) { var e = ETAPAS.filter(function (x) { return x.nome === nome; })[0]; return e ? e.sla : 0; }
+  function diasNaEtapa(p) {
+    var inicio = p.etapaEm || p.atualizadoEm || p.candidaturaEm || p.criadoEm;
+    if (!inicio) return 0;
+    var d = new Date(inicio); if (isNaN(d)) return 0;
+    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  }
+  function atrasado(p) { var sla = slaDaEtapa(p.status || 'Pendente'); return sla > 0 && diasNaEtapa(p) > sla; }
   var $ = function (s) { return document.querySelector(s); };
   var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
   var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
@@ -83,14 +91,27 @@
   function filtrar() {
     var q = norm($('#fBusca') ? $('#fBusca').value : '');
     var o = $('#fOrigem') ? $('#fOrigem').value : '', u = $('#fUnidade') ? $('#fUnidade').value : '';
+    var f = $('#fFuncao') ? $('#fFuncao').value : '', prazo = $('#fPrazo') ? $('#fPrazo').value : '';
+    var sel = $('#fFuncao');
+    if (sel) {
+      var atual = sel.value, funcoes = {};
+      lista().forEach(function (p) { var x = p.profissao || p.cargo; if (x) funcoes[x] = 1; });
+      sel.innerHTML = '<option value="">Todas as funções</option>' + Object.keys(funcoes).sort(function (a, b) {
+        return a.localeCompare(b, 'pt-BR');
+      }).map(function (x) { return '<option value="' + esc(x) + '">' + esc(x) + '</option>'; }).join('');
+      sel.value = atual;
+    }
     return lista().filter(function (p) {
-      return (!q || norm([p.nome, p.cargo, p.profissao, p.email].join(' ')).indexOf(q) >= 0) &&
-        (!o || (o === 'Painel' ? p.origem === 'Painel' : p.origem !== 'Painel')) && (!u || p.unidade === u);
+      var funcao = p.profissao || p.cargo;
+      return (!q || norm([p.nome, funcao, p.email].join(' ')).indexOf(q) >= 0) &&
+        (!o || (o === 'Painel' ? p.origem === 'Painel' : p.origem !== 'Painel')) && (!u || p.unidade === u) &&
+        (!f || funcao === f) &&
+        (!prazo || (prazo === 'atrasados' ? atrasado(p) : !atrasado(p)));
     });
   }
   function render() {
     var l = filtrar();
-    if ($('#contador')) $('#contador').textContent = l.length + ' pessoa(s) no funil';
+    if ($('#contador')) $('#contador').textContent = l.length + ' pessoa(s) no funil' + (l.filter(atrasado).length ? ' • ' + l.filter(atrasado).length + ' atrasado(s)' : '');
     var kpi = [
       ['No funil', l.length, ''],
       ['Aguardando', l.filter(function (p) { return /pendente/i.test(p.status || ''); }).length, 'warn'],
@@ -137,8 +158,12 @@
     $('#conversao').innerHTML = ETAPAS.slice(0, 5).map(function (et, i) {
       var n = l.filter(function (p) { return (p.status || 'Pendente') === et.nome; }).length;
       var pct = Math.round(n / total * 100);
-      return '<div class="conv"><b>' + esc(et.nome) + '</b><div class="conv-bar"><i style="width:' + pct + '%"></i></div><span>' + n + ' (' + pct + '%)</span></div>';
-    }).join('');
+      var media = n ? Math.round(l.filter(function (p) { return (p.status || 'Pendente') === et.nome; })
+        .reduce(function (s, p) { return s + diasNaEtapa(p); }, 0) / n) : 0;
+      return '<div class="conv"><b>' + esc(et.nome) + '</b><div class="conv-bar"><i style="width:' + pct + '%"></i></div>' +
+        '<span>' + n + ' (' + pct + '%)' + (et.sla ? ' • ' + media + 'd / ' + et.sla + 'd' : '') + '</span></div>';
+    }).join('') + '<div class="hint" style="margin-top:8px">Prazo por etapa: ' +
+      ETAPAS.filter(function (e) { return e.sla; }).map(function (e) { return esc(e.nome) + ' ' + e.sla + 'd'; }).join(' • ') + '</div>';
   }
   function card(p) {
     var i = ETAPAS.map(function (x) { return x.nome; }).indexOf(p.status || 'Pendente');
@@ -147,7 +172,9 @@
       '<div class="fcard-role">' + esc(p.profissao || p.cargo || '—') + '</div></div></div>' +
       '<div class="fcard-meta"><span class="badge ' + (p.origem === 'Painel' ? 'blue' : 'green') + '">' +
       (p.origem === 'Painel' ? 'Casa' : 'Externo') + '</span><span class="badge">' + esc(p.unidade) + '</span>' +
-      (p.vagaTitulo ? '<span class="badge purple">' + esc(p.vagaTitulo) + '</span>' : '') + '</div>' +
+      (p.vagaTitulo ? '<span class="badge purple">' + esc(p.vagaTitulo) + '</span>' : '') +
+      (slaDaEtapa(etapa) > 0 ? '<span class="badge ' + (atrasado(p) ? 'red' : diasNaEtapa(p) >= slaDaEtapa(etapa) * 0.7 ? 'amber' : '') + '">' +
+        diasNaEtapa(p) + 'd / ' + slaDaEtapa(etapa) + 'd' + (atrasado(p) ? ' ⚠' : '') + '</span>' : '') + '</div>' +
       '<div class="fcard-actions">' +
       '<button class="btn sm" data-id="' + esc(p.id) + '" data-dir="-1" title="Voltar etapa"' + (i <= 0 ? ' disabled' : '') + '>◀</button>' +
       '<button class="btn sm primary" data-id="' + esc(p.id) + '" data-dir="1" title="Avançar etapa"' + (i >= ETAPAS.length - 1 ? ' disabled' : '') + '>▶</button></div></div>';
@@ -241,7 +268,7 @@
        etapa === 'Não selecionado' ? 'Agradecemos seu interesse. Desejamos sucesso na sua jornada!' :
        'Continuamos acompanhando seu perfil. Obrigado!') +
       '\n\n— Equipe de Gestão de Pessoas J&T Express';
-    var copia = Object.assign({}, p, { status: etapa, atualizadoEm: new Date().toISOString() });
+    var copia = Object.assign({}, p, { status: etapa, etapaEm: new Date().toISOString(), atualizadoEm: new Date().toISOString() });
     if (p.origem === 'Painel') DB.internos[id] = copia; else DB.cadastros[id] = copia;
     salvar(); render();
     var path = (p.origem === 'Painel' ? PATH_INT : PATH_CAD) + '/' + id;
@@ -326,6 +353,8 @@
     $('#fBusca').addEventListener('input', render);
     $('#fOrigem').addEventListener('input', render);
     $('#fUnidade').addEventListener('input', render);
+    $('#fFuncao').addEventListener('input', render);
+    $('#fPrazo').addEventListener('input', render);
     render(); renderNotify(); initFirebase().then(function () { render(); renderNotify(); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
