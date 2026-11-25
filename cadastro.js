@@ -201,6 +201,10 @@
       var sim = this.checked;
       $('#lblMatricula').hidden = !sim;
       $('#complementoColab').hidden = !sim;
+      var fg = document.getElementById('colabFotoGrande');
+      if (fg) { fg.hidden = true; fg.innerHTML = ''; }
+      var av = document.getElementById('dadosPainel'); if (av) av.hidden = true;
+      colabEncontrado = null;
       ['#cNome', '#cEmail', '#cTel', '#cCargo'].forEach(function (id) { $(id).required = !sim; });
       if (sim) $('#cMatricula').focus();
     });
@@ -312,11 +316,12 @@
       var nomeC = registro.name || registro.nome || '';
       var foto = String(registro.foto || registro.avatar || registro.fotoBase64 || '').trim();
       var elFoto = document.getElementById('colabFoto');
-      if (elFoto) {
-        elFoto.innerHTML = (foto && /^(data:image|https?:\/\/)/.test(foto))
-          ? '<img src="' + esc(foto) + '" alt="Foto de ' + esc(nomeC) + '">'
-          : '<div class="avatar"><div class="initials">' + esc(iniciaisCurto(nomeC)) + '</div></div>';
-      }
+      var htmlFoto = (foto && /^(data:image|https?:\/\/)/.test(foto))
+        ? '<img src="' + esc(foto) + '" alt="Foto de ' + esc(nomeC) + '">'
+        : '<div class="avatar"><div class="initials">' + esc(iniciaisCurto(nomeC)) + '</div></div>';
+      if (elFoto) elFoto.innerHTML = htmlFoto;
+      var fotoGrande = document.getElementById('colabFotoGrande');
+      if (fotoGrande) { fotoGrande.hidden = false; fotoGrande.innerHTML = htmlFoto; }
       var elNome = document.getElementById('colabNome'), elMat = document.getElementById('colabMat');
       if (elNome) elNome.textContent = '✅ ' + nomeC + ' — dados carregados';
       if (elMat) elMat.textContent = 'Matrícula ' + (registro.matricula || '') + ' • confira e complete só o que falta';
@@ -334,7 +339,11 @@
   }
   async function buscarColaborador(termo) {
     var q = String(termo || '').trim();
-    if (q.length < 3) { colabEncontrado = null; return; }
+    if (q.length < 3) {
+      colabEncontrado = null;
+      var fg = document.getElementById('colabFotoGrande'); if (fg) fg.hidden = true;
+      return;
+    }
     if (!db) return;
     var snap = await db.ref(PATH_INT).once('value');
     internos = snap.val() || {};
@@ -353,6 +362,7 @@
       colabEncontrado = null;
       var aviso = document.getElementById('dadosPainel');
       if (aviso) { aviso.hidden = true; }
+      var fg = document.getElementById('colabFotoGrande'); if (fg) { fg.hidden = true; fg.innerHTML = ''; }
       alerta('Nenhum colaborador encontrado para "' + esc(q) + '". Tente matrícula, nome ou e-mail.', 'warn');
       return;
     }
