@@ -17,6 +17,10 @@
   var uid = function () { return 'JT-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, '0'); };
   var db = null, fotoAtual = '', fotoColab = '', vagas = [], vagaSel = null, cfgWeb = {}, internos = {}, ultimoRegistro = null, colabEncontrado = null;
 
+  function iniciaisCurto(n) {
+    var p = String(n || '').trim().split(/\s+/).filter(Boolean);
+    return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase();
+  }
   function validarCPF(v) {
     var s = String(v || '').replace(/\D/g, '');
     if (s.length !== 11 || /^(\d)\1{10}$/.test(s)) return false;
@@ -305,9 +309,18 @@
     }
     var aviso = document.getElementById('dadosPainel');
     if (aviso) {
+      var nomeC = registro.name || registro.nome || '';
+      var foto = String(registro.foto || registro.avatar || registro.fotoBase64 || '').trim();
+      var elFoto = document.getElementById('colabFoto');
+      if (elFoto) {
+        elFoto.innerHTML = (foto && /^(data:image|https?:\/\/)/.test(foto))
+          ? '<img src="' + esc(foto) + '" alt="Foto de ' + esc(nomeC) + '">'
+          : '<div class="avatar"><div class="initials">' + esc(iniciaisCurto(nomeC)) + '</div></div>';
+      }
+      var elNome = document.getElementById('colabNome'), elMat = document.getElementById('colabMat');
+      if (elNome) elNome.textContent = '✅ ' + nomeC + ' — dados carregados';
+      if (elMat) elMat.textContent = 'Matrícula ' + (registro.matricula || '') + ' • confira e complete só o que falta';
       aviso.hidden = false; aviso.className = 'alert ok show';
-      aviso.innerHTML = '✅ Dados de <b>' + esc(registro.name || registro.nome || '') + '</b> (matrícula ' +
-        esc(registro.matricula || '') + ') carregados. Confira e complete só o que falta.';
     }
     var matches = document.getElementById('colabMatches'); if (matches) matches.hidden = true;
     $('#cMatricula').value = String(registro.matricula || $('#cMatricula').value);

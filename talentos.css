@@ -103,6 +103,12 @@ textarea{resize:vertical;min-height:70px}
 .foto-preview{width:96px;height:96px;object-fit:cover;border-radius:14px;border:2px solid var(--red);margin-top:10px;box-shadow:var(--shadow)}
 .foto-preview[hidden]{display:none}
 #lblProfissaoOutra[hidden],#lblMatricula[hidden],#complementoColab[hidden],#lblMilitar[hidden],#colabMatches[hidden]{display:none}
+#dadosPainel.show { display:flex !important; align-items:center; gap:10px; padding:7px 10px !important; font-size:12px !important; align-self:start; }
+#dadosPainel .colab-foto { flex:0 0 44px; }
+#dadosPainel .colab-foto img, #dadosPainel .colab-foto .avatar { width:44px; height:44px; border-radius:10px; object-fit:cover; display:block; }
+#dadosPainel .hint { font-size:11px; }
+#colabMatches { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+#colabMatches .sec-title { width:100%; }
 .check{display:flex;flex-direction:row;align-items:flex-start;gap:9px;text-transform:none;letter-spacing:0;font-size:12px;cursor:pointer}
 .check input{width:16px;height:16px;flex:0 0 16px;margin-top:2px;accent-color:var(--red)}
 .check a{color:var(--red);font-weight:700;text-decoration:underline}
