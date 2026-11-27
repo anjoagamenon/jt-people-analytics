@@ -627,12 +627,13 @@
 
     // Emblema no retângulo branco à direita da eficiência (G8:H11)
     const eb = box(7, 8, 8, 11);
+    const side = Math.max(1, Math.min(eb.width, eb.height) - 4);
     const emblema = document.createElement('img');
     emblema.src = 'emblema.png';
     emblema.alt = '';
-    emblema.style.cssText = 'position:absolute;left:' + eb.left + 'px;top:' + eb.top +
-      'px;width:' + eb.width + 'px;height:' + eb.height +
-      'px;object-fit:contain;pointer-events:none;';
+    emblema.style.cssText = 'position:absolute;left:' + (eb.left + (eb.width - side) / 2) +
+      'px;top:' + (eb.top + (eb.height - side) / 2) +
+      'px;width:' + side + 'px;height:' + side + 'px;pointer-events:none;';
     rep.appendChild(emblema);
 
     reportEl = rep;
