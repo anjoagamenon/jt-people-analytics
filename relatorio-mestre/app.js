@@ -613,6 +613,7 @@
       el.style.font = `${st.font.italic ? 'italic ' : ''}${st.font.bold ? 'bold ' : ''}${(st.font.size * 96 / 72).toFixed(2)}px ${FONT}`;
       el.style.color = st.font.color;
       el.style.justifyContent = st.align.h === 'center' ? 'center' : (st.align.h === 'right' ? 'flex-end' : 'flex-start');
+      if (ref === 'E19') el.style.justifyContent = 'flex-start'; // "NÃO" alinhado à esquerda, como as demais linhas
       el.style.alignItems = st.align.v === 'top' ? 'flex-start' : (st.align.v === 'bottom' ? 'flex-end' : 'center');
 
       const span = document.createElement('span');
