@@ -203,8 +203,16 @@
       $('#complementoColab').hidden = !sim;
       var fg = document.getElementById('colabFotoGrande');
       if (fg) { fg.hidden = true; fg.innerHTML = ''; }
-      var av = document.getElementById('dadosPainel'); if (av) av.hidden = true;
+      var av = document.getElementById('dadosPainel'); if (av) { av.hidden = true; av.className = 'alert ok'; }
+      var matches = document.getElementById('colabMatches'); if (matches) { matches.hidden = true; matches.innerHTML = ''; }
       colabEncontrado = null;
+      // Ao desmarcar, limpa os dados que vieram do painel para começar um cadastro novo
+      if (!sim) {
+        ['#cMatricula', '#cNome', '#cEmail', '#cTel', '#cCpf', '#cNasc', '#cCargo', '#cProfissao',
+         '#cCidade', '#cSexo', '#cMilitar', '#cFormacaoExtra', '#cCertExtra', '#cIdiomasExtra',
+         '#cSkillsExtra', '#cLinkedinExtra'].forEach(function (id) { var el = $(id); if (el) el.value = ''; });
+        var ml = document.getElementById('lblMilitar'); if (ml) ml.hidden = true;
+      }
       ['#cNome', '#cEmail', '#cTel', '#cCargo'].forEach(function (id) { $(id).required = !sim; });
       if (sim) $('#cMatricula').focus();
     });
