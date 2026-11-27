@@ -16,9 +16,20 @@ html[data-theme="dark"]{
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
-  background:var(--bg); color:var(--ink);
+  margin:0;
+  min-height:100vh;
+  background-color:var(--bg);
+  background-image:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.62)),url('background.webp');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  color:var(--ink);
   font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
   font-size:15px; line-height:1.55; overflow-x:hidden;
+}
+html[data-theme="dark"] body {
+  background-image:linear-gradient(rgba(5,7,15,.62),rgba(5,7,15,.7)),url('background.webp');
 }
 .grid-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:linear-gradient(rgba(230,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(230,0,0,.05) 1px,transparent 1px);
@@ -30,8 +41,8 @@ body{
 
 /* ---------- TOPO ---------- */
 header.hud{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:9px 22px;background:color-mix(in srgb,var(--white) 92%,transparent);backdrop-filter:blur(10px);
-  border-bottom:2px solid var(--red);box-shadow:0 2px 12px rgba(20,20,30,.06)}
+  padding:9px 22px;background:rgba(255,255,255,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:2px solid var(--red);box-shadow:0 4px 18px rgba(120,0,0,.14)}
 .hud-brand{display:flex;align-items:center;gap:12px}
 .hud-logo{height:40px;display:block}
 .hud-logo-talentos{height:46px;width:46px;object-fit:contain;border-radius:10px}
@@ -65,7 +76,9 @@ html[data-theme="dark"] .tab{background:#131b31;border-color:rgba(255,70,95,.3);
 html[data-theme="dark"] .tab.active{background:#ff2e4c;border-color:#ff2e4c;box-shadow:0 0 12px rgba(255,46,76,.5)}
 
 /* ---------- PAINÉIS ---------- */
-.panel{position:relative;background:var(--white);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel{position:relative;background:rgba(255,255,255,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.75);border-radius:18px;padding:16px 18px;box-shadow:0 8px 32px rgba(120,0,0,.14);margin-bottom:16px;overflow:hidden}
+html[data-theme="dark"] .panel{background:rgba(17,24,39,.72);border-color:rgba(255,255,255,.12)}
 .panel-accent{position:absolute;top:0;left:18px;right:18px;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--red),var(--red-soft),transparent)}
 .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .panel-title{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
@@ -133,7 +146,9 @@ textarea{resize:vertical;min-height:70px}
 .toolbar input[type=search]{max-width:320px}
 .toolbar select{max-width:180px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow);cursor:pointer;transition:.18s;position:relative}
+.card{background:rgba(255,255,255,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.8);border-radius:14px;padding:13px 14px;box-shadow:0 6px 20px rgba(120,0,0,.12);cursor:pointer;transition:.18s;position:relative}
+html[data-theme="dark"] .card{background:rgba(17,24,39,.78);border-color:rgba(255,255,255,.12)}
 .card:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 12px 26px rgba(20,20,30,.12)}
 .card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--red),var(--red-soft));color:#fff;
@@ -199,7 +214,8 @@ table.tbl tbody tr:hover{background:color-mix(in srgb,var(--red) 5%,transparent)
 /* ---------- 9-BOX ---------- */
 /* ---------- FUNIL DE TALENTOS ---------- */
 .funil{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;align-items:stretch}
-.fcol{flex:0 0 232px;min-height:340px;background:color-mix(in srgb,var(--bg) 75%,var(--white));border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column}
+.fcol{flex:0 0 232px;min-height:340px;background:rgba(255,255,255,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.8);border-radius:14px;padding:10px;display:flex;flex-direction:column}
 .fcol.entrada{border-top:4px solid var(--amber)} .fcol.triagem{border-top:4px solid var(--blue)}
 .fcol.entrevista{border-top:4px solid var(--purple)} .fcol.aprovado{border-top:4px solid var(--green)}
 .fcol.contratado{border-top:4px solid var(--red)} .fcol.fora{border-top:4px solid var(--gray)}

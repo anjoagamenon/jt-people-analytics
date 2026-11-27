@@ -1493,6 +1493,15 @@ html[data-holiday="natal"] { --red: #15803d; --red-dark: #166534; --red-soft: #2
 #pmObsAI, #pmObsSave { padding: 7px 12px !important; font-size: 11px !important; font-weight: 600 !important;
   text-transform: none !important; letter-spacing: 0 !important; }
 #pmObsSave { background: var(--red) !important; color: #fff !important; }
+
+/* ===== PAPEL DE PAREDE + VIDRO (painel principal) ===== */
+body { background-image:linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.92)),url('background.webp');
+  background-size:cover; background-position:center; background-repeat:no-repeat; background-attachment:fixed; }
+html[data-theme="dark"] body { background-image:linear-gradient(rgba(5,7,15,.88),rgba(5,7,15,.9)),url('background.webp'); }
+header.hud { background:rgba(255,255,255,.62) !important; backdrop-filter:blur(18px); }
+html[data-theme="dark"] header.hud { background:rgba(5,7,15,.62) !important; }
+.panel { background:rgba(255,255,255,.82) !important; backdrop-filter:blur(10px); }
+html[data-theme="dark"] .panel { background:rgba(19,27,49,.82) !important; }
 </style>
 
 <div class="pmodal" id="birthdayModal" hidden>
