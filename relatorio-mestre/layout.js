@@ -944,6 +944,7 @@ window.LAYOUT = {
    "s": 4,
    "n": 10
   },
+  "F8": { "s": 4 }, "G8": { "s": 4 }, "H8": { "s": 4 }, "G9": { "s": 4 }, "H9": { "s": 4 }, "G10": { "s": 4 }, "H10": { "s": 4 },
   "A11": {
    "s": 29
   },
@@ -1164,9 +1165,9 @@ window.LAYOUT = {
    "c2": 8,
    "r2": 11,
    "border": {
-    "top": null,
-    "right": null,
-    "bottom": null,
+    "top": "1px solid #000000",
+    "right": "1px solid #000000",
+    "bottom": "1px solid #000000",
     "left": "1px solid #000000"
    }
   },
